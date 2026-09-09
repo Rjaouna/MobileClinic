@@ -1,0 +1,147 @@
+{% set form_data = data|default({}) %}
+{% set slot_days = slot_days|default([]) %}
+{% set initial_step = form_data.slot|default('') ? 2 : (form_data.email|default('') ? 1 : 0) %}
+
+<form
+    class="modal-form appointment-modal-form booking-wizard"
+    action="{{ action|default(path('app_public_appointment_create')) }}"
+    method="{{ method|default('post') }}"
+    data-booking-wizard
+    data-booking-initial-step="{{ initial_step }}"
+    data-phone-check-url="{{ path('app_public_appointment_phone_check') }}"
+>
+    <input type="hidden" name="_token" value="{{ csrf_token('create_appointment') }}">
+    <input type="hidden" name="_redirect_to" value="{{ redirect_to|default('home') }}">
+
+    {% if errors|default([]) is not empty %}
+        <div class="form-alert form-alert--error">
+            {% for error in errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="booking-wizard__progress" aria-label="Étapes de réservation">
+        <span class="booking-wizard__step is-active" data-booking-step-indicator="0">
+            <strong>1</strong>
+            Réparation
+        </span>
+        <span class="booking-wizard__step" data-booking-step-indicator="1">
+            <strong>2</strong>
+            Coordonnées
+        </span>
+        <span class="booking-wizard__step" data-booking-step-indicator="2">
+            <strong>3</strong>
+            Créneau
+        </span>
+    </div>
+
+    <section class="booking-step" data-booking-step="0" aria-label="Informations de réparation">
+        <div class="booking-step__heading">
+            <h3>Votre réparation</h3>
+            <p>Indiquez l’appareil, le problème et le numéro à rappeler si besoin.</p>
+        </div>
+
+        <div class="modal-form__grid">
+            <div class="field-group">
+                <label for="appointment-modal-device">Appareil</label>
+                <select id="appointment-modal-device" name="device" data-modal-initial-focus required>
+                    {% for device in devices|default([]) %}
+                        <option value="{{ device.value }}" {% if form_data.device|default('') == device.value %}selected{% endif %}>{{ device.label == 'Choisir un appareil' ? 'Choisir' : device.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group">
+                <label for="appointment-modal-problem">Problème</label>
+                <select id="appointment-modal-problem" name="problem" required>
+                    {% for problem in problems|default([]) %}
+                        <option value="{{ problem.value }}" {% if form_data.problem|default('') == problem.value %}selected{% endif %}>{{ problem.label == 'Choisir un problème' ? 'Choisir' : problem.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field-group field-group--wide">
+                <label for="appointment-modal-phone">Numéro de téléphone</label>
+                <input id="appointment-modal-phone" type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="06 00 00 00 00" value="{{ form_data.phone|default('') }}" data-booking-phone required>
+            </div>
+        </div>
+
+        <div class="form-alert form-alert--error booking-phone-alert" data-booking-phone-alert hidden>
+            <p data-booking-phone-message>Ce numéro de téléphone existe déjà.</p>
+            <a class="text-link" href="{{ path('app_login') }}" data-booking-phone-login>Se connecter pour prendre rendez-vous</a>
+        </div>
+    </section>
+
+    <section class="booking-step" data-booking-step="1" aria-label="Coordonnées client">
+        <div class="booking-step__heading">
+            <h3>Vos coordonnées</h3>
+            <p>Votre espace client sera créé automatiquement si cette adresse email n’existe pas encore.</p>
+        </div>
+
+        <div class="modal-form__grid">
+            <div class="field-group field-group--wide">
+                <label for="appointment-modal-email">Adresse email</label>
+                <input id="appointment-modal-email" type="email" name="email" autocomplete="email" placeholder="vous@email.fr" value="{{ form_data.email|default(customer_email|default('')) }}" required>
+            </div>
+
+            <div class="field-group field-group--wide">
+                <label for="appointment-modal-note">Message pour l’équipe</label>
+                <textarea id="appointment-modal-note" name="customer_note" rows="3" placeholder="Ex. disponibilité, modèle exact, urgence...">{{ form_data.customer_note|default('') }}</textarea>
+            </div>
+        </div>
+    </section>
+
+    <section class="booking-step" data-booking-step="2" aria-label="Choix du créneau">
+        <div class="booking-step__heading">
+            <h3>Jour et horaire</h3>
+            <p>Sélectionnez une journée, puis un créneau encore disponible.</p>
+        </div>
+
+        {% include 'components/_slot_picker.html.twig' with {
+            id: 'appointment-modal-slot',
+            name: 'slot',
+            label: 'Jours disponibles',
+            slot_days: slot_days,
+            selected_slot: form_data.slot|default('')
+        } only %}
+    </section>
+
+    <p class="modal-notice">
+        Après validation, votre compte client est créé automatiquement si l’adresse email n’existe pas encore. Le mot de passe temporaire sera affiché dans votre espace.
+    </p>
+
+    <div class="booking-wizard__footer">
+        {% include 'components/_button.html.twig' with {
+            label: 'Retour',
+            variant: 'secondary',
+            type: 'button',
+            class: 'booking-wizard__back',
+            attributes: {
+                'data-booking-prev': true,
+                'hidden': true
+            }
+        } only %}
+
+        {% include 'components/_button.html.twig' with {
+            label: 'Continuer',
+            variant: 'primary',
+            type: 'button',
+            class: 'booking-wizard__next',
+            attributes: {
+                'data-booking-next': true
+            }
+        } only %}
+
+        {% include 'components/_button.html.twig' with {
+            label: 'Confirmer la demande',
+            variant: 'primary',
+            type: 'submit',
+            class: 'modal-form__submit booking-wizard__submit',
+            disabled: slot_days is empty,
+            attributes: {
+                'data-booking-submit': true
+            }
+        } only %}
+    </div>
+</form>

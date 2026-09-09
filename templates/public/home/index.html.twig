@@ -1,0 +1,190 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SymClinic - Réparation mobile sans attente{% endblock %}
+{% block meta_description %}Réservez une réparation mobile, mettez un article de côté et retrouvez vos avantages fidélité avec SymClinic.{% endblock %}
+
+{% block body %}
+    {% set navigation = [
+        { label: 'Réparation', href: '#rendez-vous' },
+        { label: 'Boutique', href: '#recherche' },
+        { label: 'Fidélité', href: '#avantages' },
+        { label: 'Promotions', href: '#services' },
+        { label: 'Recrutement', href: '#contact' }
+    ] %}
+
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a class="brand" href="{{ path('app_public_home') }}" aria-label="Accueil SymClinic">
+                <span class="brand__mark">S</span>
+                <span class="brand__text">
+                    <span class="brand__name">SymClinic</span>
+                    <span class="brand__baseline">Mobile care</span>
+                </span>
+            </a>
+
+            <nav class="site-nav" aria-label="Navigation principale">
+                {% for item in navigation %}
+                    <a href="{{ item.href }}">{{ item.label }}</a>
+                {% endfor %}
+            </nav>
+
+            <div class="site-actions">
+                {% if app.user %}
+                    {% set account_url = is_granted('ROLE_ADMIN') ? path('app_admin_dashboard') : path('app_user_dashboard') %}
+                    <a class="account-button" href="{{ account_url }}" aria-label="Accéder à mon espace">
+                        {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
+                    </a>
+                {% else %}
+                <button class="account-button" type="button" data-modal-open="login-modal" aria-controls="login-modal" aria-haspopup="dialog" aria-label="Se connecter">
+                    {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
+                </button>
+                {% endif %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Prendre rendez-vous',
+                    variant: 'primary',
+                    size: 'compact',
+                    icon: 'tool',
+                    aria_label: 'Prendre rendez-vous',
+                    type: 'button',
+                    modal_target: 'appointment-modal'
+                } only %}
+            </div>
+        </div>
+    </header>
+
+    <main class="home-page" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
+        <section class="hero" aria-labelledby="home-hero-title">
+            <div class="hero__inner">
+                <div class="hero__content">
+                    {% include 'components/_badge.html.twig' with {
+                        label: 'Réparation - boutique - fidélité',
+                        icon: 'spark'
+                    } only %}
+
+                    <h1 id="home-hero-title" class="hero__title">
+                        Votre téléphone,
+                        <span>sans attente inutile.</span>
+                    </h1>
+
+                    <p class="hero__intro">
+                        Réservez une réparation ou mettez un article de côté en quelques instants.
+                        Votre espace client garde tout au même endroit.
+                    </p>
+
+                    <div class="hero__actions">
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Réserver une réparation',
+                            variant: 'primary',
+                            icon: 'tool',
+                            type: 'button',
+                            modal_target: 'appointment-modal'
+                        } only %}
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Réserver un article',
+                            href: '#recherche',
+                            variant: 'secondary',
+                            icon: 'bag'
+                        } only %}
+                    </div>
+
+                    <div class="hero__features" id="avantages" aria-label="Avantages SymClinic">
+                        {% include 'components/_feature_item.html.twig' with { label: 'Sans paiement en ligne', icon: 'check' } only %}
+                        {% include 'components/_feature_item.html.twig' with { label: 'Article gardé 24 h', icon: 'clock' } only %}
+                        {% include 'components/_feature_item.html.twig' with { label: 'Avantages fidélité', icon: 'spark' } only %}
+                    </div>
+                </div>
+
+                {% include 'components/_appointment_block.html.twig' with {
+                    id: 'rendez-vous',
+                    title: 'Que souhaitez-vous faire ?',
+                    subtitle: 'Commencez ici, on vous guide ensuite.',
+                    status: 'Simple & rapide',
+                    action: '#rendez-vous',
+                    method: 'get',
+                    devices: devices,
+                    problems: problems,
+                    modal_target: 'appointment-modal',
+                    button_label: 'Voir les créneaux',
+                    note: 'Votre avantage fidélité est ajouté uniquement après le retrait ou la réparation réalisée.'
+                } only %}
+            </div>
+        </section>
+
+        <section class="home-band home-band--services" id="services" aria-labelledby="services-title">
+            <div class="home-band__inner">
+                <div class="section-heading">
+                    <p class="section-heading__kicker">Services</p>
+                    <h2 id="services-title">Réparer, réserver, récupérer simplement.</h2>
+                    <p>
+                        SymClinic rassemble les demandes rapides du quotidien : une réparation,
+                        un article à garder de côté ou un avantage fidélité à retrouver.
+                    </p>
+                </div>
+
+                <div class="service-grid">
+                    {% for service in services %}
+                        {% include 'components/_service_card.html.twig' with service only %}
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="home-band home-band--search" id="recherche" aria-labelledby="search-title">
+            <div class="home-band__inner home-band__inner--split">
+                <div class="compact-copy">
+                    <p class="section-heading__kicker">Recherche rapide</p>
+                    <h2 id="search-title">Trouvez une réparation, un article ou un service.</h2>
+                    <p>
+                        Lancez une recherche avant de vous déplacer et préparez votre passage
+                        avec les informations dont vous avez besoin.
+                    </p>
+                </div>
+
+                {% include 'components/_search_form.html.twig' with {
+                    id: 'home-search',
+                    label: 'Rechercher dans SymClinic',
+                    placeholder: 'Ex. écran iPhone, batterie, chargeur...',
+                    action: '#recherche',
+                    method: 'get',
+                    button_label: 'Rechercher'
+                } only %}
+            </div>
+        </section>
+
+        {% include 'components/_appointment_modal.html.twig' with {
+            id: 'appointment-modal',
+            title: 'Réserver une réparation',
+            subtitle: 'Un parcours court, avec uniquement les informations utiles.',
+            action: path('app_public_appointment_create'),
+            method: 'post',
+            devices: devices,
+            problems: problems,
+            slot_days: slot_days,
+            data: appointment_data|default({}),
+            errors: appointment_errors|default([]),
+            customer_email: app.user ? app.user.userIdentifier : '',
+            redirect_to: 'home'
+        } only %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'login-modal',
+            title: 'Connexion',
+            subtitle: 'Connectez-vous pour accéder à votre espace.',
+            is_open: open_modal|default(null) == 'login-modal'
+        } %}
+            {% block modal_body %}
+                {% include 'components/_login_form.html.twig' with {
+                    last_username: last_username|default(''),
+                    login_error: login_error|default(null)
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    </main>
+
+    <footer class="site-footer" id="contact">
+        <div class="site-footer__inner">
+            <strong>SymClinic</strong>
+            <span>Réparation, boutique et fidélité au même endroit.</span>
+        </div>
+    </footer>
+{% endblock %}

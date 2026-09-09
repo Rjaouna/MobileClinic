@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon espace - SymClinic{% endblock %}
+{% block meta_description %}Espace client SymClinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
+        <section class="dashboard-shell" aria-labelledby="user-dashboard-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Espace client</p>
+                    <h1 id="user-dashboard-title">Mon espace</h1>
+                    <p>Connecté avec {{ user_email }}.</p>
+                </div>
+
+                <div class="dashboard-actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Prendre rendez-vous',
+                        variant: 'primary',
+                        size: 'compact',
+                        icon: 'tool',
+                        type: 'button',
+                        modal_target: 'appointment-modal'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Mes rendez-vous',
+                        href: path('app_user_reservation_index'),
+                        variant: 'secondary',
+                        size: 'compact',
+                        icon: 'calendar'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Déconnexion',
+                        href: path('app_logout'),
+                        variant: 'secondary',
+                        size: 'compact'
+                    } only %}
+                </div>
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+
+            <div class="dashboard-grid">
+                <article class="dashboard-card">
+                    <span>Mes rendez-vous</span>
+                    <strong>{{ appointments|length }}</strong>
+                    <p>Suivez vos réparations programmées.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Prochain passage</span>
+                    <strong>{{ next_appointment ? next_appointment.scheduledAt|date('d/m') : 'Aucun' }}</strong>
+                    <p>{{ next_appointment ? next_appointment.problem ~ ' à ' ~ next_appointment.scheduledAt|date('H:i') : 'Réservez un créneau depuis votre espace.' }}</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Profil</span>
+                    <strong>Compte</strong>
+                    <p><a class="text-link" href="{{ path('app_user_profile_index') }}">Modifier mon mot de passe</a></p>
+                </article>
+            </div>
+
+            {% include 'components/_appointment_modal.html.twig' with {
+                id: 'appointment-modal',
+                devices: devices,
+                problems: problems,
+                slot_days: slot_days,
+                data: appointment_data|default({}),
+                errors: appointment_errors|default([]),
+                customer_email: user_email,
+                redirect_to: 'user_dashboard'
+            } only %}
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% set variant = variant|default('primary') %}
+{% set size = size|default('regular') %}
+{% set extra_class = class|default('') %}
+{% set resolved_href = href|default(null) %}
+{% set modal_target = modal_target|default(null) %}
+{% set attributes = attributes|default({}) %}
+{% if resolved_href is empty and route|default(null) %}
+    {% set resolved_href = path(route, route_params|default({})) %}
+{% endif %}
+{% set button_class = 'btn btn--' ~ variant ~ ' btn--' ~ size ~ ' ' ~ extra_class %}
+
+{% if resolved_href %}
+    <a class="{{ button_class|trim }}" href="{{ resolved_href }}" {% if target|default(null) %}target="{{ target }}"{% endif %} {% if aria_label|default(null) %}aria-label="{{ aria_label }}"{% endif %} {% if modal_target %}data-modal-open="{{ modal_target }}" aria-controls="{{ modal_target }}" aria-haspopup="dialog"{% endif %}{% for attr_name, attr_value in attributes %}{% if attr_value is same as(true) %} {{ attr_name }}{% elseif attr_value is not same as(false) and attr_value is not null %} {{ attr_name }}="{{ attr_value }}"{% endif %}{% endfor %}>
+        {% if icon|default(null) %}
+            <span class="btn__icon" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
+            </span>
+        {% endif %}
+        <span>{{ label }}</span>
+    </a>
+{% else %}
+    <button class="{{ button_class|trim }}" type="{{ type|default('button') }}" {% if disabled|default(false) %}disabled{% endif %} {% if aria_label|default(null) %}aria-label="{{ aria_label }}"{% endif %} {% if modal_target %}data-modal-open="{{ modal_target }}" aria-controls="{{ modal_target }}" aria-haspopup="dialog"{% endif %}{% for attr_name, attr_value in attributes %}{% if attr_value is same as(true) %} {{ attr_name }}{% elseif attr_value is not same as(false) and attr_value is not null %} {{ attr_name }}="{{ attr_value }}"{% endif %}{% endfor %}>
+        {% if icon|default(null) %}
+            <span class="btn__icon" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
+            </span>
+        {% endif %}
+        <span>{{ label }}</span>
+    </button>
+{% endif %}

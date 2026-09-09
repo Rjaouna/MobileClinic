@@ -1,0 +1,22 @@
+{% set modal_id = id|default('appointment-modal') %}
+
+{% embed 'components/_modal.html.twig' with {
+    id: modal_id,
+    title: title|default('Réserver une réparation'),
+    subtitle: subtitle|default('Un parcours court, avec uniquement les informations utiles.'),
+    is_open: is_open|default(false)
+} %}
+    {% block modal_body %}
+        {% include 'components/_appointment_modal_form.html.twig' with {
+            action: action|default(path('app_public_appointment_create')),
+            method: method|default('post'),
+            devices: devices|default([]),
+            problems: problems|default([]),
+            slot_days: slot_days|default([]),
+            data: data|default({}),
+            errors: errors|default([]),
+            customer_email: customer_email|default(''),
+            redirect_to: redirect_to|default('home')
+        } only %}
+    {% endblock %}
+{% endembed %}

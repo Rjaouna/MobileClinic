@@ -1,0 +1,7 @@
+<span class="badge">
+    <span class="badge__dot" aria-hidden="true"></span>
+    {% if icon|default(null) %}
+        {% include 'components/_icon.html.twig' with { name: icon, size: 14 } only %}
+    {% endif %}
+    <span>{{ label }}</span>
+</span>

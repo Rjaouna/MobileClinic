@@ -1,0 +1,14 @@
+<form class="modal-form" action="{{ path('app_user_reservation_cancel', { id: appointment.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('user_reservation_cancel_' ~ appointment.id) }}">
+
+    <p class="modal-notice">
+        Vous êtes sur le point d’annuler le rendez-vous du {{ appointment.scheduledAt|date('d/m/Y') }} à {{ appointment.scheduledAt|date('H:i') }}.
+    </p>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Confirmer l’annulation',
+        variant: 'danger',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

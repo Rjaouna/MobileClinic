@@ -1,0 +1,114 @@
+<section class="admin-panel admin-day-panel" id="jour-{{ selected_day }}" aria-labelledby="selected-day-title">
+    <div class="admin-panel__header">
+        <div>
+            <p class="dashboard-kicker">Journée sélectionnée</p>
+            <h2 id="selected-day-title">{{ selected_day_label }}</h2>
+            <p>{{ selected_day_summary.schedule_label }}</p>
+        </div>
+
+        <div class="dashboard-actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Ajouter une plage',
+                variant: 'primary',
+                size: 'compact',
+                icon: 'calendar',
+                type: 'button',
+                modal_target: 'availability-add-day-modal'
+            } only %}
+
+            {% include 'components/_button.html.twig' with {
+                label: 'Retour semaine',
+                href: path('app_admin_appointment_index') ~ '#availability-title',
+                variant: 'secondary',
+                size: 'compact'
+            } only %}
+        </div>
+    </div>
+
+    <div class="day-control-card">
+        <div>
+            <span class="status-pill status-pill--{{ selected_day_summary.is_visible ? 'success' : 'neutral' }}">
+                {{ selected_day_summary.is_visible ? 'Journée visible' : 'Journée masquée' }}
+            </span>
+            <strong>{{ selected_day_summary.enabled_ranges }} plage{{ selected_day_summary.enabled_ranges > 1 ? 's' : '' }} visible{{ selected_day_summary.enabled_ranges > 1 ? 's' : '' }}</strong>
+            <p>{{ selected_day_summary.total_ranges }} plage{{ selected_day_summary.total_ranges > 1 ? 's' : '' }} configurée{{ selected_day_summary.total_ranges > 1 ? 's' : '' }} au total.</p>
+        </div>
+
+        {% if selected_day_summary.total_ranges > 0 %}
+            <form action="{{ path('app_admin_appointment_day_toggle', { day: selected_day }) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_day_' ~ selected_day) }}">
+                <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                {% include 'components/_button.html.twig' with {
+                    label: selected_day_summary.is_visible ? 'Cacher toute la journée' : 'Afficher toute la journée',
+                    variant: selected_day_summary.is_visible ? 'danger' : 'primary',
+                    size: 'compact',
+                    type: 'submit'
+                } only %}
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="day-range-grid">
+        {% for availability in selected_day_availabilities %}
+            <article class="day-range-card {{ availability.enabled ? '' : 'day-range-card--disabled' }}">
+                <div class="day-range-card__time">
+                    <strong>{{ availability.startTime|date('H:i') }} - {{ availability.endTime|date('H:i') }}</strong>
+                    <span>{{ availability.slotDurationMinutes }} min par créneau</span>
+                </div>
+
+                <span class="status-pill status-pill--{{ availability.enabled ? 'success' : 'neutral' }}">
+                    {{ availability.enabled ? 'Visible' : 'Masquée' }}
+                </span>
+
+                <div class="inline-actions">
+                    <form action="{{ path('app_admin_appointment_availability_toggle', { id: availability.id }) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_' ~ availability.id) }}">
+                        <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                        {% include 'components/_button.html.twig' with {
+                            label: availability.enabled ? 'Désactiver' : 'Activer',
+                            variant: 'secondary',
+                            size: 'compact',
+                            type: 'submit'
+                        } only %}
+                    </form>
+
+                    <form action="{{ path('app_admin_appointment_availability_delete', { id: availability.id }) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_' ~ availability.id) }}">
+                        <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Supprimer',
+                            variant: 'danger',
+                            size: 'compact',
+                            type: 'submit'
+                        } only %}
+                    </form>
+                </div>
+            </article>
+        {% else %}
+            <section class="empty-state empty-state--large">
+                <h2>Aucune plage sur {{ selected_day_label|lower }}</h2>
+                <p>Ajoutez une première plage pour que les clients puissent réserver sur cette journée.</p>
+                {% include 'components/_button.html.twig' with {
+                    label: 'Ajouter une plage',
+                    variant: 'primary',
+                    type: 'button',
+                    modal_target: 'availability-add-day-modal'
+                } only %}
+            </section>
+        {% endfor %}
+    </div>
+
+    {% embed 'components/_modal.html.twig' with {
+        id: 'availability-add-day-modal',
+        title: 'Ajouter une plage sur ' ~ selected_day_label,
+        subtitle: 'La plage sera disponible uniquement si elle est visible.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/appointment/modal/_add.html.twig' with {
+                days: days,
+                setting: setting,
+                selected_day: selected_day
+            } only %}
+        {% endblock %}
+    {% endembed %}
+</section>

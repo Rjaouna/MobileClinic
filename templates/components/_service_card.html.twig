@@ -1,0 +1,12 @@
+<article class="service-card">
+    <div class="service-card__icon" aria-hidden="true">
+        {% include 'components/_icon.html.twig' with { name: icon|default('spark'), size: 24 } only %}
+    </div>
+    <h3>{{ title }}</h3>
+    <p>{{ text }}</p>
+    {% if href|default(null) %}
+        <a class="service-card__link" href="{{ href }}">
+            <span>{{ action_label|default('Voir plus') }}</span>
+        </a>
+    {% endif %}
+</article>

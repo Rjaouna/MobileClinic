@@ -1,0 +1,36 @@
+{% set icon_name = name|default('spark') %}
+{% set icon_size = size|default(20) %}
+
+<svg class="icon icon--{{ icon_name }}" width="{{ icon_size }}" height="{{ icon_size }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    {% if icon_name == 'user' %}
+        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+        <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+    {% elseif icon_name == 'tool' %}
+        <path d="M14.5 5.5 18 2l4 4-3.5 3.5"></path>
+        <path d="M13 7 3.5 16.5a2.8 2.8 0 1 0 4 4L17 11"></path>
+        <path d="M6 18h.01"></path>
+    {% elseif icon_name == 'bag' %}
+        <path d="M6 8h12l1 12H5L6 8Z"></path>
+        <path d="M9 8a3 3 0 0 1 6 0"></path>
+    {% elseif icon_name == 'search' %}
+        <path d="M10.5 18a7.5 7.5 0 1 1 5.3-12.8 7.5 7.5 0 0 1-5.3 12.8Z"></path>
+        <path d="m16 16 4 4"></path>
+    {% elseif icon_name == 'check' %}
+        <path d="m5 12.5 4 4L19 6.5"></path>
+    {% elseif icon_name == 'clock' %}
+        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"></path>
+        <path d="M12 7v5l3 2"></path>
+    {% elseif icon_name == 'calendar' %}
+        <path d="M7 3v4"></path>
+        <path d="M17 3v4"></path>
+        <path d="M4 8h16"></path>
+        <path d="M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path>
+    {% elseif icon_name == 'x' %}
+        <path d="M18 6 6 18"></path>
+        <path d="m6 6 12 12"></path>
+    {% else %}
+        <path d="m12 3 1.6 5.2L19 10l-5.4 1.8L12 17l-1.6-5.2L5 10l5.4-1.8L12 3Z"></path>
+        <path d="M19 15v4"></path>
+        <path d="M21 17h-4"></path>
+    {% endif %}
+</svg>

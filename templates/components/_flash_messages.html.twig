@@ -1,0 +1,11 @@
+{% set messages = app.flashes %}
+
+{% if messages is not empty %}
+    <div class="flash-stack" role="status" aria-live="polite">
+        {% for type, items in messages %}
+            {% for message in items %}
+                <p class="flash-message flash-message--{{ type }}">{{ message }}</p>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

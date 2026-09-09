@@ -1,0 +1,76 @@
+{% set picker_id = id|default('slot-picker') %}
+{% set input_name = name|default('slot') %}
+{% set label = label|default('Créneau disponible') %}
+{% set slot_days = slot_days|default([]) %}
+{% set selected_slot = selected_slot|default('') %}
+{% set selected_day_key = selected_slot ? selected_slot|slice(0, 10) : '' %}
+{% if selected_day_key is empty and slot_days is not empty %}
+    {% set first_day = slot_days|first %}
+    {% set selected_day_key = first_day.date_key %}
+{% endif %}
+{% set required = required|default(true) %}
+
+<div class="slot-picker" data-slot-picker>
+    <input
+        id="{{ picker_id }}-value"
+        type="hidden"
+        name="{{ input_name }}"
+        value="{{ selected_slot }}"
+        data-slot-picker-input
+        {% if required %}data-slot-picker-required="1"{% endif %}
+    >
+
+    <div class="slot-picker__header">
+        <label id="{{ picker_id }}-label">{{ label }}</label>
+        {% if slot_days is not empty %}
+            <span>{{ slot_days|length }} jour{{ slot_days|length > 1 ? 's' : '' }} proposé{{ slot_days|length > 1 ? 's' : '' }}</span>
+        {% endif %}
+    </div>
+
+    {% if slot_days is empty %}
+        <p class="slot-picker__empty">Aucun créneau disponible pour le moment.</p>
+    {% else %}
+        <div class="slot-picker__days" role="list" aria-labelledby="{{ picker_id }}-label">
+            {% for day in slot_days %}
+                <button
+                    class="slot-picker__day {{ day.date_key == selected_day_key ? 'is-active' : '' }}"
+                    type="button"
+                    data-slot-picker-day="{{ day.date_key }}"
+                    aria-pressed="{{ day.date_key == selected_day_key ? 'true' : 'false' }}"
+                >
+                    <span>{{ day.short_day_label }}</span>
+                    <strong>{{ day.day_number }}</strong>
+                    <em>{{ day.month_label }}</em>
+                    <small>{{ day.slot_count }} {{ day.slot_count > 1 ? 'créneaux' : 'créneau' }}</small>
+                </button>
+            {% endfor %}
+        </div>
+
+        <div class="slot-picker__groups">
+            {% for day in slot_days %}
+                <section class="slot-picker__group" data-slot-picker-group="{{ day.date_key }}" {% if day.date_key != selected_day_key %}hidden{% endif %}>
+                    <div class="slot-picker__group-header">
+                        <strong>{{ day.label }}</strong>
+                        <span>{{ day.slot_count }} {{ day.slot_count > 1 ? 'créneaux disponibles' : 'créneau disponible' }}</span>
+                    </div>
+
+                    <div class="slot-picker__slots" role="list">
+                        {% for slot in day.slots %}
+                            <button
+                                class="slot-picker__slot {{ selected_slot == slot.value ? 'is-selected' : '' }}"
+                                type="button"
+                                data-slot-picker-slot="{{ slot.value }}"
+                                aria-pressed="{{ selected_slot == slot.value ? 'true' : 'false' }}"
+                            >
+                                <strong>{{ slot.time_label }}</strong>
+                                <span>{{ slot.duration_minutes }} min</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+
+        <p class="slot-picker__error" data-slot-picker-error hidden>Choisissez un créneau disponible.</p>
+    {% endif %}
+</div>

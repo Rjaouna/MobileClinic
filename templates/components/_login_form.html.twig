@@ -1,0 +1,29 @@
+<form class="modal-form auth-form" action="{{ path('app_login') }}" method="post">
+    {% set test_email = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
+    {% set test_password = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
+
+    {% if login_error %}
+        <div class="auth-alert" role="alert">
+            L’adresse e-mail ou le mot de passe est incorrect.
+        </div>
+    {% endif %}
+
+    <div class="field-group">
+        <label for="login-email">Adresse e-mail</label>
+        <input id="login-email" type="email" name="email" value="{{ last_username ?: test_email }}" autocomplete="email" placeholder="admin@symaclinic.fr" required data-modal-initial-focus>
+    </div>
+
+    <div class="field-group">
+        <label for="login-password">Mot de passe</label>
+        <input id="login-password" type="password" name="password" value="{{ test_password }}" autocomplete="current-password" placeholder="Votre mot de passe" required>
+    </div>
+
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Se connecter',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

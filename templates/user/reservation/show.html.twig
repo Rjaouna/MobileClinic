@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rendez-vous #{{ appointment.id }} - SymClinic{% endblock %}
+{% block meta_description %}Détail d’un rendez-vous SymClinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user">
+        <section class="dashboard-shell" aria-labelledby="reservation-show-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Rendez-vous</p>
+                    <h1 id="reservation-show-title">{{ appointment.problem }}</h1>
+                    <p>{{ appointment.device }} le {{ appointment.scheduledAt|date('d/m/Y') }} à {{ appointment.scheduledAt|date('H:i') }}.</p>
+                </div>
+
+                <div class="dashboard-actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Retour',
+                        href: path('app_user_reservation_index'),
+                        variant: 'secondary',
+                        size: 'compact'
+                    } only %}
+                </div>
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+
+            <section class="admin-panel">
+                <div class="appointment-detail-grid">
+                    <div>
+                        <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
+                        <h2>Votre créneau</h2>
+                        <p>{{ appointment.scheduledAt|date('d/m/Y') }} de {{ appointment.scheduledAt|date('H:i') }} à {{ appointment.endsAt|date('H:i') }}</p>
+                    </div>
+                    <div>
+                        <h2>Contact</h2>
+                        <p>{{ appointment.email }}</p>
+                        <p>{{ appointment.phone ?: 'Téléphone non renseigné' }}</p>
+                    </div>
+                    <div>
+                        <h2>Message</h2>
+                        <p>{{ appointment.customerNote ?: 'Aucun message ajouté.' }}</p>
+                    </div>
+                </div>
+
+                {% if appointment.canBeChangedByCustomer() %}
+                    <div class="inline-actions">
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Déplacer',
+                            variant: 'primary',
+                            type: 'button',
+                            modal_target: 'reservation-reschedule-modal'
+                        } only %}
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Annuler',
+                            variant: 'danger',
+                            type: 'button',
+                            modal_target: 'reservation-cancel-modal'
+                        } only %}
+                    </div>
+                {% endif %}
+            </section>
+
+            {% if appointment.canBeChangedByCustomer() %}
+                {% embed 'components/_modal.html.twig' with {
+                    id: 'reservation-reschedule-modal',
+                    title: 'Déplacer le rendez-vous',
+                    subtitle: 'Choisissez un nouveau créneau disponible.'
+                } %}
+                    {% block modal_body %}
+                        {% include 'user/reservation/modal/_show.html.twig' with {
+                            appointment: appointment,
+                            slot_days: slot_days
+                        } only %}
+                    {% endblock %}
+                {% endembed %}
+
+                {% embed 'components/_modal.html.twig' with {
+                    id: 'reservation-cancel-modal',
+                    title: 'Annuler le rendez-vous',
+                    subtitle: 'Cette action libère le créneau pour un autre client.'
+                } %}
+                    {% block modal_body %}
+                        {% include 'user/reservation/modal/_cancel.html.twig' with {
+                            appointment: appointment
+                        } only %}
+                    {% endblock %}
+                {% endembed %}
+            {% endif %}
+        </section>
+    </main>
+{% endblock %}

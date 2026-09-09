@@ -1,0 +1,28 @@
+{% set slot_days = slot_days|default([]) %}
+
+<form class="modal-form" action="{{ path('app_user_reservation_reschedule', { id: appointment.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('user_reservation_reschedule_' ~ appointment.id) }}">
+
+    {% include 'components/_slot_picker.html.twig' with {
+        id: 'reservation-slot-' ~ appointment.id,
+        name: 'slot',
+        label: 'Nouveau créneau',
+        slot_days: slot_days,
+        selected_slot: ''
+    } only %}
+
+    <p class="modal-notice">
+        Après déplacement, le rendez-vous repasse en attente de validation admin.
+    </p>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Confirmer le nouveau créneau',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit',
+        disabled: slot_days is empty,
+        attributes: {
+            'data-slot-picker-submit': true
+        }
+    } only %}
+</form>

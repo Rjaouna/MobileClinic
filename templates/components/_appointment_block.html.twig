@@ -1,0 +1,59 @@
+{% set block_id = id|default('appointment-card') %}
+{% set modal_target = modal_target|default(null) %}
+
+<section class="appointment-card" id="{{ block_id }}" aria-labelledby="{{ block_id }}-title">
+    <div class="appointment-card__header">
+        <div>
+            <h2 id="{{ block_id }}-title">{{ title|default('Que souhaitez-vous faire ?') }}</h2>
+            <p>{{ subtitle|default('Commencez ici, on vous guide ensuite.') }}</p>
+        </div>
+        <span class="status-badge">{{ status|default('Simple & rapide') }}</span>
+    </div>
+
+    <form class="appointment-card__form" action="{{ action|default('#') }}" method="{{ method|default('get') }}" data-appointment-prefill-source>
+        <div class="choice-tabs" aria-label="Type de demande">
+            <label class="choice-tab">
+                <input type="radio" name="type" value="repair" checked>
+                <span>Une réparation</span>
+            </label>
+            <label class="choice-tab">
+                <input type="radio" name="type" value="product">
+                <span>Un article</span>
+            </label>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ block_id }}-device">Votre appareil</label>
+            <select id="{{ block_id }}-device" name="device">
+                {% for device in devices|default([]) %}
+                    <option value="{{ device.value }}">{{ device.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ block_id }}-problem">Le problème rencontré</label>
+            <select id="{{ block_id }}-problem" name="problem">
+                {% for problem in problems|default([]) %}
+                    <option value="{{ problem.value }}">{{ problem.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% include 'components/_button.html.twig' with {
+            label: button_label|default('Voir les créneaux'),
+            variant: 'primary',
+            type: modal_target ? 'button' : 'submit',
+            modal_target: modal_target,
+            class: 'appointment-card__submit',
+            attributes: modal_target ? {
+                'data-appointment-prefill-from': '#' ~ block_id
+            } : {}
+        } only %}
+
+        <p class="appointment-card__note">
+            {% include 'components/_icon.html.twig' with { name: 'clock', size: 16 } only %}
+            <span>{{ note|default('Votre demande sera confirmée après validation par notre équipe.') }}</span>
+        </p>
+    </form>
+</section>

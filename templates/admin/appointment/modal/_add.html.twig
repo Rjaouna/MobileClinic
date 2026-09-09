@@ -1,0 +1,54 @@
+{% set selected_day = selected_day|default(null) %}
+
+<form class="modal-form" action="{{ path('app_admin_appointment_availability_create') }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_create') }}">
+    {% if selected_day %}
+        <input type="hidden" name="day_of_week" value="{{ selected_day }}">
+        <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+    {% endif %}
+
+    <div class="modal-form__grid">
+        {% if selected_day %}
+            <div class="field-group">
+                <label>Jour</label>
+                <div class="readonly-field">{{ days[selected_day] }}</div>
+            </div>
+        {% else %}
+            <div class="field-group">
+                <label for="availability-day">Jour</label>
+                <select id="availability-day" name="day_of_week" data-modal-initial-focus required>
+                    {% for value, label in days %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <div class="field-group">
+            <label for="availability-duration">Durée d’un créneau</label>
+            <input id="availability-duration" type="number" name="slot_duration_minutes" min="1" value="{{ setting.defaultSlotDurationMinutes }}" required>
+        </div>
+
+        <div class="field-group">
+            <label for="availability-start">Heure de début</label>
+            <input id="availability-start" type="time" name="start_time" value="09:00" {% if selected_day %}data-modal-initial-focus{% endif %} required>
+        </div>
+
+        <div class="field-group">
+            <label for="availability-end">Heure de fin</label>
+            <input id="availability-end" type="time" name="end_time" value="18:00" required>
+        </div>
+
+        <label class="toggle-line field-group--wide">
+            <input type="checkbox" name="is_enabled" checked>
+            <span>Afficher cette plage aux clients</span>
+        </label>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Ajouter la plage',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

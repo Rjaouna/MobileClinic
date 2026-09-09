@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil - SymClinic{% endblock %}
+{% block meta_description %}Profil client SymClinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user">
+        <section class="dashboard-shell" aria-labelledby="profile-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Espace client</p>
+                    <h1 id="profile-title">Mon profil</h1>
+                    <p>{{ customer.email }}</p>
+                </div>
+
+                <div class="dashboard-actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Mes rendez-vous',
+                        href: path('app_user_reservation_index'),
+                        variant: 'secondary',
+                        size: 'compact'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Changer le mot de passe',
+                        variant: 'primary',
+                        size: 'compact',
+                        type: 'button',
+                        modal_target: 'password-modal'
+                    } only %}
+                </div>
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+
+            {% if customer.mustChangePassword() %}
+                <section class="temporary-password-box">
+                    <div>
+                        <p class="dashboard-kicker">Sécurité</p>
+                        <h2>Mot de passe temporaire</h2>
+                        <p>Votre compte utilise encore le mot de passe temporaire. Choisissez un mot de passe personnel.</p>
+                    </div>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Changer maintenant',
+                        variant: 'primary',
+                        type: 'button',
+                        modal_target: 'password-modal'
+                    } only %}
+                </section>
+            {% endif %}
+
+            <section class="admin-panel">
+                <div class="appointment-detail-grid">
+                    <div>
+                        <h2>Adresse email</h2>
+                        <p>{{ customer.email }}</p>
+                    </div>
+                    <div>
+                        <h2>Téléphone</h2>
+                        <p>{{ customer.phone ?: 'Non renseigné' }}</p>
+                    </div>
+                    <div>
+                        <h2>Compte créé</h2>
+                        <p>{{ customer.createdAt|date('d/m/Y') }}</p>
+                    </div>
+                    <div>
+                        <h2>Mot de passe</h2>
+                        <p>{{ customer.mustChangePassword() ? 'À changer' : 'Défini' }}</p>
+                    </div>
+                </div>
+            </section>
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'password-modal',
+                title: 'Changer mon mot de passe',
+                subtitle: 'Choisissez un mot de passe personnel pour votre espace.'
+            } %}
+                {% block modal_body %}
+                    {% include 'user/profile/modal/_password.html.twig' only %}
+                {% endblock %}
+            {% endembed %}
+        </section>
+    </main>
+{% endblock %}

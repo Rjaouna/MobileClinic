@@ -1,0 +1,209 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rendez-vous admin - SymClinic{% endblock %}
+{% block meta_description %}Gestion administrateur des rendez-vous SymClinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="admin-appointment-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Administration</p>
+                    <h1 id="admin-appointment-title">Gestion des rendez-vous</h1>
+                    <p>Choisissez les jours visibles, gérez les statuts clients et le délai automatique “client pas présenté”.</p>
+                </div>
+
+                <div class="dashboard-actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Ajouter une plage',
+                        variant: 'primary',
+                        size: 'compact',
+                        icon: 'calendar',
+                        type: 'button',
+                        modal_target: 'availability-add-modal'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Dashboard',
+                        href: path('app_admin_dashboard'),
+                        variant: 'secondary',
+                        size: 'compact'
+                    } only %}
+                </div>
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+
+            <div class="dashboard-grid dashboard-grid--four">
+                <article class="dashboard-card dashboard-card--compact">
+                    <span>À valider</span>
+                    <strong>{{ stats.pending }}</strong>
+                    <p>Rendez-vous en attente.</p>
+                </article>
+                <article class="dashboard-card dashboard-card--compact">
+                    <span>Confirmés</span>
+                    <strong>{{ stats.confirmed }}</strong>
+                    <p>Clients attendus.</p>
+                </article>
+                <article class="dashboard-card dashboard-card--compact">
+                    <span>À venir</span>
+                    <strong>{{ stats.upcoming }}</strong>
+                    <p>Créneaux actifs.</p>
+                </article>
+                <article class="dashboard-card dashboard-card--compact">
+                    <span>Pas présentés</span>
+                    <strong>{{ stats.no_show }}</strong>
+                    <p>Passés automatiquement.</p>
+                </article>
+            </div>
+
+            <section class="admin-panel" aria-labelledby="appointment-settings-title">
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Réglages</p>
+                        <h2 id="appointment-settings-title">Comportement automatique</h2>
+                    </div>
+
+                    <form action="{{ path('app_admin_appointment_sync_expired') }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_sync') }}">
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Contrôler maintenant',
+                            variant: 'secondary',
+                            size: 'compact',
+                            type: 'submit'
+                        } only %}
+                    </form>
+                </div>
+
+                <form class="settings-form" action="{{ path('app_admin_appointment_settings_update') }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_settings') }}">
+                    <div class="settings-form__grid">
+                        <div class="field-group">
+                            <label for="no-show-delay">Passer en “client pas présenté” après</label>
+                            <input id="no-show-delay" type="number" name="no_show_delay_minutes" min="1" value="{{ setting.noShowDelayMinutes }}">
+                            <span class="field-help">Durée en minutes après l’heure du rendez-vous. Exemple : 60, 20 ou 3.</span>
+                        </div>
+                        <div class="field-group">
+                            <label for="booking-window">Nombre de jours affichés au client</label>
+                            <input id="booking-window" type="number" name="booking_window_days" min="1" value="{{ setting.bookingWindowDays }}">
+                            <span class="field-help">Le client ne voit que les créneaux dans cette fenêtre.</span>
+                        </div>
+                        <div class="field-group">
+                            <label for="default-duration">Durée par défaut d’un créneau</label>
+                            <input id="default-duration" type="number" name="default_slot_duration_minutes" min="1" value="{{ setting.defaultSlotDurationMinutes }}">
+                            <span class="field-help">Utilisée comme base quand vous créez une plage.</span>
+                        </div>
+                    </div>
+
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Enregistrer les réglages',
+                        variant: 'primary',
+                        type: 'submit'
+                    } only %}
+                </form>
+            </section>
+
+            <section class="admin-panel" aria-labelledby="availability-title">
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Créneaux visibles</p>
+                        <h2 id="availability-title">Jours et plages horaires</h2>
+                        <p>Entrez dans une journée pour activer, masquer ou supprimer ses plages horaires.</p>
+                    </div>
+                </div>
+
+                <div class="week-day-grid">
+                    {% for day in week_days %}
+                        <article class="week-day-card {{ day.is_visible ? '' : 'week-day-card--muted' }}">
+                            <div class="week-day-card__header">
+                                <div>
+                                    <span>Journée</span>
+                                    <h3>{{ day.label }}</h3>
+                                </div>
+
+                                <span class="status-pill status-pill--{{ day.is_visible ? 'success' : 'neutral' }}">
+                                    {{ day.is_visible ? 'Visible' : 'Masquée' }}
+                                </span>
+                            </div>
+
+                            <p class="week-day-card__schedule">{{ day.schedule_label }}</p>
+
+                            <div class="week-day-card__meta">
+                                <span>{{ day.total_ranges }} plage{{ day.total_ranges > 1 ? 's' : '' }}</span>
+                                <span>{{ day.enabled_ranges }} visible{{ day.enabled_ranges > 1 ? 's' : '' }}</span>
+                            </div>
+
+                            <div class="inline-actions">
+                                {% include 'components/_button.html.twig' with {
+                                    label: 'Entrer',
+                                    href: path('app_admin_appointment_day', { day: day.day_of_week }),
+                                    variant: 'primary',
+                                    size: 'compact'
+                                } only %}
+
+                                {% if day.total_ranges > 0 %}
+                                    <form action="{{ path('app_admin_appointment_day_toggle', { day: day.day_of_week }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_day_' ~ day.day_of_week) }}">
+                                        {% include 'components/_button.html.twig' with {
+                                            label: day.is_visible ? 'Cacher la journée' : 'Afficher la journée',
+                                            variant: 'secondary',
+                                            size: 'compact',
+                                            type: 'submit'
+                                        } only %}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {% if selected_day|default(null) %}
+                {% include 'admin/appointment/partial/_day.html.twig' with {
+                    selected_day: selected_day,
+                    selected_day_label: selected_day_label,
+                    selected_day_summary: selected_day_summary,
+                    selected_day_availabilities: selected_day_availabilities,
+                    days: days,
+                    setting: setting
+                } only %}
+            {% endif %}
+
+            <section class="admin-panel" aria-labelledby="appointment-list-title">
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Clients</p>
+                        <h2 id="appointment-list-title">Rendez-vous clients</h2>
+                    </div>
+
+                    <form class="filter-form" method="get" action="{{ path('app_admin_appointment_index') }}">
+                        <label for="status-filter">Filtrer</label>
+                        <select id="status-filter" name="status" onchange="this.form.submit()">
+                            <option value="">Tous les statuts</option>
+                            {% for value, label in status_labels %}
+                                <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+
+                {% include 'admin/appointment/partial/_table.html.twig' with {
+                    appointments: appointments,
+                    status_labels: status_labels
+                } only %}
+            </section>
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'availability-add-modal',
+                title: 'Ajouter une plage horaire',
+                subtitle: 'Ce jour et cette plage seront affichés aux clients si vous les rendez visibles.'
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/appointment/modal/_add.html.twig' with {
+                        days: days,
+                        setting: setting
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        </section>
+    </main>
+{% endblock %}

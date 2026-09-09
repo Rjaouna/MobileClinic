@@ -1,0 +1,22 @@
+{% set modal_id = id|default('app-modal') %}
+
+<dialog class="modal modal--fullscreen {{ class|default('') }}" id="{{ modal_id }}" aria-labelledby="{{ modal_id }}-title"{% if subtitle|default(null) %} aria-describedby="{{ modal_id }}-subtitle"{% endif %}{% if is_open|default(false) %} open{% endif %}>
+    <div class="modal__panel" role="document">
+        <header class="modal__header">
+            <div class="modal__heading">
+                <h2 id="{{ modal_id }}-title">{{ title }}</h2>
+                {% if subtitle|default(null) %}
+                    <p id="{{ modal_id }}-subtitle">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+
+            <button class="modal__close" type="button" data-modal-close aria-label="Fermer la fenêtre">
+                {% include 'components/_icon.html.twig' with { name: 'x', size: 22 } only %}
+            </button>
+        </header>
+
+        <div class="modal__body">
+            {% block modal_body %}{% endblock %}
+        </div>
+    </div>
+</dialog>

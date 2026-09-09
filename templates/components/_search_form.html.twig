@@ -1,0 +1,17 @@
+{% set search_id = id|default('search-form') %}
+
+<form class="search-form" action="{{ action|default('#') }}" method="{{ method|default('get') }}" role="search">
+    <label for="{{ search_id }}-query">{{ label|default('Rechercher') }}</label>
+    <div class="search-form__control">
+        <span class="search-form__icon" aria-hidden="true">
+            {% include 'components/_icon.html.twig' with { name: 'search', size: 20 } only %}
+        </span>
+        <input id="{{ search_id }}-query" type="search" name="q" value="{{ value|default('') }}" placeholder="{{ placeholder|default('Rechercher...') }}">
+        {% include 'components/_button.html.twig' with {
+            label: button_label|default('Rechercher'),
+            variant: 'primary',
+            type: 'submit',
+            size: 'compact'
+        } only %}
+    </div>
+</form>
