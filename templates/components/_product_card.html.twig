@@ -1,0 +1,94 @@
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+{% set reserved = is_reserved|default(product.id in reserved_product_ids|default([])) %}
+{% set in_cart = in_cart|default(product.id in cart_product_ids|default([])) %}
+
+<article class="product-card {{ reserved ? 'product-card--reserved' : '' }}" data-product-card data-product-search-text="{{ (product.name ~ ' ' ~ product.description)|lower|e('html_attr') }}">
+    <a class="product-card__media" href="{{ path('app_public_product_show', { id: product.id }) }}" aria-label="Voir {{ product.name }}">
+        {% if product.photoPath %}
+            <img src="{{ product.photoPath }}" alt="{{ product.name }}">
+        {% else %}
+            <span class="product-card__placeholder">
+                {% include 'components/_icon.html.twig' with { name: 'bag', size: 34 } only %}
+            </span>
+        {% endif %}
+
+        {% if reserved %}
+            <span class="product-card__badge product-card__badge--reserved">Déjà réservé</span>
+        {% elseif product.discountPercent > 0 %}
+            <span class="product-card__badge">-{{ product.discountPercent }}%</span>
+        {% endif %}
+    </a>
+
+    <div class="product-card__body">
+        <div>
+            <p class="dashboard-kicker">Promotion</p>
+            <h2><a href="{{ path('app_public_product_show', { id: product.id }) }}">{{ product.name }}</a></h2>
+            <p>{{ product.description }}</p>
+        </div>
+
+        {% if product.customAttributes is not empty %}
+            <dl class="product-attributes product-attributes--compact">
+                {% for attribute in product.customAttributes|slice(0, 3) %}
+                    <div>
+                        <dt>{{ attribute.label }}</dt>
+                        <dd>{{ attribute.value }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+        {% endif %}
+
+        <div class="product-card__footer">
+            <div class="product-price">
+                <span>{{ money.money(product.normalPriceCents) }}</span>
+                <strong>{{ money.money(product.promotionalPriceCents) }}</strong>
+            </div>
+
+            {% if reserved %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Réservé',
+                    variant: 'neutral',
+                    size: 'compact',
+                    disabled: true
+                } only %}
+            {% elseif not app.user %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Se connecter',
+                    variant: 'primary',
+                    size: 'compact',
+                    type: 'button',
+                    icon: 'user',
+                    modal_target: 'login-modal'
+                } only %}
+            {% elseif in_cart %}
+                <form action="{{ path('app_public_product_cart_remove', { id: product.id }) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('product_cart_remove_' ~ product.id) }}">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Retirer',
+                        variant: 'secondary',
+                        size: 'compact',
+                        type: 'submit'
+                    } only %}
+                </form>
+            {% else %}
+                <form action="{{ path('app_public_product_cart_add', { id: product.id }) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('product_cart_add_' ~ product.id) }}">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Réserver',
+                        variant: 'primary',
+                        size: 'compact',
+                        type: 'submit',
+                        icon: 'bag'
+                    } only %}
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</article>

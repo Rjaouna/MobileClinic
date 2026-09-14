@@ -1,0 +1,6 @@
+{% include 'admin/product/modal/_form.html.twig' with {
+    action: path('app_admin_product_create'),
+    csrf_id: 'admin_product_create',
+    form_id: 'product-add',
+    submit_label: 'Ajouter l’article'
+} only %}

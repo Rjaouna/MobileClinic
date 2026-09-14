@@ -1,0 +1,7 @@
+{% include 'admin/product/modal/_form.html.twig' with {
+    product: product,
+    action: path('app_admin_product_update', { id: product.id }),
+    csrf_id: 'admin_product_' ~ product.id,
+    form_id: 'product-edit-' ~ product.id,
+    submit_label: 'Mettre à jour l’article'
+} only %}

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard admin - SymClinic{% endblock %}
-{% block meta_description %}Tableau de bord administrateur SymClinic.{% endblock %}
+{% block title %}Dashboard admin - Mobile Clinic{% endblock %}
+{% block meta_description %}Tableau de bord administrateur Mobile Clinic.{% endblock %}
 
 {% block body %}
     <main class="dashboard-page dashboard-page--admin">
@@ -10,29 +10,125 @@
                 <div>
                     <p class="dashboard-kicker">Administration</p>
                     <h1 id="admin-dashboard-title">Dashboard admin</h1>
-                    <p>Connecté avec {{ user_email }}.</p>
-                </div>
-
-                <div class="dashboard-actions">
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Gérer les rendez-vous',
-                        href: path('app_admin_appointment_index'),
-                        variant: 'primary',
-                        size: 'compact',
-                        icon: 'calendar'
-                    } only %}
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Déconnexion',
-                        href: path('app_logout'),
-                        variant: 'secondary',
-                        size: 'compact'
+                    {% include 'components/_account_chip.html.twig' with {
+                        user: app.user,
+                        role_label: 'Admin connecté'
                     } only %}
                 </div>
             </header>
 
             {% include 'components/_flash_messages.html.twig' %}
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            <section class="admin-panel admin-panel--priority" aria-labelledby="admin-access-title">
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Accès rapides</p>
+                        <h2 id="admin-access-title">Pilotage</h2>
+                    </div>
+
+                    <div class="admin-panel__actions">
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Voir le site',
+                            href: path('app_public_home'),
+                            variant: 'secondary',
+                            size: 'compact',
+                            icon: 'home'
+                        } only %}
+
+                        <form class="dashboard-logout-form" action="{{ path('app_logout') }}" method="post" data-turbo="false">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Déconnexion',
+                                variant: 'secondary',
+                                size: 'compact',
+                                icon: 'logout',
+                                type: 'submit'
+                            } only %}
+                        </form>
+                    </div>
+                </div>
+
+                <div class="admin-access-grid">
+                    <a class="admin-access-card" href="{{ path('app_admin_appointment_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'calendar', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Rendez-vous et réparations
+                            <span class="nav-badge">{{ stats.active_appointments }}</span>
+                        </strong>
+                        <span>{{ stats.active_appointments }} rendez-vous non terminé{{ stats.active_appointments > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_customer_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'user', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Clients
+                            <span class="nav-badge">{{ stats.customers }}</span>
+                        </strong>
+                        <span>{{ stats.customers }} compte{{ stats.customers > 1 ? 's' : '' }} client enregistré{{ stats.customers > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_product_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'bag', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Promotions
+                            <span class="nav-badge">{{ stats.products }}</span>
+                        </strong>
+                        <span>{{ stats.products }} article{{ stats.products > 1 ? 's' : '' }} visible{{ stats.products > 1 ? 's' : '' }} et {{ stats.product_reservations }} réservation{{ stats.product_reservations > 1 ? 's' : '' }} active{{ stats.product_reservations > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_news_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'news', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Actualités
+                            <span class="nav-badge">{{ stats.news }}</span>
+                        </strong>
+                        <span>{{ stats.news }} actualité{{ stats.news > 1 ? 's' : '' }} visible{{ stats.news > 1 ? 's' : '' }}{% if stats.news_expired > 0 %}, {{ stats.news_expired }} à renouveler{% endif %}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_recruitment_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'briefcase', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Recrutement
+                            <span class="nav-badge">{{ stats.recruitment_open }}</span>
+                        </strong>
+                        <span>{{ stats.recruitment_open }} candidature{{ stats.recruitment_open > 1 ? 's' : '' }} à suivre sur {{ stats.recruitment_total }} reçue{{ stats.recruitment_total > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_settings_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'tool', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Paramètres généraux
+                            <span class="nav-badge">{{ stats.visible_ranges }}</span>
+                        </strong>
+                        <span>{{ stats.visible_ranges }} plage{{ stats.visible_ranges > 1 ? 's' : '' }} horaire{{ stats.visible_ranges > 1 ? 's' : '' }} visible{{ stats.visible_ranges > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_loyalty_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'spark', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Cartes fidélité
+                            <span class="nav-badge">{{ stats.loyalty_accounts }}</span>
+                        </strong>
+                        <span>{{ stats.loyalty_accounts }} carte{{ stats.loyalty_accounts > 1 ? 's' : '' }} fidélité suivie{{ stats.loyalty_accounts > 1 ? 's' : '' }}.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_loyalty_index') }}#loyalty-settings-state">
+                        {% include 'components/_icon.html.twig' with { name: 'tool', size: 24 } only %}
+                        <strong>Réglages fidélité</strong>
+                        <span>Montant gagné et activation du programme.</span>
+                    </a>
+                </div>
+            </section>
+
+            <div data-admin-notifications data-notifications-url="{{ path('app_api_admin_appointment_reminders') }}" data-notifications-interval="10000" data-notification-toast-keys="{{ reminder_view.toast_keys|json_encode|e('html_attr') }}">
+                {% include 'admin/appointment/partial/_notification_center.html.twig' with {
+                    reminder_view: reminder_view,
+                    status: ''
+                } only %}
+            </div>
+
+            {% include 'admin/news/partial/_expiration_alerts.html.twig' with { expired_news: expired_news } only %}
 
             <div class="dashboard-grid">
+                <article class="dashboard-card">
+                    <span>Clients</span>
+                    <strong>{{ stats.customers }}</strong>
+                    <p>Comptes clients enregistrés.</p>
+                </article>
                 <article class="dashboard-card">
                     <span>Réservations</span>
                     <strong>{{ stats.pending }}</strong>
@@ -44,11 +140,64 @@
                     <p>Rendez-vous actifs dans le planning.</p>
                 </article>
                 <article class="dashboard-card">
-                    <span>Pas présentés</span>
+                    <span>Articles visibles</span>
+                    <strong>{{ stats.products }}</strong>
+                    <p>Promotions disponibles en boutique.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Actualités visibles</span>
+                    <strong>{{ stats.news }}</strong>
+                    <p>Publications en ligne sur le site.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Réservations boutique</span>
+                    <strong>{{ stats.product_reservations }}</strong>
+                    <p>Articles à garder en magasin.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Articles vendus</span>
+                    <strong>{{ stats.sold_products }}</strong>
+                    <p>Articles retirés par les clients.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Candidatures</span>
+                    <strong>{{ stats.recruitment_open }}</strong>
+                    <p>Profils recrutement encore à suivre.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Rendez-vous à traiter</span>
+                    <strong>{{ stats.interventions }}</strong>
+                    <p>Heure passée, décision admin requise.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Réparations terminées</span>
+                    <strong>{{ stats.completed }}</strong>
+                    <p>Rendez-vous validés par l’équipe.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Clients absents</span>
                     <strong>{{ stats.no_show }}</strong>
-                    <p>Clients passés automatiquement en absence.</p>
+                    <p>Absences décidées par l’équipe.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Cagnottes disponibles</span>
+                    <strong>{{ (loyalty_totals.available_balance_cents / 100)|number_format(2, ',', ' ') }} €</strong>
+                    <p>Solde validé actuellement utilisable.</p>
+                </article>
+                <article class="dashboard-card">
+                    <span>Avantages en attente</span>
+                    <strong>{{ (loyalty_totals.pending_balance_cents / 100)|number_format(2, ',', ' ') }} €</strong>
+                    <p>Gains non encore validés.</p>
                 </article>
             </div>
+
+            {% include 'admin/appointment/partial/_modal_stack.html.twig' with {
+                appointments: reminder_appointments,
+                admin_status_choices: admin_status_choices,
+                status_consequences: status_consequences,
+                status: '',
+                stack_id: 'appointment-reminder-modal-stack'
+            } only %}
         </section>
     </main>
 {% endblock %}

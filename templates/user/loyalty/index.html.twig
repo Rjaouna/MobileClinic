@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ma fidélité - Mobile Clinic{% endblock %}
+{% block meta_description %}Cagnotte fidélité client Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh') }}" data-user-live-refresh-interval="10000">
+        <section class="dashboard-shell" aria-labelledby="user-loyalty-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Espace client</p>
+                    <h1 id="user-loyalty-title">Ma fidélité</h1>
+                    {% include 'user/partial/_account_line.html.twig' with {
+                        id: 'user-loyalty-account-line',
+                        customer: customer
+                    } only %}
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'user-loyalty-menu',
+                    kicker: 'Espace client',
+                    title: 'Menu fidélité',
+                    subtitle: 'Sous-menus de votre carte fidélité.',
+                    items: [
+                        {
+                            label: 'Historique',
+                            href: '#user-loyalty-history',
+                            variant: 'primary',
+                            icon: 'clock',
+                            description: 'Voir tous les mouvements.'
+                        },
+                        {
+                            label: 'Mon espace',
+                            href: path('app_user_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour au tableau de bord.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter votre espace.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            {% include 'components/_loyalty_summary.html.twig' with {
+                id: 'user-loyalty-card',
+                title: 'Ma cagnotte Mobile Clinic',
+                loyalty: loyalty
+            } only %}
+
+            {% include 'user/loyalty/partial/_history.html.twig' with {
+                loyalty: loyalty
+            } only %}
+        </section>
+    </main>
+{% endblock %}

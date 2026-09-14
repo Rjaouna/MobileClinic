@@ -1,0 +1,42 @@
+<form class="modal-form" action="{{ path('app_api_admin_customer_create') }}" method="post" data-ajax-form data-ajax-reset="1">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_customer_create') }}">
+    <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+    <input type="hidden" name="_list_filter" value="{{ filter|default('') }}">
+    <input type="hidden" name="_list_page" value="{{ page|default(1) }}">
+
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="customer-create-first-name">Prénom</label>
+            <input id="customer-create-first-name" type="text" name="first_name" autocomplete="given-name" data-modal-initial-focus>
+        </div>
+        <div class="field-group">
+            <label for="customer-create-last-name">Nom</label>
+            <input id="customer-create-last-name" type="text" name="last_name" autocomplete="family-name">
+        </div>
+        <div class="field-group">
+            <label for="customer-create-email">Adresse e-mail</label>
+            <input id="customer-create-email" type="email" name="email" autocomplete="email" required>
+        </div>
+        <div class="field-group">
+            <label for="customer-create-phone">Téléphone</label>
+            <input id="customer-create-phone" type="tel" name="phone" autocomplete="tel" required>
+        </div>
+        <div class="field-group field-group--wide">
+            <label for="customer-create-password">Mot de passe temporaire</label>
+            <input id="customer-create-password" type="password" name="password" minlength="8" required>
+        </div>
+        <label class="toggle-line field-group--wide">
+            <input type="checkbox" name="is_active" checked>
+            <span>Compte actif</span>
+        </label>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Créer le client',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

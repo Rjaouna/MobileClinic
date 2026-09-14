@@ -1,0 +1,30 @@
+{% set account_user = user|default(app.user) %}
+{% set href = href|default(null) %}
+{% set role_label = role_label|default(is_granted('ROLE_ADMIN') ? 'Admin connecté' : 'Client connecté') %}
+{% set extra_class = class|default('') %}
+
+{% if account_user %}
+    {% set display_name = account_user.displayName|default(account_user.userIdentifier) %}
+    {% set identifier = account_user.userIdentifier|default(display_name) %}
+    {% set initial = display_name|slice(0, 1)|upper %}
+    {% set chip_class = ('account-chip ' ~ extra_class)|trim %}
+
+    {% if href %}
+        <a class="{{ chip_class }}" href="{{ href }}" aria-label="{{ role_label }} : {{ display_name }}">
+    {% else %}
+        <div class="{{ chip_class }}" aria-label="{{ role_label }} : {{ display_name }}">
+    {% endif %}
+            <span class="account-chip__avatar" aria-hidden="true">{{ initial }}</span>
+            <span class="account-chip__content">
+                <span class="account-chip__label">{{ role_label }}</span>
+                <strong class="account-chip__name">{{ display_name }}</strong>
+                {% if identifier != display_name %}
+                    <span class="account-chip__email">{{ identifier }}</span>
+                {% endif %}
+            </span>
+    {% if href %}
+        </a>
+    {% else %}
+        </div>
+    {% endif %}
+{% endif %}

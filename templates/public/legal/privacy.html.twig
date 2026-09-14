@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% macro value(content) %}
+    {{ content is not empty ? content : 'À compléter par l’éditeur du site' }}
+{% endmacro %}
+
+{% import _self as legal_value %}
+
+{% block title %}Politique de confidentialité - Mobile Clinic{% endblock %}
+{% block meta_description %}Politique de confidentialité et informations RGPD de Mobile Clinic.{% endblock %}
+
+{% block body %}
+    {% include 'components/_public_header.html.twig' with { active: '', primary_action: 'appointment', setting: setting } only %}
+
+    <main class="legal-page">
+        <header class="legal-hero">
+            <p class="section-heading__kicker">Données personnelles</p>
+            <h1>Politique de confidentialité</h1>
+            <p>Cette page décrit les traitements réalisés par Mobile Clinic dans le cadre des comptes clients, rendez-vous, réservations, avantages fidélité et candidatures.</p>
+        </header>
+
+        <div class="legal-content">
+            <section class="legal-section legal-section--lead">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'shield', size: 24 } only %}</span>
+                <div>
+                    <h2>Responsable du traitement</h2>
+                    <p>{{ legal_value.value(legal.company_name) }}, {{ legal_value.value(legal.registered_office) }}.</p>
+                    <p>Contact pour les droits et la confidentialité : <strong>{{ legal_value.value(legal.privacy_email ?: legal.business_email) }}</strong>{% if legal.dpo %}. DPO ou référent : {{ legal.dpo }}{% endif %}.</p>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'user', size: 24 } only %}</span>
+                <div>
+                    <h2>Données collectées et finalités</h2>
+                    <div class="legal-purpose-grid">
+                        <article><h3>Compte client</h3><p>Nom, prénom, e-mail, téléphone, mot de passe chiffré et état du compte pour créer et sécuriser l’espace client.</p><span>Base légale : exécution du service demandé.</span></article>
+                        <article><h3>Rendez-vous</h3><p>Appareil, problème, date, créneau, coordonnées, statut et notes utiles pour organiser et suivre la réparation.</p><span>Base légale : exécution de mesures précontractuelles et du service.</span></article>
+                        <article><h3>Promotions magasin</h3><p>Articles réservés, date limite, statut de retrait et utilisation éventuelle de la cagnotte. Aucun paiement en ligne n’est traité.</p><span>Base légale : exécution de la réservation.</span></article>
+                        <article><h3>Fidélité</h3><p>Solde, gains, utilisations, remboursements et historique afin d’administrer l’avantage proposé au client.</p><span>Base légale : exécution du programme et intérêt légitime de suivi.</span></article>
+                        <article><h3>Recrutement</h3><p>Identité, coordonnées, poste, disponibilité, expérience, message et CV afin d’étudier la candidature.</p><span>Base légale : mesures précontractuelles à la demande du candidat.</span></article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'clock', size: 24 } only %}</span>
+                <div>
+                    <h2>Durées de conservation</h2>
+                    <dl class="legal-data-list">
+                        <div><dt>Comptes clients</dt><dd>{{ legal.customer_retention_months }} mois maximum selon le paramétrage déclaré</dd></div>
+                        <div><dt>Rendez-vous</dt><dd>{{ legal.appointment_retention_months }} mois maximum</dd></div>
+                        <div><dt>Fidélité et réservations</dt><dd>{{ legal.loyalty_retention_months }} mois maximum</dd></div>
+                        <div><dt>Candidatures non retenues</dt><dd>{{ legal.recruitment_retention_months }} mois maximum</dd></div>
+                    </dl>
+                    <p>Ces durées peuvent être prolongées lorsqu’une obligation légale ou la défense de droits en justice l’exige.</p>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'info', size: 24 } only %}</span>
+                <div>
+                    <h2>Destinataires et prestataires</h2>
+                    <p><strong>Destinataires :</strong> {{ legal_value.value(legal.data_recipients) }}</p>
+                    <p><strong>Sous-traitants :</strong> {{ legal_value.value(legal.processors) }}</p>
+                    <p><strong>Outils tiers déclarés :</strong> {{ legal_value.value(legal.third_party_tools) }}</p>
+                    <p><strong>Transfert hors Union européenne :</strong> {{ legal.outside_eu_transfer == '1' ? 'Oui. ' ~ legal_value.value(legal.outside_eu_details) : 'Aucun transfert déclaré.' }}</p>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'shield', size: 24 } only %}</span>
+                <div>
+                    <h2>Vos droits</h2>
+                    <p>Selon votre situation, vous pouvez demander l’accès, la rectification, l’effacement, la limitation ou la portabilité de vos données, et vous opposer à certains traitements. Vous pouvez également retirer un consentement lorsqu’il constitue la base du traitement.</p>
+                    <p>Adressez votre demande à <strong>{{ legal_value.value(legal.privacy_email ?: legal.business_email) }}</strong>. Une preuve d’identité peut être demandée uniquement en cas de doute raisonnable. Vous pouvez aussi introduire une réclamation auprès de la CNIL.</p>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'info', size: 24 } only %}</span>
+                <div>
+                    <h2>Cookies et traceurs</h2>
+                    <p>Le site utilise des cookies techniques indispensables à la session, à l’authentification, à la sécurité CSRF et au panier. Ils permettent le fonctionnement du service et ne sont pas utilisés à des fins publicitaires.</p>
+                    <p><strong>Gestion du consentement :</strong> {{ legal_value.value(legal.cookie_consent_tool) }}</p>
+                    <p>Cookies analytiques : <strong>{{ legal.analytics_cookies == '1' ? 'déclarés actifs' : 'non déclarés' }}</strong>. Cookies publicitaires : <strong>{{ legal.advertising_cookies == '1' ? 'déclarés actifs' : 'non déclarés' }}</strong>.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

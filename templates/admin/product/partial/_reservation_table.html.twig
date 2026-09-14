@@ -1,0 +1,122 @@
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+<div class="table-wrapper data-table-wrapper" id="admin-product-reservation-table">
+    <table class="data-table data-table--professional data-table--store-reservations">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Articles</th>
+                <th>Total</th>
+                <th>Temps restant</th>
+                <th>Statut</th>
+                <th>Action admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+                <tr data-reservation-urgency="{{ reservation.reserved ? 'comfortable' : (reservation.status == 'expired' ? 'expired' : 'inactive') }}">
+                    <td data-label="Client">
+                        <strong>{{ reservation.customer ? reservation.customer.displayName : 'Client supprimé' }}</strong>
+                        <span>{{ reservation.customer ? reservation.customer.email : '' }}</span>
+                        {% if reservation.customer and reservation.customer.phone %}
+                            <a class="table-contact-link" href="tel:{{ reservation.customer.phone|replace({' ': '', '.': '', '-': ''}) }}" aria-label="Appeler {{ reservation.customer.displayName }} au {{ reservation.customer.phone }}">
+                                {% include 'components/_icon.html.twig' with { name: 'phone', size: 13 } only %}
+                                <span>Appeler {{ reservation.customer.phone }}</span>
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td data-label="Articles">
+                        {% for item in reservation.items %}
+                            <strong>{{ item.productName }}</strong>
+                            <span>{{ money.money(item.unitPromotionalPriceCents) }}</span>
+                        {% endfor %}
+                    </td>
+                    <td data-label="Total">
+                        <strong>{{ money.money(reservation.payableCents) }}</strong>
+                        {% if reservation.loyaltyUsedCents > 0 %}
+                            <span>Fidélité {{ reservation.sold ? 'consommée' : 'utilisée' }} : {{ money.money(reservation.loyaltyUsedCents) }}</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Temps restant" data-order="{{ reservation.expiresAt ? reservation.expiresAt|date('U') : 0 }}">
+                        {% if reservation.sold and reservation.withdrawnAt %}
+                            <strong>{{ reservation.withdrawnAt|date('d/m/Y H:i') }}</strong>
+                            <span>Article retiré en magasin</span>
+                        {% else %}
+                            {% include 'components/_reservation_countdown.html.twig' with {
+                                reservation: reservation,
+                                setting: setting,
+                                audience: 'admin',
+                                compact: true
+                            } only %}
+                        {% endif %}
+                    </td>
+                    <td data-label="Statut">
+                        <span class="status-pill status-pill--{{ reservation.statusVariant }}">{{ reservation.statusLabel }}</span>
+                    </td>
+                    <td class="data-table__actions" data-label="Action admin">
+                        {% if reservation.reserved or reservation.confirmed %}
+                            <div class="reservation-actions">
+                                {% if reservation.reserved %}
+                                    <form class="table-action-form table-action-form--compact" action="{{ path('app_admin_product_reservation_confirm', { id: reservation.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_product_reservation_' ~ reservation.id) }}">
+                                        <input type="text" name="admin_note" placeholder="Note admin">
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Valider',
+                                            variant: 'secondary',
+                                            size: 'compact',
+                                            type: 'submit'
+                                        } only %}
+                                    </form>
+                                {% endif %}
+
+                                <form class="table-action-form table-action-form--compact" action="{{ path('app_admin_product_reservation_withdraw', { id: reservation.id }) }}" method="post">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_product_reservation_' ~ reservation.id) }}">
+                                    <input type="text" name="admin_note" placeholder="Note retrait">
+                                    {% include 'components/_button.html.twig' with {
+                                        label: 'Retiré',
+                                        variant: 'primary',
+                                        size: 'compact',
+                                        type: 'submit'
+                                    } only %}
+                                </form>
+
+                                {% if reservation.reserved %}
+                                    <form class="inline-form" action="{{ path('app_admin_product_reservation_cancel', { id: reservation.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_product_reservation_' ~ reservation.id) }}">
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Annuler',
+                                            variant: 'danger',
+                                            size: 'compact',
+                                            type: 'submit'
+                                        } only %}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% elseif reservation.sold %}
+                            <span class="status-pill status-pill--success">Achat validé</span>
+                            {% if reservation.withdrawnAt %}
+                                <span>{{ reservation.withdrawnAt|date('d/m/Y H:i') }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="empty-state">Aucune action</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">
+                        <p class="empty-state">Aucune réservation boutique ne correspond aux filtres.</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

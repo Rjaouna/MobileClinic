@@ -21,6 +21,7 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            user_checker: App\Security\ActiveUserChecker
             form_login:
                 login_path: app_login
                 check_path: app_login
@@ -31,8 +32,15 @@ security:
                 default_target_path: app_after_login
                 always_use_default_target_path: true
             logout:
-                path: /deconnexion
+                path: app_logout
                 target: /
+                enable_csrf: true
+                csrf_token_id: logout
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 1209600
+                path: /
+                always_remember_me: true
 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -42,6 +50,7 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/espace-client, roles: ROLE_USER }
 

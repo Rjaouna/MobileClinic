@@ -1,0 +1,82 @@
+<tr>
+    <td data-label="Actualité">
+        <div class="table-product table-news">
+            <span class="table-product__media">
+                {% set preview = article.image ? article.imagePath : article.youtubeThumbnailUrl %}
+                {% if preview %}
+                    <img src="{{ preview }}" alt="">
+                {% else %}
+                    {% include 'components/_icon.html.twig' with { name: 'news', size: 20 } only %}
+                {% endif %}
+            </span>
+            <span>
+                <strong>{{ article.title }}</strong>
+                <small>{{ article.summary(85) }}</small>
+            </span>
+        </div>
+    </td>
+    <td data-label="Média">
+        <span class="news-media-label">
+            {% include 'components/_icon.html.twig' with { name: article.video ? 'video' : 'image', size: 17 } only %}
+            {{ article.mediaLabel }}
+        </span>
+    </td>
+    <td data-label="Mise en ligne" data-order="{{ article.publishedAt|date('Y-m-d H:i:s') }}">
+        <strong>{{ article.publishedAt|date('d/m/Y') }}</strong>
+        <span>{{ article.publishedAt|date('H:i') }} · fin {{ article.expiresAt|date('d/m/Y') }}</span>
+    </td>
+    <td data-label="État">
+        {% if not article.active %}
+            <span class="status-pill status-pill--neutral">Masqué</span>
+        {% elseif article.expired %}
+            <span class="status-pill status-pill--danger">Expirée</span>
+        {% elseif article.publishedAt > date() %}
+            <span class="status-pill status-pill--warning">Planifiée</span>
+        {% else %}
+            <span class="status-pill status-pill--success">Visible</span>
+        {% endif %}
+    </td>
+    <td class="data-table__actions" data-label="Actions">
+        <div class="inline-actions">
+            {% if article.active and article.expired %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Prolonger',
+                    variant: 'primary',
+                    size: 'compact',
+                    type: 'button',
+                    icon: 'clock',
+                    modal_target: 'news-extend-' ~ article.id
+                } only %}
+            {% endif %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Voir',
+                variant: 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'news-show-' ~ article.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Modifier',
+                variant: 'primary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'news-edit-' ~ article.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: article.active ? 'Masquer' : 'Afficher',
+                variant: article.active ? 'danger' : 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'news-toggle-' ~ article.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Supprimer',
+                variant: 'danger',
+                size: 'compact',
+                type: 'button',
+                icon: 'trash',
+                modal_target: 'news-delete-' ~ article.id
+            } only %}
+        </div>
+    </td>
+</tr>

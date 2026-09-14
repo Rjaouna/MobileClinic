@@ -1,0 +1,49 @@
+{% if expired_news is not empty %}
+    <section class="admin-panel news-expiration-alerts" aria-labelledby="news-expiration-title">
+        <div class="admin-panel__header">
+            <div>
+                <p class="dashboard-kicker">Actualités à renouveler</p>
+                <h2 id="news-expiration-title">{{ expired_news|length }} publication{{ expired_news|length > 1 ? 's ont' : ' a' }} atteint un mois.</h2>
+                <p>Ces actualités ne sont plus visibles. Prolongez-les ou masquez-les définitivement.</p>
+            </div>
+            <span class="notification-counter is-active">{{ expired_news|length }}</span>
+        </div>
+
+        <div class="news-expiration-alerts__list">
+            {% for article in expired_news %}
+                <article>
+                    <span class="news-expiration-alerts__icon" aria-hidden="true">
+                        {% include 'components/_icon.html.twig' with { name: 'news', size: 20 } only %}
+                    </span>
+                    <div>
+                        <strong>{{ article.title }}</strong>
+                        <span>Diffusion terminée le {{ article.expiresAt|date('d/m/Y à H:i') }}</span>
+                    </div>
+                    <div class="inline-actions">
+                        <form action="{{ path('app_admin_news_extend', { id: article.id }) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_news_extend_' ~ article.id) }}">
+                            <input type="hidden" name="_return_to" value="dashboard">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Prolonger d’un mois',
+                                variant: 'primary',
+                                size: 'compact',
+                                type: 'submit',
+                                icon: 'clock'
+                            } only %}
+                        </form>
+                        <form action="{{ path('app_admin_news_toggle', { id: article.id }) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_news_' ~ article.id) }}">
+                            <input type="hidden" name="_return_to" value="dashboard">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Ne pas prolonger',
+                                variant: 'secondary',
+                                size: 'compact',
+                                type: 'submit'
+                            } only %}
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

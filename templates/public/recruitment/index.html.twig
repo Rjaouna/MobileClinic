@@ -1,0 +1,271 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recrutement - Rejoignez Mobile Clinic{% endblock %}
+{% block meta_description %}Découvrez les métiers Mobile Clinic et envoyez votre candidature pour rejoindre notre atelier de réparation mobile et notre équipe boutique.{% endblock %}
+
+{% block body %}
+    {% set legal = setting.legalProfile %}
+
+    {% include 'components/_public_header.html.twig' with {
+        active: 'recruitment',
+        primary_action: 'appointment',
+        setting: setting
+    } only %}
+
+    <main class="recruitment-page recruitment-page--professional">
+        <section class="recruitment-hero-pro" aria-labelledby="recruitment-title">
+            <div class="recruitment-hero-pro__content">
+                {% include 'components/_badge.html.twig' with {
+                    label: 'Carrières chez Mobile Clinic',
+                    icon: 'briefcase'
+                } only %}
+
+                <h1 id="recruitment-title">Rejoignez Mobile Clinic.<br><span>Réparez, conseillez, progressez.</span></h1>
+                <p>
+                    Intégrez une équipe de terrain où la précision technique compte autant que
+                    la qualité de l’accueil. Nous cherchons des personnes fiables, curieuses et
+                    engagées dans le service client.
+                </p>
+
+                <div class="recruitment-hero-pro__actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Voir les opportunités',
+                        href: '#opportunites',
+                        variant: 'primary',
+                        icon: 'briefcase'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Déposer ma candidature',
+                        href: '#candidature',
+                        variant: 'secondary',
+                        icon: 'check'
+                    } only %}
+                </div>
+
+                <dl class="recruitment-hero-pro__facts">
+                    <div><dt>3 min</dt><dd>pour candidater</dd></div>
+                    <div><dt>CV</dt><dd>facultatif</dd></div>
+                    <div><dt>Humain</dt><dd>à chaque étape</dd></div>
+                </dl>
+            </div>
+        </section>
+
+        <section class="recruitment-opportunities" id="opportunites" aria-labelledby="opportunities-title">
+            <div class="recruitment-section-heading">
+                <div>
+                    <p class="section-heading__kicker">Opportunités</p>
+                    <h2 id="opportunities-title">Trouvez votre place chez Mobile Clinic.</h2>
+                </div>
+                <p>
+                    Technique, conseil ou pilotage : choisissez le métier qui correspond à votre
+                    expérience. Chaque candidature est étudiée avec la même attention.
+                </p>
+            </div>
+
+            <div class="recruitment-role-grid">
+                {% for position in open_positions %}
+                    <article class="recruitment-role" id="poste-{{ position.id }}">
+                        <header class="recruitment-role__header">
+                            <span class="recruitment-role__icon" aria-hidden="true">
+                                {% include 'components/_icon.html.twig' with { name: position.iconName, size: 23 } only %}
+                            </span>
+                            <span class="recruitment-role__type">{{ position.category }}</span>
+                        </header>
+
+                        <div class="recruitment-role__content">
+                            <h3>{{ position.title }}</h3>
+                            <p>{{ position.description }}</p>
+                            <ul>
+                                {% for highlight in position.highlights %}
+                                    <li>{% include 'components/_icon.html.twig' with { name: 'check', size: 15 } only %}<span>{{ highlight }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <footer class="recruitment-role__footer">
+                            <span>{{ position.rhythm }}</span>
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Choisir ce poste',
+                                href: path('app_public_recruitment_index', { position: position.id }) ~ '#candidature',
+                                variant: 'secondary',
+                                size: 'compact',
+                                icon: 'briefcase',
+                                attributes: {
+                                    'data-recruitment-position': position.id
+                                }
+                            } only %}
+                        </footer>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="recruitment-spontaneous">
+                <span class="recruitment-spontaneous__icon" aria-hidden="true">
+                    {% include 'components/_icon.html.twig' with { name: 'spark', size: 25 } only %}
+                </span>
+                <div>
+                    <strong>Votre profil ne rentre pas dans une case ?</strong>
+                    <p>Présentez-nous votre parcours et le rôle que vous imaginez chez Mobile Clinic.</p>
+                </div>
+                {% include 'components/_button.html.twig' with {
+                    label: 'Candidature spontanée',
+                    href: path('app_public_recruitment_index', { position: 'spontaneous' }) ~ '#candidature',
+                    variant: 'primary',
+                    size: 'compact',
+                    attributes: {
+                        'data-recruitment-position': 'spontaneous'
+                    }
+                } only %}
+            </div>
+        </section>
+
+        <section class="recruitment-process-pro" aria-labelledby="recruitment-process-heading">
+            <div class="recruitment-section-heading recruitment-section-heading--light">
+                <div>
+                    <p class="section-heading__kicker">Votre parcours</p>
+                    <h2 id="recruitment-process-heading">Trois étapes, des réponses claires.</h2>
+                </div>
+                <p>Nous privilégions un parcours court pour aller rapidement à l’essentiel.</p>
+            </div>
+
+            <ol class="recruitment-process-pro__list">
+                {% for step in recruitment_steps %}
+                    <li>
+                        <span class="recruitment-process-pro__number">0{{ loop.index }}</span>
+                        <div>
+                            <h3>{{ step.title }}</h3>
+                            <p>{{ step.text }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ol>
+        </section>
+
+        <section class="recruitment-application" id="candidature" aria-labelledby="recruitment-form-title">
+            <div class="recruitment-application__layout">
+                <div class="recruitment-application__intro">
+                    <p class="section-heading__kicker">Candidature</p>
+                    <h2 id="recruitment-form-title">Parlons de votre prochain défi.</h2>
+                    <p>
+                        Quelques informations suffisent pour un premier échange. Le CV reste
+                        facultatif : votre motivation et votre manière de travailler comptent aussi.
+                    </p>
+
+                    <div class="recruitment-application__promises">
+                        <div>
+                            {% include 'components/_icon.html.twig' with { name: 'shield', size: 20 } only %}
+                            <span><strong>Données protégées</strong>Votre candidature reste confidentielle.</span>
+                        </div>
+                        <div>
+                            {% include 'components/_icon.html.twig' with { name: 'clock', size: 20 } only %}
+                            <span><strong>Parcours direct</strong>Pas de création de compte nécessaire.</span>
+                        </div>
+                        <div>
+                            {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
+                            <span><strong>Échange humain</strong>Une personne étudie chaque profil.</span>
+                        </div>
+                    </div>
+
+                    {% if legal.business_email or legal.business_phone %}
+                        <div class="recruitment-application__contact">
+                            <span>Une question avant de postuler ?</span>
+                            {% if legal.business_email %}<a href="mailto:{{ legal.business_email }}">{{ legal.business_email }}</a>{% endif %}
+                            {% if legal.business_phone %}<a href="tel:{{ legal.business_phone|replace({' ': ''}) }}">{{ legal.business_phone }}</a>{% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div id="recruitment-application-feedback"></div>
+                </div>
+
+                <form class="recruitment-application-form" action="{{ path('app_public_recruitment_apply') }}" method="post" enctype="multipart/form-data" data-ajax-form data-ajax-reset="1">
+                    <input type="hidden" name="_token" value="{{ csrf_token('public_recruitment_apply') }}">
+                    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+
+                    <fieldset>
+                        <legend>Vos coordonnées</legend>
+                        <div class="modal-form__grid">
+                            <label class="field-group">
+                                <span>Prénom</span>
+                                <input type="text" name="first_name" value="{{ candidate ? candidate.firstName : '' }}" autocomplete="given-name" placeholder="Votre prénom" required>
+                            </label>
+                            <label class="field-group">
+                                <span>Nom</span>
+                                <input type="text" name="last_name" value="{{ candidate ? candidate.lastName : '' }}" autocomplete="family-name" placeholder="Votre nom" required>
+                            </label>
+                            <label class="field-group">
+                                <span>E-mail</span>
+                                <input type="email" name="email" value="{{ candidate ? candidate.email : '' }}" autocomplete="email" placeholder="vous@email.fr" required>
+                            </label>
+                            <label class="field-group">
+                                <span>Téléphone</span>
+                                <input type="tel" name="phone" value="{{ candidate ? candidate.phone : '' }}" autocomplete="tel" placeholder="06 00 00 00 00" required>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Votre projet</legend>
+                        <div class="modal-form__grid">
+                            <label class="field-group">
+                                <span>Poste souhaité</span>
+                                <select name="position_id" data-recruitment-position-select required>
+                                    <option value="">Choisir un poste</option>
+                                    {% for position in positions %}
+                                        <option value="{{ position.id }}" {% if position.id == selected_position %}selected{% endif %}>{{ position.title }}</option>
+                                    {% endfor %}
+                                    <option value="spontaneous" {% if selected_position == 'spontaneous' %}selected{% endif %}>Candidature spontanée</option>
+                                </select>
+                            </label>
+                            <label class="field-group">
+                                <span>Disponibilité</span>
+                                <select name="availability" required>
+                                    <option value="">Choisir une disponibilité</option>
+                                    {% for availability in availabilities %}
+                                        <option value="{{ availability }}">{{ availability }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="field-group">
+                                <span>Expérience</span>
+                                <select name="experience_level" required>
+                                    <option value="">Choisir votre niveau</option>
+                                    {% for experience in experiences %}
+                                        <option value="{{ experience }}">{{ experience }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="field-group recruitment-file-field">
+                                <span>CV <small>Facultatif</small></span>
+                                <input type="file" name="resume" accept=".pdf,.doc,.docx,.odt">
+                            </label>
+                        </div>
+
+                        <label class="field-group">
+                            <span>Votre motivation</span>
+                            <textarea name="message" rows="5" minlength="20" placeholder="Parlez-nous de votre parcours, de vos compétences et de ce que vous souhaitez apporter à Mobile Clinic." required></textarea>
+                        </label>
+                    </fieldset>
+
+                    <label class="recruitment-consent">
+                        <input type="checkbox" required>
+                        <span>J’accepte que mes informations soient utilisées pour étudier ma candidature, conformément à la <a href="{{ path('app_public_privacy') }}" target="_blank">politique de confidentialité</a>.</span>
+                    </label>
+
+                    <div class="recruitment-application-form__footer">
+                        <p>CV : PDF, DOC, DOCX ou ODT · 5 Mo maximum</p>
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Envoyer ma candidature',
+                            variant: 'primary',
+                            type: 'submit',
+                            icon: 'briefcase'
+                        } only %}
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <div class="ajax-toast" data-ajax-toast hidden></div>
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

@@ -6,8 +6,11 @@ namespace App\Controller\Admin;
 
 use App\Entity\Appointment;
 use App\Entity\AppointmentAvailability;
+use App\Entity\User;
 use App\Repository\AppointmentRepository;
+use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
+use App\Service\LoyaltyManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -21,7 +24,9 @@ final class AppointmentController extends AbstractController
 {
     public function __construct(
         private readonly AppointmentScheduler $appointmentScheduler,
+        private readonly AppointmentReminderManager $appointmentReminderManager,
         private readonly AppointmentRepository $appointmentRepository,
+        private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -29,47 +34,19 @@ final class AppointmentController extends AbstractController
     #[Route('/admin/rendez-vous', name: 'app_admin_appointment_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $this->appointmentScheduler->syncExpiredAppointments();
-
         $status = $request->query->get('status');
+        $search = (string) $request->query->get('q', '');
 
-        return $this->render('admin/appointment/index.html.twig', [
-            'appointments' => $this->appointmentRepository->findForAdmin(is_string($status) ? $status : null),
-            'week_days' => $this->appointmentScheduler->getAvailabilityWeekOverview(),
-            'setting' => $this->appointmentScheduler->getSetting(),
-            'days' => $this->appointmentScheduler->getDays(),
-            'status' => is_string($status) ? $status : '',
-            'status_labels' => Appointment::STATUS_LABELS,
-            'status_variants' => Appointment::STATUS_VARIANTS,
-            'stats' => [
-                'pending' => $this->appointmentRepository->countByStatus(Appointment::STATUS_PENDING),
-                'confirmed' => $this->appointmentRepository->countByStatus(Appointment::STATUS_CONFIRMED),
-                'upcoming' => $this->appointmentRepository->countUpcoming(),
-                'no_show' => $this->appointmentRepository->countByStatus(Appointment::STATUS_NO_SHOW),
-            ],
-        ]);
+        return $this->render('admin/appointment/index.html.twig', $this->buildAppointmentViewData(is_string($status) ? $status : null, $search));
     }
 
     #[Route('/admin/rendez-vous/jours/{day}', name: 'app_admin_appointment_day', requirements: ['day' => '[1-7]'], methods: ['GET'])]
     public function day(int $day, Request $request): Response
     {
-        $this->appointmentScheduler->syncExpiredAppointments();
         $status = $request->query->get('status');
+        $search = (string) $request->query->get('q', '');
 
-        return $this->render('admin/appointment/index.html.twig', [
-            'appointments' => $this->appointmentRepository->findForAdmin(is_string($status) ? $status : null),
-            'week_days' => $this->appointmentScheduler->getAvailabilityWeekOverview(),
-            'setting' => $this->appointmentScheduler->getSetting(),
-            'days' => $this->appointmentScheduler->getDays(),
-            'status' => is_string($status) ? $status : '',
-            'status_labels' => Appointment::STATUS_LABELS,
-            'status_variants' => Appointment::STATUS_VARIANTS,
-            'stats' => [
-                'pending' => $this->appointmentRepository->countByStatus(Appointment::STATUS_PENDING),
-                'confirmed' => $this->appointmentRepository->countByStatus(Appointment::STATUS_CONFIRMED),
-                'upcoming' => $this->appointmentRepository->countUpcoming(),
-                'no_show' => $this->appointmentRepository->countByStatus(Appointment::STATUS_NO_SHOW),
-            ],
+        return $this->render('admin/appointment/index.html.twig', $this->buildAppointmentViewData(is_string($status) ? $status : null, $search) + [
             'selected_day' => $day,
             'selected_day_label' => $this->appointmentScheduler->getDays()[$day],
             'selected_day_summary' => $this->appointmentScheduler->getAvailabilityDayOverview($day),
@@ -85,10 +62,17 @@ final class AppointmentController extends AbstractController
         $this->appointmentScheduler->getSetting()
             ->setNoShowDelayMinutes((int) $request->request->get('no_show_delay_minutes', 60))
             ->setBookingWindowDays((int) $request->request->get('booking_window_days', 21))
-            ->setDefaultSlotDurationMinutes((int) $request->request->get('default_slot_duration_minutes', 30));
+            ->setDefaultSlotDurationMinutes((int) $request->request->get('default_slot_duration_minutes', 30))
+            ->setRemindersEnabled($request->request->getBoolean('reminders_enabled'))
+            ->setFirstReminderDelayMinutes((int) $request->request->get('first_reminder_delay_minutes', 1))
+            ->setPriorityReminderDelayMinutes((int) $request->request->get('priority_reminder_delay_minutes', 60));
 
         $this->entityManager->flush();
         $this->addFlash('success', 'Les réglages des rendez-vous ont été mis à jour.');
+
+        if ($request->request->getBoolean('_redirect_settings')) {
+            return $this->redirect($this->generateUrl('app_admin_settings_index').'#appointment-settings-title');
+        }
 
         return $this->redirectToRoute('app_admin_appointment_index');
     }
@@ -128,6 +112,14 @@ final class AppointmentController extends AbstractController
             return $this->redirectAfterAvailabilityAction($request, $dayOfWeek);
         }
 
+        $conflictMessage = $this->appointmentScheduler->findAvailabilityConflictMessage($dayOfWeek, $startTime, $endTime);
+
+        if ($conflictMessage !== null) {
+            $this->addFlash('error', $conflictMessage);
+
+            return $this->redirectAfterAvailabilityAction($request, $dayOfWeek);
+        }
+
         $this->entityManager->persist($availability);
         $this->entityManager->flush();
         $this->addFlash('success', 'La plage horaire a été ajoutée.');
@@ -145,7 +137,7 @@ final class AppointmentController extends AbstractController
         if ($availabilities === []) {
             $this->addFlash('error', 'Ajoutez d’abord une plage horaire pour gérer la visibilité de cette journée.');
 
-            return $this->redirectToRoute('app_admin_appointment_day', ['day' => $day]);
+            return $this->redirectAfterAvailabilityAction($request, $day);
         }
 
         $shouldEnable = true;
@@ -197,17 +189,22 @@ final class AppointmentController extends AbstractController
 
         $status = (string) $request->request->get('status');
 
-        if (!isset(Appointment::STATUS_LABELS[$status])) {
+        if (!in_array($status, Appointment::ADMIN_ACTION_STATUSES, true)) {
             $this->addFlash('error', 'Le statut sélectionné est invalide.');
 
             return $this->redirectToRoute('app_admin_appointment_index');
         }
 
+        $user = $this->getUser();
+        $admin = $user instanceof User ? $user : null;
+
         $appointment
             ->setStatus($status)
+            ->setStatusChangedBy($admin)
             ->setAdminNote((string) $request->request->get('admin_note'));
 
-        $this->entityManager->flush();
+        $this->loyaltyManager->syncAppointmentStatus($appointment, $admin);
+        $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
         $this->addFlash('success', 'Le statut du rendez-vous a été mis à jour.');
 
         return $this->redirectToRoute('app_admin_appointment_index');
@@ -218,18 +215,65 @@ final class AppointmentController extends AbstractController
     {
         $this->denyUnlessValidCsrf('admin_appointment_sync', $request);
 
-        $count = $this->appointmentScheduler->syncExpiredAppointments();
-        $this->addFlash('success', sprintf('%d rendez-vous passé(s) ont été contrôlés.', $count));
+        $result = $this->appointmentReminderManager->refreshReminders();
+        $this->addFlash('success', sprintf(
+            '%d rappel(s) créé(s), %d renforcé(s), %d résolu(s).',
+            $result['created'],
+            $result['updated'],
+            $result['resolved'],
+        ));
+
+        if ($request->request->getBoolean('_redirect_settings')) {
+            return $this->redirect($this->generateUrl('app_admin_settings_index').'#appointment-settings-title');
+        }
 
         return $this->redirectToRoute('app_admin_appointment_index');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildAppointmentViewData(?string $status, string $search = ''): array
+    {
+        $appointments = $this->appointmentRepository->findForAdmin($status, $search);
+        $reminderView = $this->appointmentReminderManager->buildAdminView(8);
+
+        return [
+            'appointments' => $appointments,
+            'week_days' => $this->appointmentScheduler->getAvailabilityWeekOverview(),
+            'availability_ranges_by_day' => $this->appointmentScheduler->getAvailabilityRangesByDay(),
+            'setting' => $this->appointmentScheduler->getSetting(),
+            'days' => $this->appointmentScheduler->getDays(),
+            'status' => $status ?? '',
+            'search' => $search,
+            'status_labels' => Appointment::STATUS_LABELS,
+            'admin_status_choices' => $this->appointmentReminderManager->getAdminStatusChoices(),
+            'status_consequences' => $this->appointmentReminderManager->getStatusConsequences(),
+            'reminder_view' => $reminderView,
+            'stats' => [
+                'pending' => $this->appointmentRepository->countByStatus(Appointment::STATUS_PENDING),
+                'confirmed' => $this->appointmentRepository->countByStatus(Appointment::STATUS_CONFIRMED),
+                'in_progress' => $this->appointmentRepository->countByStatus(Appointment::STATUS_IN_PROGRESS),
+                'upcoming' => $this->appointmentRepository->countUpcoming(),
+                'interventions' => $reminderView['total'],
+                'no_show' => $this->appointmentRepository->countByStatus(Appointment::STATUS_NO_SHOW),
+            ],
+        ];
     }
 
     private function redirectAfterAvailabilityAction(Request $request, ?int $fallbackDay = null): RedirectResponse
     {
         $day = (int) $request->request->get('_redirect_day', $fallbackDay ?? 0);
+        $route = $request->request->getBoolean('_redirect_settings')
+            ? 'app_admin_settings_day'
+            : 'app_admin_appointment_day';
 
         if (isset(AppointmentAvailability::DAYS[$day])) {
-            return $this->redirectToRoute('app_admin_appointment_day', ['day' => $day]);
+            return $this->redirect($this->generateUrl($route, ['day' => $day]).'#jour-'.$day);
+        }
+
+        if ($request->request->getBoolean('_redirect_settings')) {
+            return $this->redirect($this->generateUrl('app_admin_settings_index').'#availability-title');
         }
 
         return $this->redirectToRoute('app_admin_appointment_index');

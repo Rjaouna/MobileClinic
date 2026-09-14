@@ -1,0 +1,11 @@
+<form class="modal-confirmation" action="{{ path('app_admin_news_delete', { id: article.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_news_delete_' ~ article.id) }}">
+    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+    <p>La publication et sa photo importée seront supprimées définitivement. Cette action ne peut pas être annulée.</p>
+    {% include 'components/_button.html.twig' with {
+        label: 'Supprimer définitivement',
+        variant: 'danger',
+        type: 'submit',
+        icon: 'trash'
+    } only %}
+</form>

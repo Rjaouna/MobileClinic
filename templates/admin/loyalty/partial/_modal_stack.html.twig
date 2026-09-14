@@ -1,0 +1,47 @@
+<div id="loyalty-modal-stack">
+    {% embed 'components/_modal.html.twig' with {
+        id: 'loyalty-credit-modal',
+        title: 'Ajouter un crédit',
+        subtitle: 'Le mouvement sera validé immédiatement et tracé.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/loyalty/modal/_credit.html.twig' with { customer: customer } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% embed 'components/_modal.html.twig' with {
+        id: 'loyalty-redeem-modal',
+        title: 'Utiliser la cagnotte',
+        subtitle: 'Le débit ne peut pas dépasser le solde disponible.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/loyalty/modal/_redeem.html.twig' with { customer: customer } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% embed 'components/_modal.html.twig' with {
+        id: 'loyalty-adjust-modal',
+        title: 'Correction tracée',
+        subtitle: 'Une correction crée un nouveau mouvement, elle n’écrase jamais l’historique.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/loyalty/modal/_adjust.html.twig' with { customer: customer } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% for transaction in loyalty.transactions %}
+        {% if transaction.pending %}
+            {% embed 'components/_modal.html.twig' with {
+                id: 'loyalty-cancel-' ~ transaction.id,
+                title: 'Annuler le mouvement',
+                subtitle: 'Cette action concerne uniquement un avantage en attente.'
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/loyalty/modal/_cancel.html.twig' with {
+                        transaction: transaction
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    {% endfor %}
+</div>

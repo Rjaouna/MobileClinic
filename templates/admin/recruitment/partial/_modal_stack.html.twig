@@ -1,0 +1,66 @@
+<div id="recruitment-modal-stack">
+    {% embed 'components/_modal.html.twig' with {
+        id: 'recruitment-position-add',
+        title: 'Nouveau poste',
+        subtitle: 'Créez une opportunité visible sur la page recrutement.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/recruitment/modal/_position_add.html.twig' with {
+                position_categories: position_categories
+            } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% for position in positions %}
+        {% embed 'components/_modal.html.twig' with {
+            id: 'recruitment-position-show-' ~ position.id,
+            title: position.title,
+            subtitle: 'Détail du poste'
+        } %}
+            {% block modal_body %}
+                {% include 'admin/recruitment/modal/_position_show.html.twig' with { position: position } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'recruitment-position-edit-' ~ position.id,
+            title: 'Modifier le poste',
+            subtitle: position.title
+        } %}
+            {% block modal_body %}
+                {% include 'admin/recruitment/modal/_position_edit.html.twig' with {
+                    position: position,
+                    position_categories: position_categories
+                } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'recruitment-position-toggle-' ~ position.id,
+            title: position.active ? 'Masquer le poste' : 'Afficher le poste',
+            subtitle: position.title
+        } %}
+            {% block modal_body %}
+                {% include 'admin/recruitment/modal/_position_toggle.html.twig' with { position: position } only %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+
+    {% for application in applications %}
+        {% embed 'components/_modal.html.twig' with {
+            id: 'recruitment-application-' ~ application.id,
+            title: 'Traiter la candidature',
+            subtitle: application.displayName ~ ' · ' ~ application.desiredPosition,
+            class: 'modal--recruitment-application'
+        } %}
+            {% block modal_body %}
+                {% include 'admin/recruitment/modal/_status.html.twig' with {
+                    application: application,
+                    status_labels: status_labels,
+                    search: search|default(''),
+                    status: status|default('')
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+</div>

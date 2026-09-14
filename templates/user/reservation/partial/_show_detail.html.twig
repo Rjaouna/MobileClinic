@@ -1,0 +1,37 @@
+{% set customer = appointment.customer %}
+
+<section class="admin-panel" id="user-reservation-detail-{{ appointment.id }}">
+    <div class="appointment-detail-grid">
+        <div>
+            <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
+            <h2>Votre créneau</h2>
+            <p>{{ appointment.scheduledAt|date('d/m/Y') }} de {{ appointment.scheduledAt|date('H:i') }} à {{ appointment.endsAt|date('H:i') }}</p>
+        </div>
+        <div>
+            <h2>Contact</h2>
+            <p>{{ customer ? customer.email : appointment.email }}</p>
+            <p>{{ customer and customer.phone ? customer.phone : appointment.phone ?: 'Téléphone non renseigné' }}</p>
+        </div>
+        <div>
+            <h2>Message</h2>
+            <p>{{ appointment.customerNote ?: 'Aucun message ajouté.' }}</p>
+        </div>
+    </div>
+
+    {% if appointment.canBeChangedByCustomer() %}
+        <div class="inline-actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Déplacer',
+                variant: 'primary',
+                type: 'button',
+                modal_target: 'reservation-reschedule-modal'
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Annuler',
+                variant: 'danger',
+                type: 'button',
+                modal_target: 'reservation-cancel-modal'
+            } only %}
+        </div>
+    {% endif %}
+</section>

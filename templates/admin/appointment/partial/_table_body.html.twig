@@ -1,0 +1,37 @@
+{% for appointment in appointments %}
+    <tr>
+        <td data-label="Client">
+            <strong>{{ appointment.customer ? appointment.customer.displayName : appointment.email }}</strong>
+            <span>{{ appointment.phone ?: 'Téléphone non renseigné' }}</span>
+        </td>
+        <td data-label="Demande">
+            <strong>{{ appointment.device }}</strong>
+            <span>{{ appointment.problem }}</span>
+        </td>
+        <td data-label="Créneau">
+            <strong>{{ appointment.scheduledAt|date('d/m/Y') }}</strong>
+            <span>{{ appointment.scheduledAt|date('H:i') }} - {{ appointment.endsAt|date('H:i') }}</span>
+        </td>
+        <td data-label="Statut">
+            <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
+            {% if appointment.statusChangedByEmail %}
+                <span>Par {{ appointment.statusChangedByEmail }}</span>
+            {% endif %}
+        </td>
+        <td class="data-table__actions" data-label="Action admin">
+            {% include 'components/_button.html.twig' with {
+                label: 'Mettre à jour',
+                variant: appointment.needsAdminDecision ? 'primary' : 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'appointment-status-' ~ appointment.id
+            } only %}
+        </td>
+    </tr>
+{% else %}
+    <tr>
+        <td colspan="5">
+            <p class="empty-state">Aucun rendez-vous ne correspond à cette recherche.</p>
+        </td>
+    </tr>
+{% endfor %}

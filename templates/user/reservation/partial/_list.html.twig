@@ -1,0 +1,88 @@
+{% embed 'components/_data_table_shell.html.twig' with {
+    section_id_attr: 'user-reservation-list',
+    id: 'user-reservation-list-title',
+    kicker: 'Rendez-vous',
+    title: 'Mes demandes',
+    subtitle: 'Suivi des statuts, créneaux et actions disponibles.',
+    count_label: appointments|length ~ ' rendez-vous',
+    icon: 'calendar'
+} %}
+    {% block table_content %}
+        <div class="table-wrapper data-table-wrapper">
+            <table class="data-table data-table--professional">
+                <thead>
+                    <tr>
+                        <th>Demande</th>
+                        <th>Créneau</th>
+                        <th>Note</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                        <tr>
+                            <td data-label="Demande">
+                                <strong>{{ appointment.problem }}</strong>
+                                <span>{{ appointment.device }}</span>
+                            </td>
+                            <td data-label="Créneau">
+                                <strong>{{ appointment.scheduledAt|date('d/m/Y') }}</strong>
+                                <span>{{ appointment.scheduledAt|date('H:i') }} - {{ appointment.endsAt|date('H:i') }}</span>
+                            </td>
+                            <td data-label="Note">
+                                {{ appointment.customerNote ?: 'Aucune note' }}
+                            </td>
+                            <td data-label="Statut">
+                                <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
+                            </td>
+                            <td class="data-table__actions" data-label="Actions">
+                                <div class="inline-actions">
+                                    {% include 'components/_button.html.twig' with {
+                                        label: 'Voir',
+                                        href: path('app_user_reservation_show', { id: appointment.id }),
+                                        variant: 'secondary',
+                                        size: 'compact'
+                                    } only %}
+
+                                    {% if appointment.canBeChangedByCustomer() %}
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Déplacer',
+                                            variant: 'primary',
+                                            size: 'compact',
+                                            type: 'button',
+                                            modal_target: 'reservation-show-' ~ appointment.id
+                                        } only %}
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Annuler',
+                                            variant: 'danger',
+                                            size: 'compact',
+                                            type: 'button',
+                                            modal_target: 'reservation-cancel-' ~ appointment.id
+                                        } only %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">
+                                <section class="empty-state empty-state--large">
+                                    <h2>Aucun rendez-vous pour le moment</h2>
+                                    <p>Vous pouvez réserver une réparation depuis votre espace.</p>
+                                    {% include 'components/_button.html.twig' with {
+                                        label: 'Prendre rendez-vous',
+                                        variant: 'primary',
+                                        icon: 'tool',
+                                        type: 'button',
+                                        modal_target: 'appointment-modal'
+                                    } only %}
+                                </section>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endblock %}
+{% endembed %}

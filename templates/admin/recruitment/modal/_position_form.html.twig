@@ -1,0 +1,90 @@
+{% set position = position|default(null) %}
+{% set highlights = position ? position.highlights : [] %}
+
+<form class="modal-form recruitment-position-form" action="{{ action }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="{{ form_id }}-category">Catégorie</label>
+            <select id="{{ form_id }}-category" name="category" required data-modal-initial-focus>
+                {% for category in position_categories %}
+                    <option value="{{ category }}" {% if position and position.category == category %}selected{% endif %}>{{ category }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form_id }}-title">Titre du poste</label>
+            <input id="{{ form_id }}-title" type="text" name="title" value="{{ position ? position.title : '' }}" maxlength="140" placeholder="Ex. Technicien réparation mobile" required>
+        </div>
+
+        <div class="field-group field-group--wide">
+            <label for="{{ form_id }}-rhythm">Rythme et contrat</label>
+            <input id="{{ form_id }}-rhythm" type="text" name="rhythm" value="{{ position ? position.rhythm : '' }}" maxlength="120" placeholder="Ex. Temps plein · Selon profil" required>
+        </div>
+
+        <div class="field-group field-group--wide">
+            <label for="{{ form_id }}-description">Présentation du poste</label>
+            <textarea id="{{ form_id }}-description" name="description" rows="5" minlength="20" placeholder="Décrivez les missions et l’environnement de travail." required>{{ position ? position.description : '' }}</textarea>
+        </div>
+    </div>
+
+    <section class="attribute-builder recruitment-highlight-builder" data-attribute-list data-attribute-max-rows="8">
+        <div class="attribute-builder__header">
+            <div>
+                <p class="dashboard-kicker">Compétences</p>
+                <h3>Points clés de l’annonce</h3>
+                <p>Ajoutez jusqu’à 8 tags courts, affichés directement sur la fiche du poste.</p>
+            </div>
+            {% include 'components/_button.html.twig' with {
+                label: 'Ajouter une compétence',
+                variant: 'secondary',
+                size: 'compact',
+                type: 'button',
+                icon: 'spark',
+                attributes: { 'data-add-attribute-row': true }
+            } only %}
+        </div>
+
+        <div class="attribute-builder__rows recruitment-highlight-builder__rows" data-attribute-rows>
+            {% for highlight in highlights %}
+                <div class="attribute-row recruitment-highlight-row" data-attribute-row>
+                    <input type="text" name="highlights[]" value="{{ highlight }}" maxlength="100" placeholder="Ex. Contrôle qualité" required>
+                    <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette compétence">
+                        {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                    </button>
+                </div>
+            {% else %}
+                <div class="attribute-row recruitment-highlight-row" data-attribute-row>
+                    <input type="text" name="highlights[]" maxlength="100" placeholder="Ex. Diagnostic et réparation" required>
+                    <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette compétence">
+                        {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <template data-attribute-template>
+            <div class="attribute-row recruitment-highlight-row" data-attribute-row>
+                <input type="text" name="highlights[]" maxlength="100" placeholder="Ex. Organisation de l’atelier" required>
+                <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette compétence">
+                    {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                </button>
+            </div>
+        </template>
+    </section>
+
+    <label class="toggle-line">
+        <input type="checkbox" name="is_active" value="1" {% if position is null or position.active %}checked{% endif %}>
+        <span>Poste visible sur la page recrutement</span>
+    </label>
+
+    {% include 'components/_button.html.twig' with {
+        label: submit_label,
+        variant: 'primary',
+        type: 'submit',
+        icon: 'check',
+        class: 'modal-form__submit'
+    } only %}
+</form>

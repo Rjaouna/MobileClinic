@@ -1,0 +1,8 @@
+{% include 'admin/recruitment/modal/_position_form.html.twig' with {
+    position: position,
+    action: path('app_admin_recruitment_position_update', { id: position.id }),
+    csrf_id: 'admin_recruitment_position_' ~ position.id,
+    form_id: 'recruitment-position-edit-form-' ~ position.id,
+    submit_label: 'Mettre à jour le poste',
+    position_categories: position_categories
+} only %}

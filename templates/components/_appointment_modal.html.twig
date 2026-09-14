@@ -1,4 +1,6 @@
 {% set modal_id = id|default('appointment-modal') %}
+{% set modal_customer_email = customer_email|default('') %}
+{% set modal_is_connected_customer = is_connected_customer|default(modal_customer_email is not empty) %}
 
 {% embed 'components/_modal.html.twig' with {
     id: modal_id,
@@ -15,7 +17,9 @@
             slot_days: slot_days|default([]),
             data: data|default({}),
             errors: errors|default([]),
-            customer_email: customer_email|default(''),
+            customer_email: modal_customer_email,
+            customer_phone: customer_phone|default(''),
+            is_connected_customer: modal_is_connected_customer,
             redirect_to: redirect_to|default('home')
         } only %}
     {% endblock %}

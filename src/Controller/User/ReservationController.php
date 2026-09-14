@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Controller\User;
 
 use App\Entity\Appointment;
+use App\Entity\ProductReservation;
 use App\Entity\User;
 use App\Repository\AppointmentRepository;
+use App\Repository\ProductReservationRepository;
+use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
+use App\Service\GeneralSettingManager;
+use App\Service\LoyaltyManager;
+use App\Service\ProductReservationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -22,6 +28,11 @@ final class ReservationController extends AbstractController
     public function __construct(
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AppointmentScheduler $appointmentScheduler,
+        private readonly AppointmentReminderManager $appointmentReminderManager,
+        private readonly LoyaltyManager $loyaltyManager,
+        private readonly ProductReservationRepository $productReservationRepository,
+        private readonly ProductReservationManager $productReservationManager,
+        private readonly GeneralSettingManager $generalSettingManager,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -29,12 +40,13 @@ final class ReservationController extends AbstractController
     #[Route('/espace-client/rendez-vous', name: 'app_user_reservation_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $this->appointmentScheduler->syncExpiredAppointments();
+        $customer = $this->getCustomer();
         $appointmentData = $request->getSession()->getFlashBag()->get('appointment_data');
         $appointmentErrors = $request->getSession()->getFlashBag()->get('appointment_error');
 
         return $this->render('user/reservation/index.html.twig', [
-            'appointments' => $this->appointmentRepository->findForUser($this->getCustomer()),
+            'appointments' => $this->appointmentRepository->findForUser($customer),
+            'loyalty' => $this->loyaltyManager->buildAccountView($customer, 4),
             'devices' => $this->appointmentScheduler->getDeviceChoices(),
             'problems' => $this->appointmentScheduler->getProblemChoices(),
             'slot_days' => $this->appointmentScheduler->getBookableSlotDays(),
@@ -48,10 +60,26 @@ final class ReservationController extends AbstractController
     public function show(Appointment $appointment): Response
     {
         $this->denyUnlessOwner($appointment);
+        $customer = $this->getCustomer();
 
         return $this->render('user/reservation/show.html.twig', [
             'appointment' => $appointment,
+            'loyalty' => $this->loyaltyManager->buildAccountView($customer, 4),
             'slot_days' => $this->appointmentScheduler->getBookableSlotDays($appointment),
+        ]);
+    }
+
+    #[Route('/espace-client/reservations-boutique', name: 'app_user_product_reservation_index', methods: ['GET'])]
+    public function storeReservations(): Response
+    {
+        $customer = $this->getCustomer();
+        $this->productReservationManager->expireOverdueReservations();
+
+        return $this->render('user/reservation/store.html.twig', [
+            'customer' => $customer,
+            'reservations' => $this->productReservationRepository->findForUser($customer),
+            'loyalty' => $this->loyaltyManager->buildAccountView($customer, 4),
+            'setting' => $this->generalSettingManager->getSetting(),
         ]);
     }
 
@@ -68,7 +96,8 @@ final class ReservationController extends AbstractController
         }
 
         $appointment->setStatus(Appointment::STATUS_CANCELLED_BY_CLIENT);
-        $this->entityManager->flush();
+        $this->loyaltyManager->syncAppointmentStatus($appointment, $this->getCustomer());
+        $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
         $this->addFlash('success', 'Votre rendez-vous a été annulé.');
 
         return $this->redirectToRoute('app_user_reservation_index');
@@ -99,10 +128,26 @@ final class ReservationController extends AbstractController
             ->setDurationMinutes($slot['duration_minutes'])
             ->markRescheduled();
 
+        $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
         $this->entityManager->flush();
         $this->addFlash('success', 'Votre rendez-vous a été déplacé.');
 
         return $this->redirectToRoute('app_user_reservation_show', ['id' => $appointment->getId()]);
+    }
+
+    #[Route('/espace-client/reservations-boutique/{id}/annuler', name: 'app_user_product_reservation_cancel', methods: ['POST'])]
+    public function cancelStoreReservation(ProductReservation $reservation, Request $request): RedirectResponse
+    {
+        $this->denyUnlessValidCsrf('user_product_reservation_cancel_'.$reservation->getId(), $request);
+
+        try {
+            $this->productReservationManager->cancelByCustomer($reservation, $this->getCustomer());
+            $this->addFlash('success', 'Votre réservation boutique a été annulée. La fidélité utilisée a été remboursée.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirectToRoute('app_user_product_reservation_index');
     }
 
     private function getCustomer(): User

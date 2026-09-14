@@ -1,0 +1,20 @@
+<form class="modal-form" action="{{ path('app_api_admin_loyalty_cancel', { id: transaction.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_loyalty_cancel_' ~ transaction.id) }}">
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <p class="modal-notice">
+        Cette action annule uniquement un mouvement en attente. Un gain déjà validé doit être corrigé par un ajustement tracé.
+    </p>
+
+    <div class="field-group">
+        <label for="loyalty-cancel-{{ transaction.id }}-reason">Motif obligatoire</label>
+        <textarea id="loyalty-cancel-{{ transaction.id }}-reason" name="reason" rows="3" data-modal-initial-focus required></textarea>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Annuler le mouvement',
+        variant: 'danger',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

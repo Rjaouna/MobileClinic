@@ -1,0 +1,7 @@
+{% include 'admin/news/modal/_form.html.twig' with {
+    article: article,
+    action: path('app_admin_news_update', { id: article.id }),
+    csrf_id: 'admin_news_' ~ article.id,
+    submit_label: 'Enregistrer les modifications',
+    media_labels: media_labels
+} only %}

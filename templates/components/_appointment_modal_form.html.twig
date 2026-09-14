@@ -1,6 +1,11 @@
 {% set form_data = data|default({}) %}
 {% set slot_days = slot_days|default([]) %}
-{% set initial_step = form_data.slot|default('') ? 2 : (form_data.email|default('') ? 1 : 0) %}
+{% set customer_email = customer_email|default('') %}
+{% set customer_phone = customer_phone|default('') %}
+{% set is_connected_customer = is_connected_customer|default(customer_email is not empty) %}
+{% set needs_contact_step = not is_connected_customer %}
+{% set slot_step_index = needs_contact_step ? 2 : 1 %}
+{% set initial_step = form_data.slot|default('') ? slot_step_index : (needs_contact_step and form_data.email|default('') ? 1 : 0) %}
 
 <form
     class="modal-form appointment-modal-form booking-wizard"
@@ -12,6 +17,10 @@
 >
     <input type="hidden" name="_token" value="{{ csrf_token('create_appointment') }}">
     <input type="hidden" name="_redirect_to" value="{{ redirect_to|default('home') }}">
+    {% if is_connected_customer %}
+        <input type="hidden" name="email" value="{{ customer_email }}">
+        <input type="hidden" name="phone" value="{{ customer_phone }}">
+    {% endif %}
 
     {% if errors|default([]) is not empty %}
         <div class="form-alert form-alert--error">
@@ -26,20 +35,33 @@
             <strong>1</strong>
             Réparation
         </span>
-        <span class="booking-wizard__step" data-booking-step-indicator="1">
-            <strong>2</strong>
-            Coordonnées
-        </span>
-        <span class="booking-wizard__step" data-booking-step-indicator="2">
-            <strong>3</strong>
-            Créneau
-        </span>
+        {% if needs_contact_step %}
+            <span class="booking-wizard__step" data-booking-step-indicator="1">
+                <strong>2</strong>
+                Coordonnées
+            </span>
+            <span class="booking-wizard__step" data-booking-step-indicator="2">
+                <strong>3</strong>
+                Créneau
+            </span>
+        {% else %}
+            <span class="booking-wizard__step" data-booking-step-indicator="1">
+                <strong>2</strong>
+                Créneau
+            </span>
+        {% endif %}
     </div>
 
     <section class="booking-step" data-booking-step="0" aria-label="Informations de réparation">
         <div class="booking-step__heading">
             <h3>Votre réparation</h3>
-            <p>Indiquez l’appareil, le problème et le numéro à rappeler si besoin.</p>
+            <p>
+                {% if needs_contact_step %}
+                    Indiquez l’appareil, le problème et le numéro à rappeler si besoin.
+                {% else %}
+                    Choisissez l’appareil et le problème. Vos coordonnées sont déjà liées à votre compte.
+                {% endif %}
+            </p>
         </div>
 
         <div class="modal-form__grid">
@@ -61,38 +83,44 @@
                 </select>
             </div>
 
-            <div class="field-group field-group--wide">
-                <label for="appointment-modal-phone">Numéro de téléphone</label>
-                <input id="appointment-modal-phone" type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="06 00 00 00 00" value="{{ form_data.phone|default('') }}" data-booking-phone required>
-            </div>
+            {% if needs_contact_step %}
+                <div class="field-group field-group--wide">
+                    <label for="appointment-modal-phone">Numéro de téléphone</label>
+                    <input id="appointment-modal-phone" type="tel" name="phone" inputmode="tel" autocomplete="tel" placeholder="06 00 00 00 00" value="{{ form_data.phone|default('') }}" data-booking-phone required>
+                </div>
+            {% endif %}
         </div>
 
-        <div class="form-alert form-alert--error booking-phone-alert" data-booking-phone-alert hidden>
-            <p data-booking-phone-message>Ce numéro de téléphone existe déjà.</p>
-            <a class="text-link" href="{{ path('app_login') }}" data-booking-phone-login>Se connecter pour prendre rendez-vous</a>
-        </div>
+        {% if needs_contact_step %}
+            <div class="form-alert form-alert--error booking-phone-alert" data-booking-phone-alert hidden>
+                <p data-booking-phone-message>Connectez-vous pour continuer avec ce numéro, ou vérifiez les informations saisies.</p>
+                <a class="text-link" href="{{ path('app_login') }}" data-booking-phone-login>Se connecter pour prendre rendez-vous</a>
+            </div>
+        {% endif %}
     </section>
 
-    <section class="booking-step" data-booking-step="1" aria-label="Coordonnées client">
-        <div class="booking-step__heading">
-            <h3>Vos coordonnées</h3>
-            <p>Votre espace client sera créé automatiquement si cette adresse email n’existe pas encore.</p>
-        </div>
-
-        <div class="modal-form__grid">
-            <div class="field-group field-group--wide">
-                <label for="appointment-modal-email">Adresse email</label>
-                <input id="appointment-modal-email" type="email" name="email" autocomplete="email" placeholder="vous@email.fr" value="{{ form_data.email|default(customer_email|default('')) }}" required>
+    {% if needs_contact_step %}
+        <section class="booking-step" data-booking-step="1" aria-label="Coordonnées client">
+            <div class="booking-step__heading">
+                <h3>Vos coordonnées</h3>
+                <p>Votre espace client sera créé automatiquement si cette adresse email n’existe pas encore.</p>
             </div>
 
-            <div class="field-group field-group--wide">
-                <label for="appointment-modal-note">Message pour l’équipe</label>
-                <textarea id="appointment-modal-note" name="customer_note" rows="3" placeholder="Ex. disponibilité, modèle exact, urgence...">{{ form_data.customer_note|default('') }}</textarea>
-            </div>
-        </div>
-    </section>
+            <div class="modal-form__grid">
+                <div class="field-group field-group--wide">
+                    <label for="appointment-modal-email">Adresse email</label>
+                    <input id="appointment-modal-email" type="email" name="email" autocomplete="email" placeholder="vous@email.fr" value="{{ form_data.email|default(customer_email) }}" required>
+                </div>
 
-    <section class="booking-step" data-booking-step="2" aria-label="Choix du créneau">
+                <div class="field-group field-group--wide">
+                    <label for="appointment-modal-note">Message pour l’équipe</label>
+                    <textarea id="appointment-modal-note" name="customer_note" rows="3" placeholder="Ex. disponibilité, modèle exact, urgence...">{{ form_data.customer_note|default('') }}</textarea>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="booking-step" data-booking-step="{{ slot_step_index }}" aria-label="Choix du créneau">
         <div class="booking-step__heading">
             <h3>Jour et horaire</h3>
             <p>Sélectionnez une journée, puis un créneau encore disponible.</p>
@@ -108,7 +136,11 @@
     </section>
 
     <p class="modal-notice">
-        Après validation, votre compte client est créé automatiquement si l’adresse email n’existe pas encore. Le mot de passe temporaire sera affiché dans votre espace.
+        {% if needs_contact_step %}
+            Après validation, votre compte client est créé automatiquement si l’adresse email n’existe pas encore. Le mot de passe temporaire sera affiché dans votre espace.
+        {% else %}
+            Votre rendez-vous sera ajouté directement à votre espace client.
+        {% endif %}
     </p>
 
     <div class="booking-wizard__footer">

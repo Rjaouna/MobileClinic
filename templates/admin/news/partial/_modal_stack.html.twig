@@ -1,0 +1,65 @@
+<div id="news-modal-stack">
+    {% embed 'components/_modal.html.twig' with {
+        id: 'news-add-modal',
+        title: 'Nouvelle actualité',
+        subtitle: 'Ajoutez une photo ou partagez une vidéo depuis YouTube.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/news/modal/_add.html.twig' with { media_labels: media_labels } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% for article in articles %}
+        {% if article.active and article.expired %}
+            {% embed 'components/_modal.html.twig' with {
+                id: 'news-extend-' ~ article.id,
+                title: 'Prolonger l’actualité',
+                subtitle: article.title
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/news/modal/_extend.html.twig' with { article: article } only %}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'news-show-' ~ article.id,
+            title: article.title,
+            subtitle: 'Aperçu de la publication'
+        } %}
+            {% block modal_body %}
+                {% include 'admin/news/modal/_show.html.twig' with { article: article } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'news-edit-' ~ article.id,
+            title: 'Modifier l’actualité',
+            subtitle: article.title
+        } %}
+            {% block modal_body %}
+                {% include 'admin/news/modal/_edit.html.twig' with { article: article, media_labels: media_labels } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'news-toggle-' ~ article.id,
+            title: article.active ? 'Masquer l’actualité' : 'Afficher l’actualité',
+            subtitle: article.title
+        } %}
+            {% block modal_body %}
+                {% include 'admin/news/modal/_toggle.html.twig' with { article: article } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'news-delete-' ~ article.id,
+            title: 'Supprimer l’actualité',
+            subtitle: article.title
+        } %}
+            {% block modal_body %}
+                {% include 'admin/news/modal/_delete.html.twig' with { article: article } only %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+</div>

@@ -4,6 +4,8 @@
 {% set resolved_href = href|default(null) %}
 {% set modal_target = modal_target|default(null) %}
 {% set attributes = attributes|default({}) %}
+{% set badge = badge|default(null) %}
+{% set icon_position = icon_position|default('start') %}
 {% if resolved_href is empty and route|default(null) %}
     {% set resolved_href = path(route, route_params|default({})) %}
 {% endif %}
@@ -11,20 +13,36 @@
 
 {% if resolved_href %}
     <a class="{{ button_class|trim }}" href="{{ resolved_href }}" {% if target|default(null) %}target="{{ target }}"{% endif %} {% if aria_label|default(null) %}aria-label="{{ aria_label }}"{% endif %} {% if modal_target %}data-modal-open="{{ modal_target }}" aria-controls="{{ modal_target }}" aria-haspopup="dialog"{% endif %}{% for attr_name, attr_value in attributes %}{% if attr_value is same as(true) %} {{ attr_name }}{% elseif attr_value is not same as(false) and attr_value is not null %} {{ attr_name }}="{{ attr_value }}"{% endif %}{% endfor %}>
-        {% if icon|default(null) %}
+        {% if icon|default(null) and icon_position != 'end' %}
             <span class="btn__icon" aria-hidden="true">
                 {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
             </span>
         {% endif %}
         <span>{{ label }}</span>
+        {% if icon|default(null) and icon_position == 'end' %}
+            <span class="btn__icon" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
+            </span>
+        {% endif %}
+        {% if badge is not null %}
+            <span class="btn__badge" data-admin-appointment-badge-count {% if badge <= 0 %}hidden{% endif %}>{{ badge }}</span>
+        {% endif %}
     </a>
 {% else %}
     <button class="{{ button_class|trim }}" type="{{ type|default('button') }}" {% if disabled|default(false) %}disabled{% endif %} {% if aria_label|default(null) %}aria-label="{{ aria_label }}"{% endif %} {% if modal_target %}data-modal-open="{{ modal_target }}" aria-controls="{{ modal_target }}" aria-haspopup="dialog"{% endif %}{% for attr_name, attr_value in attributes %}{% if attr_value is same as(true) %} {{ attr_name }}{% elseif attr_value is not same as(false) and attr_value is not null %} {{ attr_name }}="{{ attr_value }}"{% endif %}{% endfor %}>
-        {% if icon|default(null) %}
+        {% if icon|default(null) and icon_position != 'end' %}
             <span class="btn__icon" aria-hidden="true">
                 {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
             </span>
         {% endif %}
         <span>{{ label }}</span>
+        {% if icon|default(null) and icon_position == 'end' %}
+            <span class="btn__icon" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
+            </span>
+        {% endif %}
+        {% if badge is not null %}
+            <span class="btn__badge" data-admin-appointment-badge-count {% if badge <= 0 %}hidden{% endif %}>{{ badge }}</span>
+        {% endif %}
     </button>
 {% endif %}

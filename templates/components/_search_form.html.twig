@@ -1,17 +1,21 @@
 {% set search_id = id|default('search-form') %}
+{% set show_button = show_button is defined ? show_button : true %}
+{% set instant = instant is defined ? instant : false %}
 
-<form class="search-form" action="{{ action|default('#') }}" method="{{ method|default('get') }}" role="search">
+<form class="search-form {{ class|default('') }}" action="{{ action|default('#') }}" method="{{ method|default('get') }}" role="search"{% if instant %} data-product-search-form{% endif %}>
     <label for="{{ search_id }}-query">{{ label|default('Rechercher') }}</label>
     <div class="search-form__control">
         <span class="search-form__icon" aria-hidden="true">
             {% include 'components/_icon.html.twig' with { name: 'search', size: 20 } only %}
         </span>
-        <input id="{{ search_id }}-query" type="search" name="q" value="{{ value|default('') }}" placeholder="{{ placeholder|default('Rechercher...') }}">
-        {% include 'components/_button.html.twig' with {
-            label: button_label|default('Rechercher'),
-            variant: 'primary',
-            type: 'submit',
-            size: 'compact'
-        } only %}
+        <input id="{{ search_id }}-query" type="search" name="q" value="{{ value|default('') }}" placeholder="{{ placeholder|default('Rechercher...') }}" autocomplete="off"{% if instant %} data-product-search-input{% endif %}>
+        {% if show_button %}
+            {% include 'components/_button.html.twig' with {
+                label: button_label|default('Rechercher'),
+                variant: 'primary',
+                type: 'submit',
+                size: 'compact'
+            } only %}
+        {% endif %}
     </div>
 </form>

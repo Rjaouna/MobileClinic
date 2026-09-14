@@ -1,0 +1,35 @@
+<form class="modal-form" action="{{ path('app_api_admin_loyalty_redeem', { id: customer.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_loyalty_redeem_' ~ customer.id) }}">
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <p class="modal-form__notice">
+        Solde actuellement disponible :
+        <strong>{{ (customer.loyaltyAccount ? customer.loyaltyAccount.availableBalanceCents / 100 : 0)|number_format(2, ',', ' ') }} €</strong>
+    </p>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="loyalty-redeem-amount">Montant utilisé</label>
+            <input id="loyalty-redeem-amount" type="text" name="amount" placeholder="2 ou 2,50" inputmode="decimal" data-modal-initial-focus required>
+        </div>
+        <div class="field-group">
+            <label for="loyalty-redeem-type">Motif</label>
+            <select id="loyalty-redeem-type" name="reason_type" required>
+                <option value="Réparation">Réparation</option>
+                <option value="Achat magasin">Achat magasin</option>
+                <option value="Autre">Autre</option>
+            </select>
+        </div>
+        <div class="field-group field-group--wide">
+            <label for="loyalty-redeem-reason">Précision obligatoire</label>
+            <textarea id="loyalty-redeem-reason" name="reason" rows="3" required></textarea>
+        </div>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Débiter la cagnotte',
+        variant: 'danger',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

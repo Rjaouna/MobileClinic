@@ -16,6 +16,7 @@ class Appointment
 {
     public const STATUS_PENDING = 'pending';
     public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_NO_SHOW = 'no_show';
     public const STATUS_CANCELLED_BY_CLIENT = 'cancelled_by_client';
@@ -25,26 +26,54 @@ class Appointment
     public const ACTIVE_STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_CONFIRMED,
+        self::STATUS_IN_PROGRESS,
+    ];
+
+    /** @var list<string> */
+    public const ADMIN_DECISION_REQUIRED_STATUSES = [
+        self::STATUS_PENDING,
+    ];
+
+    /** @var list<string> */
+    public const ADMIN_ACTION_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_CONFIRMED,
+        self::STATUS_IN_PROGRESS,
+        self::STATUS_COMPLETED,
+        self::STATUS_NO_SHOW,
+        self::STATUS_CANCELLED_BY_ADMIN,
     ];
 
     /** @var array<string, string> */
     public const STATUS_LABELS = [
         self::STATUS_PENDING => 'En attente',
-        self::STATUS_CONFIRMED => 'Confirmé',
-        self::STATUS_COMPLETED => 'Réalisé',
-        self::STATUS_NO_SHOW => 'Client pas présenté',
+        self::STATUS_CONFIRMED => 'Client arrivé',
+        self::STATUS_IN_PROGRESS => 'Réparation en cours',
+        self::STATUS_COMPLETED => 'Réparation terminée',
+        self::STATUS_NO_SHOW => 'Client absent',
         self::STATUS_CANCELLED_BY_CLIENT => 'Annulé par le client',
-        self::STATUS_CANCELLED_BY_ADMIN => 'Annulé par l’admin',
+        self::STATUS_CANCELLED_BY_ADMIN => 'Rendez-vous annulé',
     ];
 
     /** @var array<string, string> */
     public const STATUS_VARIANTS = [
         self::STATUS_PENDING => 'warning',
         self::STATUS_CONFIRMED => 'success',
+        self::STATUS_IN_PROGRESS => 'warning',
         self::STATUS_COMPLETED => 'success',
         self::STATUS_NO_SHOW => 'danger',
         self::STATUS_CANCELLED_BY_CLIENT => 'neutral',
         self::STATUS_CANCELLED_BY_ADMIN => 'neutral',
+    ];
+
+    /** @var array<string, string> */
+    public const STATUS_CONSEQUENCES = [
+        self::STATUS_PENDING => 'Le rendez-vous reste à traiter et les 2 € fidélité restent en attente.',
+        self::STATUS_CONFIRMED => 'Le client est indiqué comme arrivé. Les 2 € fidélité restent en attente jusqu’à la fin de la réparation.',
+        self::STATUS_IN_PROGRESS => 'La réparation est en cours. Les 2 € fidélité restent en attente.',
+        self::STATUS_COMPLETED => 'Les 2 € en attente seront validés dans la cagnotte du client.',
+        self::STATUS_NO_SHOW => 'Les 2 € en attente seront annulés car le client est absent.',
+        self::STATUS_CANCELLED_BY_ADMIN => 'Les 2 € en attente seront annulés car le rendez-vous est annulé.',
     ];
 
     #[ORM\Id]
@@ -91,6 +120,9 @@ class Appointment
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $statusChangedAt = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    private ?string $statusChangedByEmail = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $cancelledAt = null;
@@ -239,6 +271,11 @@ class Appointment
         return in_array($this->status, self::ACTIVE_STATUSES, true);
     }
 
+    public function needsAdminDecision(): bool
+    {
+        return in_array($this->status, self::ADMIN_DECISION_REQUIRED_STATUSES, true);
+    }
+
     public function canBeChangedByCustomer(?\DateTimeImmutable $now = null): bool
     {
         $now ??= new \DateTimeImmutable();
@@ -285,6 +322,19 @@ class Appointment
     public function getStatusChangedAt(): ?\DateTimeImmutable
     {
         return $this->statusChangedAt;
+    }
+
+    public function getStatusChangedByEmail(): ?string
+    {
+        return $this->statusChangedByEmail;
+    }
+
+    public function setStatusChangedBy(?User $administrator): self
+    {
+        $this->statusChangedByEmail = $administrator?->getEmail();
+        $this->touch();
+
+        return $this;
     }
 
     public function getCancelledAt(): ?\DateTimeImmutable

@@ -1,0 +1,12 @@
+<div id="recruitment-application-feedback" class="recruitment-success" role="status">
+    <span class="recruitment-success__icon" aria-hidden="true">
+        {% include 'components/_icon.html.twig' with { name: 'check', size: 22 } only %}
+    </span>
+    <div>
+        <strong>Candidature envoyée</strong>
+        <p>
+            Merci {{ application.firstName }}. Votre candidature pour
+            <strong>{{ application.desiredPosition }}</strong> a bien été enregistrée.
+        </p>
+    </div>
+</div>

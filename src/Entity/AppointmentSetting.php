@@ -28,6 +28,15 @@ class AppointmentSetting
     #[ORM\Column]
     private int $defaultSlotDurationMinutes = 30;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $remindersEnabled = true;
+
+    #[ORM\Column(options: ['default' => 1])]
+    private int $firstReminderDelayMinutes = 1;
+
+    #[ORM\Column(options: ['default' => 60])]
+    private int $priorityReminderDelayMinutes = 60;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -78,6 +87,45 @@ class AppointmentSetting
     public function setDefaultSlotDurationMinutes(int $defaultSlotDurationMinutes): self
     {
         $this->defaultSlotDurationMinutes = max(1, $defaultSlotDurationMinutes);
+        $this->touch();
+
+        return $this;
+    }
+
+    public function isRemindersEnabled(): bool
+    {
+        return $this->remindersEnabled;
+    }
+
+    public function setRemindersEnabled(bool $remindersEnabled): self
+    {
+        $this->remindersEnabled = $remindersEnabled;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getFirstReminderDelayMinutes(): int
+    {
+        return $this->firstReminderDelayMinutes;
+    }
+
+    public function setFirstReminderDelayMinutes(int $firstReminderDelayMinutes): self
+    {
+        $this->firstReminderDelayMinutes = max(1, $firstReminderDelayMinutes);
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getPriorityReminderDelayMinutes(): int
+    {
+        return $this->priorityReminderDelayMinutes;
+    }
+
+    public function setPriorityReminderDelayMinutes(int $priorityReminderDelayMinutes): self
+    {
+        $this->priorityReminderDelayMinutes = max(1, $priorityReminderDelayMinutes);
         $this->touch();
 
         return $this;

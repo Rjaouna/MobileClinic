@@ -1,0 +1,7 @@
+{% include 'admin/recruitment/modal/_position_form.html.twig' with {
+    action: path('app_admin_recruitment_position_create'),
+    csrf_id: 'admin_recruitment_position_create',
+    form_id: 'recruitment-position-add-form',
+    submit_label: 'Créer le poste',
+    position_categories: position_categories
+} only %}

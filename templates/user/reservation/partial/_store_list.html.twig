@@ -1,0 +1,103 @@
+{% embed 'components/_data_table_shell.html.twig' with {
+    section_id_attr: 'user-store-reservation-list',
+    id: 'user-store-reservation-title',
+    kicker: 'Boutique',
+    title: 'Mes réservations boutique',
+    subtitle: 'Les statuts et votre carte fidélité se mettent à jour automatiquement.',
+    count_label: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
+    icon: 'briefcase',
+    class: 'store-reservation-panel'
+} %}
+    {% block table_actions %}
+        {% include 'components/_button.html.twig' with {
+            label: 'Voir les promotions',
+            href: path('app_public_product_index'),
+            variant: 'primary',
+            size: 'compact',
+            icon: 'bag'
+        } only %}
+    {% endblock %}
+
+    {% block table_content %}
+        {% import 'components/_money.html.twig' as money %}
+
+        <div class="table-wrapper data-table-wrapper">
+            <table class="data-table data-table--professional data-table--store-reservations data-table--customer-reservations">
+                <thead>
+                    <tr>
+                        <th>Articles</th>
+                        <th>Total</th>
+                        <th>Temps restant</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                        <tr data-reservation-urgency="{{ reservation.reserved ? 'comfortable' : (reservation.status == 'expired' ? 'expired' : 'inactive') }}">
+                            <td data-label="Articles">
+                                {% for item in reservation.items %}
+                                    <strong>{{ item.productName }}</strong>
+                                    <span>{{ money.format(item.unitPromotionalPriceCents) }}</span>
+                                {% endfor %}
+                            </td>
+                            <td data-label="Total">
+                                <strong>{{ money.format(reservation.payableCents) }}</strong>
+                                <span>Total promo : {{ money.format(reservation.totalCents) }}</span>
+                                {% if reservation.loyaltyUsedCents > 0 %}
+                                    <span>Carte fidélité utilisée : {{ money.format(reservation.loyaltyUsedCents) }}</span>
+                                {% endif %}
+                                {% if reservation.loyaltyRefundedCents > 0 %}
+                                    <span>Fidélité remboursée : {{ money.format(reservation.loyaltyRefundedCents) }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Temps restant" data-order="{{ reservation.expiresAt ? reservation.expiresAt|date('U') : 0 }}">
+                                <div class="reservation-deadline-cell">
+                                    {% include 'components/_reservation_countdown.html.twig' with {
+                                        reservation: reservation,
+                                        setting: setting,
+                                        audience: 'customer',
+                                        compact: true
+                                    } only %}
+                                    {% if reservation.reserved and reservation.storePhone %}
+                                        <a class="reservation-countdown__contact" href="tel:{{ reservation.storePhone|replace({' ': '', '.': '', '-': ''}) }}" aria-label="Appeler le magasin au {{ reservation.storePhone }}">
+                                            {% include 'components/_icon.html.twig' with { name: 'phone', size: 13 } only %}
+                                            <span>Appeler : {{ reservation.storePhone }}</span>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td data-label="Statut">
+                                <span class="status-pill status-pill--{{ reservation.statusVariant }}">{{ reservation.statusLabel }}</span>
+                            </td>
+                            <td class="data-table__actions" data-label="Action">
+                                {% if reservation.canBeCancelledByCustomer %}
+                                    <form class="inline-form" action="{{ path('app_user_product_reservation_cancel', { id: reservation.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('user_product_reservation_cancel_' ~ reservation.id) }}">
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Annuler',
+                                            variant: 'danger',
+                                            size: 'compact',
+                                            type: 'submit'
+                                        } only %}
+                                    </form>
+                                {% else %}
+                                    <span>Aucune action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">
+                                <section class="empty-state empty-state--large">
+                                    <h2>Aucune réservation boutique</h2>
+                                    <p>Réservez un article en promotion, il apparaîtra ici avec son délai de retrait.</p>
+                                </section>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endblock %}
+{% endembed %}

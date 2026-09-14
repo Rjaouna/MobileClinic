@@ -64,6 +64,7 @@ final class AppointmentScheduler
         private readonly AppointmentRepository $appointmentRepository,
         private readonly AppointmentAvailabilityRepository $availabilityRepository,
         private readonly AppointmentSettingRepository $settingRepository,
+        private readonly AppointmentReminderManager $appointmentReminderManager,
     ) {
     }
 
@@ -307,6 +308,71 @@ final class AppointmentScheduler
     }
 
     /**
+     * @return array<int, list<array{start: string, end: string, label: string}>>
+     */
+    public function getAvailabilityRangesByDay(): array
+    {
+        $ranges = [];
+
+        foreach ($this->getDays() as $dayOfWeek => $_label) {
+            $ranges[$dayOfWeek] = [];
+        }
+
+        foreach ($this->availabilityRepository->findAllOrdered() as $availability) {
+            $startTime = $availability->getStartTime();
+            $endTime = $availability->getEndTime();
+
+            if (!$startTime instanceof \DateTimeImmutable || !$endTime instanceof \DateTimeImmutable) {
+                continue;
+            }
+
+            $ranges[$availability->getDayOfWeek()][] = [
+                'start' => $startTime->format('H:i'),
+                'end' => $endTime->format('H:i'),
+                'label' => $this->formatAvailabilityRange($availability),
+            ];
+        }
+
+        return $ranges;
+    }
+
+    public function findAvailabilityConflictMessage(int $dayOfWeek, \DateTimeImmutable $startTime, \DateTimeImmutable $endTime): ?string
+    {
+        foreach ($this->availabilityRepository->findByDayOrdered($dayOfWeek) as $availability) {
+            $existingStart = $availability->getStartTime();
+            $existingEnd = $availability->getEndTime();
+
+            if (!$existingStart instanceof \DateTimeImmutable || !$existingEnd instanceof \DateTimeImmutable) {
+                continue;
+            }
+
+            $start = $this->timeToMinutes($startTime);
+            $end = $this->timeToMinutes($endTime);
+            $rangeStart = $this->timeToMinutes($existingStart);
+            $rangeEnd = $this->timeToMinutes($existingEnd);
+            $rangeLabel = $this->formatAvailabilityRange($availability);
+
+            if ($start === $rangeStart && $end === $rangeEnd) {
+                return sprintf('Cette plage horaire existe déjà : %s.', $rangeLabel);
+            }
+
+            if ($start >= $rangeStart && $start < $rangeEnd) {
+                return sprintf('L’heure de début est déjà couverte par la plage %s.', $rangeLabel);
+            }
+
+            if ($end > $rangeStart && $end <= $rangeEnd) {
+                return sprintf('L’heure de fin est déjà couverte par la plage %s.', $rangeLabel);
+            }
+
+            if ($start <= $rangeStart && $end >= $rangeEnd) {
+                return sprintf('Cette plage chevauche déjà la plage %s.', $rangeLabel);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array{
      *     value: string,
      *     label: string,
@@ -340,19 +406,9 @@ final class AppointmentScheduler
 
     public function syncExpiredAppointments(): int
     {
-        $delay = $this->getSetting()->getNoShowDelayMinutes();
-        $deadline = (new \DateTimeImmutable('now', $this->getTimezone()))->modify(sprintf('-%d minutes', $delay));
-        $appointments = $this->appointmentRepository->findNoShowCandidates($deadline);
+        $result = $this->appointmentReminderManager->refreshReminders();
 
-        foreach ($appointments as $appointment) {
-            $appointment->setStatus(Appointment::STATUS_NO_SHOW);
-        }
-
-        if ($appointments !== []) {
-            $this->entityManager->flush();
-        }
-
-        return count($appointments);
+        return $result['created'] + $result['updated'] + $result['resolved'];
     }
 
     public function formatAppointmentDate(\DateTimeImmutable $date): string
@@ -439,6 +495,11 @@ final class AppointmentScheduler
         $dayName = mb_substr(self::DAYS[(int) $date->format('N')], 0, 3);
 
         return sprintf('%s. %s/%s', $dayName, $date->format('d'), $date->format('m'));
+    }
+
+    private function timeToMinutes(\DateTimeImmutable $time): int
+    {
+        return ((int) $time->format('H') * 60) + (int) $time->format('i');
     }
 
     private function getTimezone(): \DateTimeZone

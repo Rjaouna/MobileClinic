@@ -1,0 +1,57 @@
+<div id="product-modal-stack">
+    {% embed 'components/_modal.html.twig' with {
+        id: 'product-add-modal',
+        title: 'Ajouter un article',
+        subtitle: 'Créez une promotion avec prix, photo et informations libres.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/product/modal/_add.html.twig' only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% for product in products %}
+        {% set is_reserved = product.id in reserved_product_ids|default([]) %}
+        {% embed 'components/_modal.html.twig' with {
+            id: 'product-show-' ~ product.id,
+            title: product.name,
+            subtitle: 'Détail de l’article promotionnel'
+        } %}
+            {% block modal_body %}
+                {% include 'admin/product/modal/_show.html.twig' with { product: product } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'product-edit-' ~ product.id,
+            title: 'Modifier l’article',
+            subtitle: product.name
+        } %}
+            {% block modal_body %}
+                {% include 'admin/product/modal/_edit.html.twig' with { product: product } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'product-toggle-' ~ product.id,
+            title: product.active ? 'Masquer l’article' : 'Afficher l’article',
+            subtitle: product.name
+        } %}
+            {% block modal_body %}
+                {% include 'admin/product/modal/_delete.html.twig' with { product: product } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'product-delete-' ~ product.id,
+            title: 'Supprimer l’article',
+            subtitle: product.name
+        } %}
+            {% block modal_body %}
+                {% include 'admin/product/modal/_remove.html.twig' with {
+                    product: product,
+                    is_reserved: is_reserved
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+</div>

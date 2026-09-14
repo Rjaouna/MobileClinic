@@ -1,0 +1,23 @@
+<div class="table-wrapper data-table-wrapper">
+    <table class="data-table data-table--professional">
+        <thead>
+            <tr>
+                <th>Poste</th>
+                <th>Catégorie</th>
+                <th>Compétences</th>
+                <th>Candidatures</th>
+                <th>Visibilité</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for position in positions %}
+                {% include 'admin/recruitment/partial/_position_row.html.twig' with { position: position } only %}
+            {% else %}
+                <tr>
+                    <td colspan="6"><p class="empty-state">Aucun poste n’a encore été créé.</p></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

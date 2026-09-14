@@ -1,0 +1,14 @@
+{% for row in pagination.items %}
+    {% include 'admin/customer/partial/_row.html.twig' with {
+        row: row,
+        search: search|default(''),
+        filter: filter|default(''),
+        page: pagination.page
+    } only %}
+{% else %}
+    <tr>
+        <td colspan="9">
+            <p class="empty-state">Aucun client ne correspond à cette recherche.</p>
+        </td>
+    </tr>
+{% endfor %}

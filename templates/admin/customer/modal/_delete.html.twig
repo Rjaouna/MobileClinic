@@ -1,0 +1,19 @@
+<form class="modal-form" action="{{ path('app_api_admin_customer_delete', { id: customer.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_customer_delete_' ~ customer.id) }}">
+    <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+    <input type="hidden" name="_list_filter" value="{{ filter|default('') }}">
+    <input type="hidden" name="_list_page" value="{{ page|default(1) }}">
+
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <p class="modal-notice">
+        Cette action ne détruit pas l’historique client. Si le client possède des rendez-vous ou une fidélité, le compte est désactivé.
+    </p>
+
+    {% include 'components/_button.html.twig' with {
+        label: customer.active ? 'Désactiver le client' : 'Confirmer',
+        variant: 'danger',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

@@ -1,0 +1,166 @@
+{
+  "project": "Mobile Clinic Mobile Care",
+  "document": "Validation fonctionnelle",
+  "version": 1,
+  "theme": {
+    "primary": "#ec1c24",
+    "ink": "#0d1321",
+    "surface": "#ffffff",
+    "surfaceSoft": "#f3f5f8"
+  },
+  "modules": [
+    {
+      "id": "identite",
+      "eyebrow": "Présence digitale",
+      "title": "Accueil, navigation et identité du site",
+      "description": "Une vitrine claire qui guidera immédiatement les visiteurs vers les services importants.",
+      "clientHeading": "Une navigation simple et directe",
+      "adminHeading": "Une identité modifiable sans développement",
+      "client": [
+        {"id": "identite-client-1", "title": "Accueil pleine largeur", "description": "Le site s'adaptera aux ordinateurs et aux téléphones, avec un menu mobile dédié.", "status": "proposed"},
+        {"id": "identite-client-2", "title": "Accès immédiats", "description": "Réparation, promotions, recrutement, fidélité et connexion seront faciles à trouver.", "status": "proposed"},
+        {"id": "identite-client-3", "title": "Contenus mis en avant", "description": "Les dernières promotions et les offres d'emploi seront présentées directement sur l'accueil.", "status": "proposed"},
+        {"id": "identite-client-4", "title": "Informations utiles", "description": "Le pied de page regroupera le contact, les réseaux sociaux, les mentions légales et la confidentialité.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "identite-admin-1", "title": "Logo administrable", "description": "L'équipe pourra remplacer le logo au format PNG ou JPG.", "status": "proposed"},
+        {"id": "identite-admin-2", "title": "Visuel d'accueil", "description": "L'image principale et son niveau de visibilité pourront être modifiés depuis les réglages.", "status": "proposed"},
+        {"id": "identite-admin-3", "title": "Coordonnées centralisées", "description": "Le téléphone du magasin et les liens Facebook, Instagram et TikTok seront administrables.", "status": "proposed"},
+        {"id": "identite-admin-4", "title": "Pages légales dynamiques", "description": "Les informations société, hébergeur, cookies et RGPD alimenteront automatiquement les pages publiques.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "compte",
+      "eyebrow": "Relation client",
+      "title": "Compte client et profil",
+      "description": "Un espace personnel rassemblera les informations utiles et évitera les doubles saisies.",
+      "clientHeading": "Un espace personnel toujours à jour",
+      "adminHeading": "Une fiche client complète",
+      "client": [
+        {"id": "compte-client-1", "title": "Création de compte", "description": "Le client pourra s'inscrire directement depuis la fenêtre de connexion.", "status": "proposed"},
+        {"id": "compte-client-2", "title": "Compte au premier rendez-vous", "description": "Un compte pourra être créé automatiquement avec un mot de passe temporaire lors de la première réservation.", "status": "proposed"},
+        {"id": "compte-client-3", "title": "Profil modifiable", "description": "Le client pourra compléter son nom, son prénom et changer son mot de passe.", "status": "proposed"},
+        {"id": "compte-client-4", "title": "Formulaires préremplis", "description": "Les informations connues seront réutilisées pour accélérer les rendez-vous et les candidatures.", "status": "proposed"},
+        {"id": "compte-client-5", "title": "Actualisation automatique", "description": "Rendez-vous, profil, réservations et fidélité se mettront à jour sans action du client.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "compte-admin-1", "title": "Gestion des comptes", "description": "L'équipe pourra créer, modifier, activer et désactiver les comptes clients.", "status": "proposed"},
+        {"id": "compte-admin-2", "title": "Vision à 360°", "description": "Coordonnées, rendez-vous et carte fidélité seront réunis dans la même fiche.", "status": "proposed"},
+        {"id": "compte-admin-3", "title": "Recherche instantanée", "description": "Des filtres permettront de retrouver rapidement un client.", "status": "proposed"},
+        {"id": "compte-admin-4", "title": "Doublons bloqués", "description": "Une même adresse e-mail ou un même téléphone ne pourra pas appartenir à deux comptes.", "status": "proposed"},
+        {"id": "compte-admin-5", "title": "Historique conservé", "description": "La désactivation d'un compte ne supprimera pas ses opérations passées.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "rendez-vous",
+      "eyebrow": "Cœur de métier",
+      "title": "Prise et gestion des rendez-vous",
+      "description": "Le client verra les créneaux réellement disponibles et le magasin disposera d'un suivi complet.",
+      "clientHeading": "Réserver une réparation en quelques étapes",
+      "adminHeading": "Organiser l'atelier au quotidien",
+      "client": [
+        {"id": "rdv-client-1", "title": "Parcours guidé", "description": "Le client choisira l'appareil, le problème, les informations utiles, le jour et le créneau.", "status": "proposed"},
+        {"id": "rdv-client-2", "title": "Parcours connecté raccourci", "description": "Une fois connecté, seules la réparation et la date seront demandées.", "status": "proposed"},
+        {"id": "rdv-client-3", "title": "Disponibilités fiables", "description": "Seuls les jours ouverts, les heures futures et les créneaux encore libres apparaîtront.", "status": "proposed"},
+        {"id": "rdv-client-4", "title": "Suivi du rendez-vous", "description": "Le client pourra consulter le détail et l'état de chaque réparation.", "status": "proposed"},
+        {"id": "rdv-client-5", "title": "Rendez-vous flexible", "description": "Un rendez-vous futur et actif pourra être déplacé ou annulé.", "status": "proposed"},
+        {"id": "rdv-client-6", "title": "Gain fidélité", "description": "Une cagnotte configurable sera proposée et validée lorsque la réparation sera terminée.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "rdv-admin-1", "title": "Planning hebdomadaire", "description": "Chaque journée pourra être affichée ou masquée avec ses propres plages et durées.", "status": "proposed"},
+        {"id": "rdv-admin-2", "title": "Planning protégé", "description": "Les plages identiques ou qui se chevauchent seront refusées immédiatement.", "status": "proposed"},
+        {"id": "rdv-admin-3", "title": "Règles configurables", "description": "La fenêtre de réservation et la durée des créneaux seront centralisées dans les réglages.", "status": "proposed"},
+        {"id": "rdv-admin-4", "title": "Suivi opérationnel", "description": "Recherche, filtres et modification de la date, de la durée, du statut et de la note seront disponibles.", "status": "proposed"},
+        {"id": "rdv-admin-5", "title": "Statuts métier", "description": "En attente, arrivé, en réparation, terminé, absent ou annulé.", "status": "proposed"},
+        {"id": "rdv-admin-6", "title": "Rappels d'intervention", "description": "Les rendez-vous passés resteront signalés jusqu'à la décision de l'équipe, sans absence automatique.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "fidelite",
+      "eyebrow": "Fidélisation",
+      "title": "Carte et cagnotte fidélité",
+      "description": "Une récompense simple pour le client, avec un historique précis pour le magasin.",
+      "clientHeading": "Comprendre et utiliser sa cagnotte",
+      "adminHeading": "Piloter le programme en toute sécurité",
+      "client": [
+        {"id": "fidelite-client-1", "title": "Solde lisible", "description": "La carte affichera le montant disponible, les gains en attente et les derniers mouvements.", "status": "proposed"},
+        {"id": "fidelite-client-2", "title": "Gain après réparation", "description": "La récompense restera en attente jusqu'à la validation de la réparation par le magasin.", "status": "proposed"},
+        {"id": "fidelite-client-3", "title": "Utilisation en boutique", "description": "Le solde disponible pourra réduire le montant d'une réservation d'article.", "status": "proposed"},
+        {"id": "fidelite-client-4", "title": "Remboursement automatique", "description": "Une annulation ou une expiration restituera la fidélité utilisée.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "fidelite-admin-1", "title": "Programme configurable", "description": "L'équipe pourra activer le programme et choisir le montant gagné pour un rendez-vous.", "status": "proposed"},
+        {"id": "fidelite-admin-2", "title": "Vue d'ensemble", "description": "Les cartes, soldes disponibles, montants en attente et mouvements seront consultables.", "status": "proposed"},
+        {"id": "fidelite-admin-3", "title": "Ajustements manuels", "description": "Crédit, débit et correction pourront être réalisés avec un motif obligatoire.", "status": "proposed"},
+        {"id": "fidelite-admin-4", "title": "Mouvements maîtrisés", "description": "Un mouvement en attente pourra être annulé par l'équipe.", "status": "proposed"},
+        {"id": "fidelite-admin-5", "title": "Contrôles automatiques", "description": "Les gains en double et les dépenses supérieures au solde seront bloqués.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "promotions",
+      "eyebrow": "Vente en magasin",
+      "title": "Promotions et réservations boutique",
+      "description": "Le client gardera ses articles de côté en ligne et finalisera son achat en magasin.",
+      "clientHeading": "Réserver un article sans paiement en ligne",
+      "adminHeading": "Gérer le catalogue et les retraits",
+      "client": [
+        {"id": "promo-client-1", "title": "Catalogue clair", "description": "Recherche instantanée, photos, prix normal et promotionnel, description et caractéristiques.", "status": "proposed"},
+        {"id": "promo-client-2", "title": "Disponibilité visible", "description": "Les articles déjà réservés seront signalés et ne pourront pas être réservés deux fois.", "status": "proposed"},
+        {"id": "promo-client-3", "title": "Compte obligatoire", "description": "La connexion sera demandée avant tout ajout au panier.", "status": "proposed"},
+        {"id": "promo-client-4", "title": "Panier en fenêtre", "description": "Le client pourra ajouter ou retirer des articles et utiliser sa cagnotte s'il le souhaite.", "status": "proposed"},
+        {"id": "promo-client-5", "title": "Suivi et annulation", "description": "La réservation restera consultable et annulable avant sa validation définitive.", "status": "proposed"},
+        {"id": "promo-client-6", "title": "Délai transparent", "description": "La date limite et le téléphone du magasin seront toujours communiqués.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "promo-admin-1", "title": "Articles sur mesure", "description": "Photo, prix, description et champs personnalisés libres pourront être ajoutés à chaque article.", "status": "proposed"},
+        {"id": "promo-admin-2", "title": "Catalogue maîtrisé", "description": "Un article pourra être affiché, masqué ou supprimé si aucune réservation active ne le bloque.", "status": "proposed"},
+        {"id": "promo-admin-3", "title": "Validation définitive", "description": "Une réservation confirmée par le magasin ne pourra plus expirer automatiquement.", "status": "proposed"},
+        {"id": "promo-admin-4", "title": "Cycle complet", "description": "L'équipe pourra annuler avec remboursement fidélité ou passer la réservation en « Retiré / vendu ».", "status": "proposed"},
+        {"id": "promo-admin-5", "title": "Stock cohérent", "description": "Un article vendu disparaîtra du catalogue et restera tracé dans le tableau de bord.", "status": "proposed"},
+        {"id": "promo-admin-6", "title": "Expiration automatique", "description": "Après le délai choisi, l'article sera libéré et la fidélité remboursée.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "recrutement",
+      "eyebrow": "Talents",
+      "title": "Recrutement",
+      "description": "Une page carrière permettra de publier les besoins et de traiter les candidatures.",
+      "clientHeading": "Trouver un poste et candidater facilement",
+      "adminHeading": "Publier et suivre les candidatures",
+      "client": [
+        {"id": "recrutement-client-1", "title": "Offres détaillées", "description": "Les postes ouverts seront présentés par catégorie, rythme, description et compétences.", "status": "proposed"},
+        {"id": "recrutement-client-2", "title": "Poste présélectionné", "description": "Cliquer sur une offre sélectionnera automatiquement le poste dans le formulaire.", "status": "proposed"},
+        {"id": "recrutement-client-3", "title": "Candidature complète", "description": "Disponibilité, expérience, message et CV facultatif, avec candidature spontanée possible.", "status": "proposed"},
+        {"id": "recrutement-client-4", "title": "Coordonnées préremplies", "description": "Le compte connecté évitera de ressaisir les informations déjà connues.", "status": "proposed"},
+        {"id": "recrutement-client-5", "title": "Envoi fluide", "description": "La candidature sera envoyée sans recharger la page et confirmée immédiatement.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "recrutement-admin-1", "title": "Postes administrables", "description": "Catégorie, titre, contenu, rythme et compétences sous forme de tags seront modifiables.", "status": "proposed"},
+        {"id": "recrutement-admin-2", "title": "Publication maîtrisée", "description": "Chaque offre pourra être rendue visible ou masquée sur le site.", "status": "proposed"},
+        {"id": "recrutement-admin-3", "title": "Suivi centralisé", "description": "Recherche, filtres, statistiques et consultation du CV seront disponibles.", "status": "proposed"},
+        {"id": "recrutement-admin-4", "title": "Contexte conservé", "description": "Un lien direct reliera chaque candidature au poste concerné.", "status": "proposed"},
+        {"id": "recrutement-admin-5", "title": "Étapes de traitement", "description": "Nouveau, consulté, contacté, entretien, recruté ou refusé, avec note interne.", "status": "proposed"}
+      ]
+    },
+    {
+      "id": "pilotage",
+      "eyebrow": "Vision globale",
+      "title": "Tableaux de bord et pilotage",
+      "description": "Les informations importantes seront visibles au bon endroit, sans multiplier les écrans.",
+      "clientHeading": "Retrouver l'essentiel au même endroit",
+      "adminHeading": "Décider à partir d'indicateurs utiles",
+      "client": [
+        {"id": "pilotage-client-1", "title": "Résumé personnel", "description": "Prochains rendez-vous, cagnotte, réservations boutique et profil seront réunis.", "status": "proposed"},
+        {"id": "pilotage-client-2", "title": "Connexion visible", "description": "Le nom et le statut du client connecté resteront clairement identifiables.", "status": "proposed"},
+        {"id": "pilotage-client-3", "title": "Confort mobile", "description": "Les écrans et les fenêtres d'action utiliseront correctement la surface disponible.", "status": "proposed"}
+      ],
+      "admin": [
+        {"id": "pilotage-admin-1", "title": "Indicateurs métier", "description": "Clients, rendez-vous, promotions, réservations, ventes, fidélité et candidatures seront résumés.", "status": "proposed"},
+        {"id": "pilotage-admin-2", "title": "Navigation contextuelle", "description": "Chaque rubrique affichera uniquement ses sous-menus utiles, avec retour au tableau de bord.", "status": "proposed"},
+        {"id": "pilotage-admin-3", "title": "Listes professionnelles", "description": "Les tableaux seront pleine largeur, compacts, triables et filtrables instantanément.", "status": "proposed"},
+        {"id": "pilotage-admin-4", "title": "Actions sans rupture", "description": "Les opérations principales seront réalisées sans retour en haut ni rechargement complet.", "status": "proposed"},
+        {"id": "pilotage-admin-5", "title": "Accès protégés", "description": "Les espaces client et administrateur seront séparés selon les droits de connexion.", "status": "proposed"}
+      ]
+    }
+  ]
+}

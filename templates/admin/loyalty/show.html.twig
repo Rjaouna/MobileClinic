@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Carte fidélité {{ customer.displayName }} - Mobile Clinic{% endblock %}
+{% block meta_description %}Détail administrateur de la carte fidélité Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="loyalty-show-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Fidélité</p>
+                    <h1 id="loyalty-show-title">{{ customer.displayName }}</h1>
+                    <p>{{ customer.email }} · {{ customer.phone ?: 'Téléphone non renseigné' }}</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-loyalty-show-menu',
+                    kicker: 'Administration',
+                    title: 'Menu fidélité',
+                    subtitle: 'Actions rapides sur la carte du client.',
+                    items: [
+                        {
+                            label: 'Créditer',
+                            variant: 'primary',
+                            modal_target: 'loyalty-credit-modal',
+                            description: 'Ajouter un avantage validé.'
+                        },
+                        {
+                            label: 'Utiliser',
+                            variant: 'danger',
+                            modal_target: 'loyalty-redeem-modal',
+                            description: 'Déduire une somme disponible.'
+                        },
+                        {
+                            label: 'Corriger',
+                            variant: 'secondary',
+                            modal_target: 'loyalty-adjust-modal',
+                            description: 'Ajuster le solde manuellement.'
+                        },
+                        {
+                            label: 'Retour fidélité',
+                            href: path('app_admin_loyalty_index'),
+                            variant: 'secondary',
+                            icon: 'spark',
+                            description: 'Revenir aux cartes fidélité.'
+                        },
+                        {
+                            label: 'Fiche client',
+                            href: path('app_admin_customer_show', { id: customer.id }),
+                            variant: 'secondary',
+                            icon: 'user',
+                            description: 'Ouvrir les informations client.'
+                        },
+                        {
+                            label: 'Historique',
+                            href: '#loyalty-transactions-title',
+                            variant: 'secondary',
+                            icon: 'clock',
+                            description: 'Voir les mouvements de la carte.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            {% include 'admin/loyalty/partial/_detail_card.html.twig' with {
+                customer: customer,
+                loyalty: loyalty
+            } only %}
+
+            {% embed 'components/_data_table_shell.html.twig' with {
+                id: 'loyalty-transactions-title',
+                kicker: 'Audit',
+                title: 'Historique complet',
+                subtitle: 'Tous les crédits, utilisations et corrections de cette carte.',
+                count_label: loyalty.transactions|length ~ ' mouvement' ~ (loyalty.transactions|length > 1 ? 's' : ''),
+                icon: 'clock'
+            } %}
+                {% block table_content %}
+                    {% include 'admin/loyalty/partial/_transactions.html.twig' with {
+                        customer: customer,
+                        loyalty: loyalty
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+
+            {% include 'admin/loyalty/partial/_modal_stack.html.twig' with {
+                customer: customer,
+                loyalty: loyalty
+            } only %}
+        </section>
+    </main>
+{% endblock %}

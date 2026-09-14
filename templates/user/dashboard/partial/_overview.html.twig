@@ -1,0 +1,20 @@
+<div class="dashboard-grid" id="user-dashboard-overview">
+    <article class="dashboard-card">
+        <span>Mes rendez-vous</span>
+        <strong>{{ appointments|length }}</strong>
+        <p>Suivez vos réparations programmées.</p>
+    </article>
+    <article class="dashboard-card">
+        <span>Prochain passage</span>
+        <strong>{{ next_appointment ? next_appointment.scheduledAt|date('d/m') : 'Aucun' }}</strong>
+        <p>{{ next_appointment ? next_appointment.problem ~ ' à ' ~ next_appointment.scheduledAt|date('H:i') : 'Réservez un créneau depuis votre espace.' }}</p>
+        {% if next_appointment %}
+            <p><span class="status-pill status-pill--{{ next_appointment.statusVariant }}">{{ next_appointment.statusLabel }}</span></p>
+        {% endif %}
+    </article>
+    <article class="dashboard-card">
+        <span>Profil</span>
+        <strong>{{ customer.displayName }}</strong>
+        <p><a class="text-link" href="{{ path('app_user_profile_index') }}">Gérer mes informations</a></p>
+    </article>
+</div>

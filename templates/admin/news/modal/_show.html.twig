@@ -1,0 +1,25 @@
+<article class="news-admin-preview">
+    <div class="news-admin-preview__media">
+        {% if article.image and article.imagePath %}
+            <img src="{{ article.imagePath }}" alt="{{ article.title }}">
+        {% elseif article.video and article.youtubeEmbedUrl %}
+            <iframe src="{{ article.youtubeEmbedUrl }}" title="{{ article.title }}" loading="lazy" allowfullscreen></iframe>
+        {% endif %}
+    </div>
+    <div class="news-admin-preview__content">
+        <div class="news-card__meta">
+            <span>{{ article.mediaLabel }}</span>
+            <time datetime="{{ article.publishedAt|date('c') }}">{{ article.publishedAt|date('d/m/Y à H:i') }}</time>
+            <span>Fin le {{ article.expiresAt|date('d/m/Y') }}</span>
+        </div>
+        <h3>{{ article.title }}</h3>
+        <p>{{ article.content|nl2br }}</p>
+        {% include 'components/_button.html.twig' with {
+            label: 'Ouvrir la page publique',
+            href: path('app_public_news_show', { id: article.id }),
+            variant: 'secondary',
+            icon: 'eye',
+            target: '_blank'
+        } only %}
+    </div>
+</article>

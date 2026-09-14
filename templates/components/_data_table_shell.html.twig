@@ -1,0 +1,41 @@
+{% set section_id = id|default(null) %}
+{% set section_dom_id = section_id_attr|default(null) %}
+{% set extra_class = class|default('') %}
+
+<section class="admin-panel data-table-shell {{ extra_class }}" {% if section_dom_id %}id="{{ section_dom_id }}"{% endif %} {% if section_id %}aria-labelledby="{{ section_id }}"{% endif %}>
+    <div class="data-table-toolbar">
+        <div class="data-table-toolbar__heading">
+            {% if kicker|default(null) or icon|default(null) %}
+                <div class="data-table-toolbar__topline">
+                    {% if icon|default(null) %}
+                        <span class="data-table-toolbar__icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: icon, size: 18 } only %}
+                        </span>
+                    {% endif %}
+                    {% if kicker|default(null) %}
+                        <p class="dashboard-kicker data-table-toolbar__kicker">{{ kicker }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="data-table-toolbar__title-row">
+                <h2{% if section_id %} id="{{ section_id }}"{% endif %}>{{ title }}</h2>
+                {% if count_label|default(null) %}
+                    <span class="data-table-count">{{ count_label }}</span>
+                {% endif %}
+            </div>
+
+            {% if subtitle|default(null) %}
+                <p>{{ subtitle }}</p>
+            {% endif %}
+        </div>
+
+        <div class="data-table-toolbar__controls">
+            {% block table_actions %}{% endblock %}
+        </div>
+    </div>
+
+    {% block table_content %}{% endblock %}
+
+    {% block table_footer %}{% endblock %}
+</section>

@@ -11,16 +11,7 @@
     </div>
 
     <form class="appointment-card__form" action="{{ action|default('#') }}" method="{{ method|default('get') }}" data-appointment-prefill-source>
-        <div class="choice-tabs" aria-label="Type de demande">
-            <label class="choice-tab">
-                <input type="radio" name="type" value="repair" checked>
-                <span>Une réparation</span>
-            </label>
-            <label class="choice-tab">
-                <input type="radio" name="type" value="product">
-                <span>Un article</span>
-            </label>
-        </div>
+        <input type="hidden" name="type" value="repair">
 
         <div class="field-group">
             <label for="{{ block_id }}-device">Votre appareil</label>
@@ -38,6 +29,11 @@
                     <option value="{{ problem.value }}">{{ problem.label }}</option>
                 {% endfor %}
             </select>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ block_id }}-note">Précision utile</label>
+            <input id="{{ block_id }}-note" type="text" name="customer_note" placeholder="{{ note_placeholder|default('Ex. écran fissuré, batterie, charge...') }}">
         </div>
 
         {% include 'components/_button.html.twig' with {

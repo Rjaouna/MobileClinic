@@ -1,0 +1,30 @@
+<div id="user-reservation-modal-stack">
+    {% for appointment in appointments %}
+        {% if appointment.canBeChangedByCustomer() %}
+            {% embed 'components/_modal.html.twig' with {
+                id: 'reservation-show-' ~ appointment.id,
+                title: 'Déplacer le rendez-vous',
+                subtitle: 'Choisissez un nouveau créneau disponible.'
+            } %}
+                {% block modal_body %}
+                    {% include 'user/reservation/modal/_show.html.twig' with {
+                        appointment: appointment,
+                        slot_days: slot_days
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'reservation-cancel-' ~ appointment.id,
+                title: 'Annuler le rendez-vous',
+                subtitle: 'Cette action libère le créneau pour un autre client.'
+            } %}
+                {% block modal_body %}
+                    {% include 'user/reservation/modal/_cancel.html.twig' with {
+                        appointment: appointment
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    {% endfor %}
+</div>

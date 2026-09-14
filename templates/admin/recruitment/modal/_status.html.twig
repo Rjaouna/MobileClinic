@@ -1,0 +1,70 @@
+<form class="modal-form" action="{{ path('app_api_admin_recruitment_update', { id: application.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_recruitment_' ~ application.id) }}">
+    <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+    <input type="hidden" name="_list_status" value="{{ status|default('') }}">
+
+    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+
+    <div class="recruitment-application-summary">
+        <div>
+            <span>Candidat</span>
+            <strong>{{ application.displayName }}</strong>
+            <p>{{ application.email }} · {{ application.phone }}</p>
+        </div>
+        <div>
+            <span>Poste</span>
+            <strong>{{ application.desiredPosition }}</strong>
+            <p>{{ application.availability }} · {{ application.experienceLevel }}</p>
+            {% if application.position %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Voir le poste',
+                    variant: 'secondary',
+                    size: 'compact',
+                    type: 'button',
+                    modal_target: 'recruitment-position-show-' ~ application.position.id
+                } only %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="status-review">
+        <div>
+            <span class="status-pill status-pill--{{ application.statusVariant }}">{{ application.statusLabel }}</span>
+            <p>{{ application.message }}</p>
+            {% if application.resumePath %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Ouvrir le CV',
+                    href: application.resumePath,
+                    variant: 'secondary',
+                    size: 'compact',
+                    icon: 'briefcase',
+                    target: '_blank'
+                } only %}
+            {% endif %}
+        </div>
+        <div class="status-review__fields">
+            <label class="field-group">
+                <span>Nouveau statut</span>
+                <select name="status" required>
+                    {% for value, label in status_labels %}
+                        <option value="{{ value }}" {% if application.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="field-group">
+                <span>Note admin</span>
+                <textarea name="admin_note" rows="5" placeholder="Ex. appeler demain, profil intéressant, attendre disponibilité...">{{ application.adminNote }}</textarea>
+            </label>
+        </div>
+    </div>
+
+    <div class="modal-form__footer">
+        {% include 'components/_button.html.twig' with {
+            label: 'Mettre à jour',
+            variant: 'primary',
+            type: 'submit',
+            icon: 'check'
+        } only %}
+    </div>
+</form>

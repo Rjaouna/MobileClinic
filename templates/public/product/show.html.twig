@@ -1,0 +1,133 @@
+{% extends 'base.html.twig' %}
+
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+{% block title %}{{ product.name }} - Mobile Clinic{% endblock %}
+{% block meta_description %}{{ product.description|striptags|slice(0, 150) }}{% endblock %}
+
+{% block body %}
+    {% include 'components/_public_header.html.twig' with {
+        active: 'promotions',
+        primary_action: 'cart',
+        cart_count: cart_products|length,
+        setting: setting
+    } only %}
+
+    <main class="store-page" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
+        <section class="product-detail" aria-labelledby="product-title">
+            <div class="product-detail__media">
+                {% if product.photoPath %}
+                    <img src="{{ product.photoPath }}" alt="{{ product.name }}">
+                {% else %}
+                    {% include 'components/_icon.html.twig' with { name: 'bag', size: 54 } only %}
+                {% endif %}
+                {% if product.sold %}
+                    <span class="product-card__badge product-card__badge--reserved">Vendu</span>
+                {% elseif is_reserved %}
+                    <span class="product-card__badge product-card__badge--reserved">Déjà réservé</span>
+                {% elseif product.discountPercent > 0 %}
+                    <span class="product-card__badge">-{{ product.discountPercent }}%</span>
+                {% endif %}
+            </div>
+
+            <div class="product-detail__content">
+                <p class="section-heading__kicker">Promotion magasin</p>
+                <h1 id="product-title">{{ product.name }}</h1>
+                <p>{{ product.description }}</p>
+
+                {% if product.customAttributes is not empty %}
+                    <dl class="product-attributes">
+                        {% for attribute in product.customAttributes %}
+                            <div>
+                                <dt>{{ attribute.label }}</dt>
+                                <dd>{{ attribute.value }}</dd>
+                            </div>
+                        {% endfor %}
+                    </dl>
+                {% endif %}
+
+                <div class="product-detail__purchase">
+                    <div class="product-price product-price--large">
+                        <span>{{ money.money(product.normalPriceCents) }}</span>
+                        <strong>{{ money.money(product.promotionalPriceCents) }}</strong>
+                    </div>
+
+                    {% if product.sold %}
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Vendu',
+                            variant: 'neutral',
+                            disabled: true
+                        } only %}
+                    {% elseif is_reserved %}
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Déjà réservé',
+                            variant: 'neutral',
+                            disabled: true
+                        } only %}
+                    {% elseif not app.user %}
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Se connecter pour réserver',
+                            variant: 'primary',
+                            type: 'button',
+                            icon: 'user',
+                            modal_target: 'login-modal'
+                        } only %}
+                    {% else %}
+                        <form action="{{ path('app_public_product_cart_add', { id: product.id }) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('product_cart_add_' ~ product.id) }}">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Ajouter au panier',
+                                variant: 'primary',
+                                type: 'submit',
+                                icon: 'bag'
+                            } only %}
+                        </form>
+                    {% endif %}
+                </div>
+
+                <p class="modal-notice">
+                    {% if product.sold %}
+                        Cet article a été vendu et n’est plus disponible en réservation.
+                    {% else %}
+                        Réservation magasin pendant {{ setting.productReservationHoldLabel }}. Appelez le {{ setting.storePhone }} si vous avez besoin d’un délai.
+                    {% endif %}
+                </p>
+            </div>
+        </section>
+
+        {% include 'components/_store_cart_modal.html.twig' with {
+            cart_products: cart_products,
+            cart_total_cents: cart_total_cents,
+            loyalty: loyalty,
+            setting: setting,
+            open_modal: open_modal|default(null)
+        } only %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'login-modal',
+            title: 'Réserver avec mon compte',
+            subtitle: 'Connectez-vous ou créez un compte pour garder vos articles en magasin.',
+            class: 'modal--auth',
+            is_open: open_modal|default(null) == 'login-modal'
+        } %}
+            {% block modal_body %}
+                {% include 'components/_login_form.html.twig' with {
+                    last_username: last_username|default(''),
+                    login_error: login_error|default(null),
+                    auth_panel: auth_panel|default('login'),
+                    target_path: path('app_public_product_show', { id: product.id })
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

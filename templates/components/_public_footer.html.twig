@@ -1,0 +1,140 @@
+{% set legal = setting ? setting.legalProfile : {} %}
+{% set company_name = legal.company_name|default('') ?: legal.trade_name|default('') ?: 'Mobile Clinic' %}
+{% set trade_name = legal.trade_name|default('') ?: company_name %}
+{% set footer_phone = legal.business_phone|default('') ?: (setting ? setting.storePhone : '') %}
+{% set footer_address = setting ? setting.storeAddress : (legal.store_address|default('') ?: legal.registered_office|default('')) %}
+{% set footer_hours = setting ? setting.storeOpeningHoursSummary : '' %}
+{% set google_business_url = setting ? setting.googleBusinessUrl : legal.google_business_url|default('') %}
+{% set social_links = [
+    { label: 'Facebook', icon: 'facebook', href: legal.facebook_url|default('') },
+    { label: 'Instagram', icon: 'instagram', href: legal.instagram_url|default('') },
+    { label: 'TikTok', icon: 'tiktok', href: legal.tiktok_url|default('') }
+] %}
+
+<footer class="site-footer" id="contact">
+    <div class="site-footer__surface">
+        <span class="site-footer__decoration" aria-hidden="true"></span>
+        <div class="site-footer__main">
+            <section class="site-footer__identity" aria-label="{{ company_name }}">
+                <a class="site-footer__logo" href="{{ path('app_public_home') }}" aria-label="Accueil {{ company_name }}">
+                    {% include 'components/_site_logo.html.twig' with {
+                        setting: setting,
+                        variant: 'footer',
+                        alt: company_name
+                    } only %}
+                    {% if not setting or not setting.siteLogoPath %}
+                        <strong>{{ company_name }}</strong>
+                    {% endif %}
+                </a>
+                <p class="site-footer__tagline">Réparation mobile, promotions magasin et fidélité.</p>
+
+                <div class="site-footer__services" aria-label="Services Mobile Clinic">
+                    <article class="site-footer__service">
+                        <span class="site-footer__service-icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'bolt', size: 22 } only %}
+                        </span>
+                        <div>
+                            <strong>Réparation rapide</strong>
+                            <span>Votre mobile entre de bonnes mains.</span>
+                        </div>
+                    </article>
+                    <article class="site-footer__service">
+                        <span class="site-footer__service-icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'cart', size: 22 } only %}
+                        </span>
+                        <div>
+                            <strong>Accessoires & boutique</strong>
+                            <span>Tout pour votre mobile en magasin.</span>
+                        </div>
+                    </article>
+                    <article class="site-footer__service">
+                        <span class="site-footer__service-icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'gift', size: 22 } only %}
+                        </span>
+                        <div>
+                            <strong>Fidélité client</strong>
+                            <span>Des avantages exclusifs toute l’année.</span>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <nav class="site-footer__links" aria-labelledby="footer-links-title">
+                <h2 id="footer-links-title">Liens utiles</h2>
+                <a href="{{ path('app_public_home') }}">Accueil</a>
+                <a href="{{ path('app_public_news_index') }}">Actualités</a>
+                <a href="{{ path('app_public_product_index') }}">Promotions</a>
+                <a href="{{ path('app_public_recruitment_index') }}">Recrutement</a>
+                <a href="{{ path('app_public_contact') }}">Contact</a>
+                <a href="{{ path('app_public_legal_notice') }}">Mentions légales</a>
+                <a href="{{ path('app_public_privacy') }}">Confidentialité</a>
+            </nav>
+
+            <div class="site-footer__engagement">
+                <section class="site-footer__social-card" aria-labelledby="footer-social-title">
+                    <h2 id="footer-social-title">Suivez-nous</h2>
+                    <p>Rejoignez notre communauté<br>et ne manquez aucune nouveauté !</p>
+                    <div class="site-footer__socials">
+                        {% for social in social_links %}
+                            {% if social.href %}
+                                <a href="{{ social.href }}" target="_blank" rel="noopener noreferrer" aria-label="{{ social.label }}">
+                                    {% include 'components/_icon.html.twig' with { name: social.icon, size: 23 } only %}
+                                </a>
+                            {% else %}
+                                <span class="is-disabled" title="Lien {{ social.label }} à renseigner dans l’administration" aria-label="{{ social.label }} non configuré">
+                                    {% include 'components/_icon.html.twig' with { name: social.icon, size: 23 } only %}
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+
+                {% if footer_phone or footer_address %}
+                    <section class="site-footer__call-card" aria-label="Coordonnées du magasin">
+                        <span class="site-footer__call-icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'phone', size: 25 } only %}
+                        </span>
+                        <span class="site-footer__call-copy">
+                            <span>Une question ? Appelez-nous</span>
+                            {% if footer_phone %}<a class="site-footer__phone-link" href="tel:{{ footer_phone|replace({' ': '', '.': '', '-': ''}) }}"><strong>{{ footer_phone }}</strong></a>{% endif %}
+                            {% if footer_address %}
+                                <a class="site-footer__address" href="{{ google_business_url }}" target="_blank" rel="noopener noreferrer">
+                                    {% include 'components/_icon.html.twig' with { name: 'map-pin', size: 13 } only %}
+                                    <span>{{ footer_address }}</span>
+                                </a>
+                            {% endif %}
+                            {% if footer_hours %}
+                                <small class="site-footer__hours-summary">
+                                    {% for hours_group in footer_hours|split(' · ') %}
+                                        <span>{{ hours_group }}</span>
+                                    {% endfor %}
+                                </small>
+                            {% endif %}
+                        </span>
+                        <div class="site-footer__contact-actions">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Itinéraire',
+                                href: google_business_url,
+                                target: '_blank',
+                                attributes: { rel: 'noopener noreferrer' },
+                                variant: 'primary',
+                                size: 'compact',
+                                icon: 'map-pin'
+                            } only %}
+                            <a class="site-footer__contact-page" href="{{ path('app_public_contact') }}">Toutes les informations</a>
+                        </div>
+                    </section>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="site-footer__legal">
+            <span>© {{ 'now'|date('Y') }} {{ company_name }}. Tous droits réservés.</span>
+            <span class="site-footer__promise">
+                {% include 'components/_icon.html.twig' with { name: 'heart', size: 17 } only %}
+                Des mobiles plus durables, pour un quotidien plus simple.
+            </span>
+            <span class="site-footer__signature"><i aria-hidden="true"></i>{{ trade_name }} <b>-</b> Mobile Care</span>
+        </div>
+    </div>
+</footer>

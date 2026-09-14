@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% macro value(content) %}
+    {{ content is not empty ? content : 'À compléter par l’éditeur du site' }}
+{% endmacro %}
+
+{% import _self as legal_value %}
+
+{% block title %}Mentions légales - Mobile Clinic{% endblock %}
+{% block meta_description %}Mentions légales du site Mobile Clinic : éditeur, responsable de publication et hébergeur.{% endblock %}
+
+{% block body %}
+    {% include 'components/_public_header.html.twig' with { active: '', primary_action: 'appointment', setting: setting } only %}
+
+    <main class="legal-page">
+        <header class="legal-hero">
+            <p class="section-heading__kicker">Informations légales</p>
+            <h1>Mentions légales</h1>
+            <p>Les informations de cette page sont administrées par l’éditeur de Mobile Clinic.</p>
+        </header>
+
+        <div class="legal-content">
+            {% set opening_hour_labels = {
+                monday: 'Lundi',
+                tuesday: 'Mardi',
+                wednesday: 'Mercredi',
+                thursday: 'Jeudi',
+                friday: 'Vendredi',
+                saturday: 'Samedi',
+                sunday: 'Dimanche'
+            } %}
+            <section class="legal-section" aria-labelledby="legal-editor-title">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'info', size: 24 } only %}</span>
+                <div>
+                    <h2 id="legal-editor-title">Éditeur du site</h2>
+                    <dl class="legal-data-list">
+                        <div><dt>Dénomination</dt><dd>{{ legal_value.value(legal.company_name) }}</dd></div>
+                        <div><dt>Nom commercial</dt><dd>{{ legal_value.value(legal.trade_name) }}</dd></div>
+                        <div><dt>Forme juridique</dt><dd>{{ legal_value.value(legal.legal_form) }}</dd></div>
+                        <div><dt>Capital social</dt><dd>{{ legal_value.value(legal.capital) }}</dd></div>
+                        <div><dt>Siège social</dt><dd>{{ legal_value.value(legal.registered_office) }}</dd></div>
+                        <div><dt>SIREN / SIRET</dt><dd>{{ legal_value.value(legal.siret) }}</dd></div>
+                        <div><dt>RCS</dt><dd>{{ legal_value.value(legal.rcs) }}</dd></div>
+                        <div><dt>TVA intracommunautaire</dt><dd>{{ legal_value.value(legal.vat_number) }}</dd></div>
+                        <div><dt>Représentant légal</dt><dd>{{ legal_value.value(legal.legal_representative) }}</dd></div>
+                        <div><dt>Contact</dt><dd>{{ legal_value.value(legal.business_email) }} · {{ legal_value.value(legal.business_phone) }}</dd></div>
+                    </dl>
+                </div>
+            </section>
+
+            <section class="legal-section" aria-labelledby="store-contact-title">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'clock', size: 24 } only %}</span>
+                <div>
+                    <h2 id="store-contact-title">Adresse et horaires du magasin</h2>
+                    <p><strong>Adresse :</strong> {{ setting.storeAddress }}</p>
+                    <p><strong>Téléphone :</strong> {{ setting.storePhone }}</p>
+                    <dl class="legal-data-list">
+                        {% for day, hours in setting.storeOpeningHours %}
+                            <div><dt>{{ opening_hour_labels[day] }}</dt><dd>{{ hours }}</dd></div>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </section>
+
+            <section class="legal-section" aria-labelledby="publication-title">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'user', size: 24 } only %}</span>
+                <div>
+                    <h2 id="publication-title">Publication et maintenance</h2>
+                    <p><strong>Directeur de la publication :</strong> {{ legal_value.value(legal.publication_director) }}</p>
+                    <p><strong>Développement et maintenance :</strong> {{ legal_value.value(legal.maintainer) }}</p>
+                    <p><strong>Adresse du site :</strong> {{ legal_value.value(legal.site_url) }}</p>
+                </div>
+            </section>
+
+            <section class="legal-section" aria-labelledby="hosting-title">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'shield', size: 24 } only %}</span>
+                <div>
+                    <h2 id="hosting-title">Hébergement</h2>
+                    <p><strong>Hébergeur :</strong> {{ legal_value.value(legal.host_name) }}</p>
+                    <p><strong>Adresse :</strong> {{ legal_value.value(legal.host_address) }}</p>
+                    <p><strong>Téléphone :</strong> {{ legal_value.value(legal.host_phone) }}</p>
+                </div>
+            </section>
+
+            <section class="legal-section" aria-labelledby="rights-title">
+                <span class="legal-section__icon">{% include 'components/_icon.html.twig' with { name: 'shield', size: 24 } only %}</span>
+                <div>
+                    <h2 id="rights-title">Propriété intellectuelle</h2>
+                    <p>Les textes, éléments graphiques, marques, logos et contenus du site sont protégés par les règles applicables à la propriété intellectuelle. Toute réutilisation substantielle nécessite l’autorisation préalable de leurs titulaires, sauf exception prévue par la loi.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

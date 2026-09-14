@@ -1,29 +1,120 @@
-<form class="modal-form auth-form" action="{{ path('app_login') }}" method="post">
-    {% set test_email = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
-    {% set test_password = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
+{% set test_email = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
+{% set test_password = app.environment == 'dev' ? 'admin@symaclinic.fr' : '' %}
+{% set active_panel = auth_panel|default(registration_errors|default([]) is not empty ? 'register' : 'login') %}
+{% set registration_data = registration_data|default({}) %}
+{% set target_path = target_path|default(null) %}
 
-    {% if login_error %}
-        <div class="auth-alert" role="alert">
-            L’adresse e-mail ou le mot de passe est incorrect.
+<div class="auth-shell" data-auth-shell data-auth-active-panel="{{ active_panel }}">
+    <div class="auth-tabs" role="tablist" aria-label="Accès client">
+        <button class="auth-tab {{ active_panel == 'login' ? 'is-active' : '' }}" type="button" role="tab" aria-selected="{{ active_panel == 'login' ? 'true' : 'false' }}" data-auth-tab="login">
+            Connexion
+        </button>
+        <button class="auth-tab {{ active_panel == 'register' ? 'is-active' : '' }}" type="button" role="tab" aria-selected="{{ active_panel == 'register' ? 'true' : 'false' }}" data-auth-tab="register">
+            Créer un compte
+        </button>
+    </div>
+
+    <section class="auth-panel" data-auth-panel-content="login" aria-label="Connexion"{% if active_panel != 'login' %} hidden{% endif %}>
+        <div class="auth-copy">
+            <h3>Accéder à mon espace</h3>
+            <p>Retrouvez vos rendez-vous, votre profil et votre cagnotte fidélité.</p>
         </div>
-    {% endif %}
 
-    <div class="field-group">
-        <label for="login-email">Adresse e-mail</label>
-        <input id="login-email" type="email" name="email" value="{{ last_username ?: test_email }}" autocomplete="email" placeholder="admin@symaclinic.fr" required data-modal-initial-focus>
-    </div>
+        <form class="modal-form auth-form" action="{{ path('app_login') }}" method="post">
+            {% if login_error %}
+                <div class="auth-alert" role="alert">
+                    L’adresse e-mail ou le mot de passe est incorrect.
+                </div>
+            {% endif %}
 
-    <div class="field-group">
-        <label for="login-password">Mot de passe</label>
-        <input id="login-password" type="password" name="password" value="{{ test_password }}" autocomplete="current-password" placeholder="Votre mot de passe" required>
-    </div>
+            <div class="field-group">
+                <label for="login-email">Adresse e-mail</label>
+                <input id="login-email" type="email" name="email" value="{{ last_username ?: test_email }}" autocomplete="email" placeholder="admin@symaclinic.fr" required {% if active_panel == 'login' %}data-modal-initial-focus{% endif %}>
+            </div>
 
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            <div class="field-group">
+                <label for="login-password">Mot de passe</label>
+                <input id="login-password" type="password" name="password" value="{{ test_password }}" autocomplete="current-password" placeholder="Votre mot de passe" required>
+            </div>
 
-    {% include 'components/_button.html.twig' with {
-        label: 'Se connecter',
-        variant: 'primary',
-        type: 'submit',
-        class: 'modal-form__submit'
-    } only %}
-</form>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            {% if target_path %}
+                <input type="hidden" name="_target_path" value="{{ target_path }}">
+            {% endif %}
+
+            {% include 'components/_button.html.twig' with {
+                label: 'Se connecter',
+                variant: 'primary',
+                type: 'submit',
+                class: 'modal-form__submit'
+            } only %}
+        </form>
+    </section>
+
+    <section class="auth-panel" data-auth-panel-content="register" aria-label="Création de compte"{% if active_panel != 'register' %} hidden{% endif %}>
+        <div class="auth-copy auth-copy--accent">
+            <h3>Créer mon compte client</h3>
+            <p>Un compte actif pour prendre rendez-vous plus vite et suivre vos avantages fidélité.</p>
+        </div>
+
+        <form class="modal-form auth-form" action="{{ path('app_register') }}" method="post">
+            {% if registration_errors|default([]) is not empty %}
+                <div class="auth-alert" role="alert">
+                    {% for error in registration_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="modal-form__grid">
+                <div class="field-group">
+                    <label for="register-first-name">Prénom</label>
+                    <input id="register-first-name" type="text" name="first_name" value="{{ registration_data.first_name|default('') }}" autocomplete="given-name" required {% if active_panel == 'register' %}data-modal-initial-focus{% endif %}>
+                </div>
+
+                <div class="field-group">
+                    <label for="register-last-name">Nom</label>
+                    <input id="register-last-name" type="text" name="last_name" value="{{ registration_data.last_name|default('') }}" autocomplete="family-name" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="register-email">Adresse e-mail</label>
+                    <input id="register-email" type="email" name="email" value="{{ registration_data.email|default('') }}" autocomplete="email" placeholder="vous@email.fr" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="register-phone">Téléphone</label>
+                    <input id="register-phone" type="tel" name="phone" value="{{ registration_data.phone|default('') }}" autocomplete="tel" inputmode="tel" placeholder="06 00 00 00 00" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="register-password">Mot de passe</label>
+                    <input id="register-password" type="password" name="password" autocomplete="new-password" minlength="8" required>
+                </div>
+
+                <div class="field-group">
+                    <label for="register-password-confirmation">Confirmation</label>
+                    <input id="register-password-confirmation" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required>
+                </div>
+            </div>
+
+            <input type="hidden" name="_token" value="{{ csrf_token('register_customer') }}">
+            {% if target_path %}
+                <input type="hidden" name="_target_path" value="{{ target_path }}">
+            {% endif %}
+
+            <div class="auth-benefits" aria-label="Avantages du compte">
+                <span>Rendez-vous suivis</span>
+                <span>Cagnotte fidélité</span>
+                <span>Profil sécurisé</span>
+            </div>
+
+            {% include 'components/_button.html.twig' with {
+                label: 'Créer mon compte',
+                variant: 'primary',
+                type: 'submit',
+                class: 'modal-form__submit'
+            } only %}
+        </form>
+    </section>
+</div>

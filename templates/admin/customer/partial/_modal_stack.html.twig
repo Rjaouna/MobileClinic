@@ -1,0 +1,50 @@
+<div id="customer-modal-stack">
+    {% embed 'components/_modal.html.twig' with {
+        id: 'customer-create-modal',
+        title: 'Créer un client',
+        subtitle: 'Ajoutez un client manuellement avec un accès sécurisé.'
+    } %}
+        {% block modal_body %}
+            {% include 'admin/customer/modal/_create.html.twig' with {
+                search: search,
+                filter: filter,
+                page: pagination.page
+            } only %}
+        {% endblock %}
+    {% endembed %}
+
+    {% for row in pagination.items %}
+        {% set customer = row.customer %}
+        {% embed 'components/_modal.html.twig' with {
+            id: 'customer-edit-' ~ customer.id,
+            title: 'Modifier le client',
+            subtitle: customer.email
+        } %}
+            {% block modal_body %}
+                {% include 'admin/customer/modal/_edit.html.twig' with {
+                    customer: customer,
+                    search: search,
+                    filter: filter,
+                    page: pagination.page
+                } only %}
+            {% endblock %}
+        {% endembed %}
+
+        {% if customer.active %}
+            {% embed 'components/_modal.html.twig' with {
+                id: 'customer-delete-' ~ customer.id,
+                title: 'Désactiver le client',
+                subtitle: 'Aucune donnée historique ne sera supprimée.'
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/customer/modal/_delete.html.twig' with {
+                        customer: customer,
+                        search: search,
+                        filter: filter,
+                        page: pagination.page
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        {% endif %}
+    {% endfor %}
+</div>

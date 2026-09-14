@@ -1,0 +1,11 @@
+<form class="modal-confirmation" action="{{ path('app_admin_news_extend', { id: article.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_news_extend_' ~ article.id) }}">
+    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+    <p>La date de fin sera repoussée d’un mois à partir d’aujourd’hui. L’actualité redeviendra immédiatement visible.</p>
+    {% include 'components/_button.html.twig' with {
+        label: 'Prolonger d’un mois',
+        variant: 'primary',
+        type: 'submit',
+        icon: 'clock'
+    } only %}
+</form>

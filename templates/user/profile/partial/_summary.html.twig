@@ -1,0 +1,44 @@
+<section class="admin-panel" id="user-profile-summary" aria-labelledby="profile-summary-title">
+    <div class="admin-panel__header">
+        <div>
+            <p class="dashboard-kicker">Informations personnelles</p>
+            <h2 id="profile-summary-title">Mon profil client</h2>
+        </div>
+
+        {% include 'components/_button.html.twig' with {
+            label: 'Modifier',
+            variant: 'primary',
+            size: 'compact',
+            icon: 'user',
+            type: 'button',
+            modal_target: 'profile-edit-modal'
+        } only %}
+    </div>
+
+    <div class="appointment-detail-grid">
+        <div>
+            <h2>Prénom</h2>
+            <p>{{ customer.firstName ?: 'À compléter' }}</p>
+        </div>
+        <div>
+            <h2>Nom</h2>
+            <p>{{ customer.lastName ?: 'À compléter' }}</p>
+        </div>
+        <div>
+            <h2>Adresse email</h2>
+            <p>{{ customer.email }}</p>
+        </div>
+        <div>
+            <h2>Téléphone</h2>
+            <p>{{ customer.phone ?: 'Non renseigné' }}</p>
+        </div>
+        <div>
+            <h2>Compte créé</h2>
+            <p>{{ customer.createdAt|date('d/m/Y') }}</p>
+        </div>
+        <div>
+            <h2>Mot de passe</h2>
+            <p>{{ customer.mustChangePassword() ? 'À changer' : 'Défini' }}</p>
+        </div>
+    </div>
+</section>

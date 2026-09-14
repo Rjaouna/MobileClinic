@@ -1,0 +1,120 @@
+{% set cart_count = cart_products|length %}
+{% set available_loyalty = loyalty ? loyalty.available_balance_cents : 0 %}
+{% set loyalty_discount = available_loyalty > cart_total_cents ? cart_total_cents : available_loyalty %}
+{% set payable_total = cart_total_cents - loyalty_discount %}
+
+{% embed 'components/_modal.html.twig' with {
+    id: 'cart-modal',
+    title: 'Votre panier',
+    subtitle: cart_count > 0 ? 'Validez votre réservation magasin quand tout est prêt.' : 'Ajoutez un article promotionnel pour commencer.',
+    class: 'modal--cart',
+    is_open: open_modal|default(null) == 'cart-modal'
+} %}
+    {% block modal_body %}
+        {% import 'components/_money.html.twig' as money %}
+
+        <div class="store-cart">
+            <div class="store-cart__header">
+                <div>
+                    <p class="section-heading__kicker">Réservation magasin</p>
+                    <h3>Articles gardés en boutique</h3>
+                    <p>Les articles sont bloqués uniquement après validation de la réservation.</p>
+                </div>
+
+                <span class="status-pill status-pill--{{ cart_count > 0 ? 'success' : 'neutral' }}">
+                    {{ cart_count }} article{{ cart_count > 1 ? 's' : '' }}
+                </span>
+            </div>
+
+            {% if cart_products is empty %}
+                <section class="empty-state empty-state--large">
+                    <h2>Panier vide</h2>
+                    <p>Choisissez un article promotionnel pour le réserver et le récupérer en magasin.</p>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Voir les promotions',
+                        href: path('app_public_product_index'),
+                        variant: 'primary',
+                        icon: 'bag'
+                    } only %}
+                </section>
+            {% else %}
+                <div class="cart-layout">
+                    <div class="cart-items">
+                        {% for product in cart_products %}
+                            <article class="cart-item">
+                                <span class="cart-item__media">
+                                    {% if product.photoPath %}
+                                        <img src="{{ product.photoPath }}" alt="{{ product.name }}">
+                                    {% else %}
+                                        {% include 'components/_icon.html.twig' with { name: 'bag', size: 20 } only %}
+                                    {% endif %}
+                                </span>
+                                <div>
+                                    <strong>{{ product.name }}</strong>
+                                    <span>{{ money.format(product.promotionalPriceCents) }}</span>
+                                </div>
+                                <form action="{{ path('app_public_product_cart_remove', { id: product.id }) }}" method="post">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('product_cart_remove_' ~ product.id) }}">
+                                    {% include 'components/_button.html.twig' with {
+                                        label: 'Retirer',
+                                        variant: 'secondary',
+                                        size: 'compact',
+                                        type: 'submit'
+                                    } only %}
+                                </form>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    <form class="cart-summary" action="{{ path('app_public_product_reserve') }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('product_cart_reserve') }}">
+
+                        <div class="cart-summary__line">
+                            <span>Total promo</span>
+                            <strong>{{ money.format(cart_total_cents) }}</strong>
+                        </div>
+
+                        {% if app.user and available_loyalty > 0 %}
+                            <label class="loyalty-toggle">
+                                <input type="checkbox" name="use_loyalty" value="1">
+                                <span>
+                                    <strong>Utiliser ma carte fidélité</strong>
+                                    <small>Carte utilisée : {{ money.format(available_loyalty) }} · déduction panier : {{ money.format(loyalty_discount) }}</small>
+                                </span>
+                            </label>
+                            <div class="cart-summary__line cart-summary__line--accent">
+                                <span>À payer après fidélité</span>
+                                <strong>{{ money.format(payable_total) }}</strong>
+                            </div>
+                        {% elseif app.user %}
+                            <p class="modal-notice">Votre carte fidélité est vide pour le moment.</p>
+                        {% else %}
+                            <p class="modal-notice">Connectez-vous ou créez un compte pour valider une réservation magasin.</p>
+                        {% endif %}
+
+                        <p class="cart-summary__notice">
+                            Votre réservation dure {{ setting.productReservationHoldLabel }}. Si vous utilisez la fidélité, la carte est vidée pendant la réservation et remboursée en cas d’annulation client ou magasin. Si vous pensez ne pas pouvoir passer à temps, appelez le magasin au {{ setting.storePhone }}.
+                        </p>
+
+                        {% if app.user %}
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Valider la réservation',
+                                variant: 'primary',
+                                type: 'submit',
+                                class: 'modal-form__submit'
+                            } only %}
+                        {% else %}
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Me connecter',
+                                variant: 'primary',
+                                type: 'button',
+                                class: 'modal-form__submit',
+                                modal_target: 'login-modal'
+                            } only %}
+                        {% endif %}
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    {% endblock %}
+{% endembed %}

@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Actualités - Mobile Clinic{% endblock %}
+{% block meta_description %}Retrouvez les nouveautés de l’atelier, les conseils mobile et les informations de la boutique Mobile Clinic.{% endblock %}
+
+{% block body %}
+    {% include 'components/_public_header.html.twig' with {
+        active: 'news',
+        primary_action: 'appointment',
+        setting: setting
+    } only %}
+
+    <main class="news-page">
+        <header class="news-page__header">
+            <div>
+                {% include 'components/_badge.html.twig' with { label: 'Le journal Mobile Clinic', icon: 'news' } only %}
+                <h1>Actualités, conseils et vie de la boutique.</h1>
+                <p>Suivez les nouveautés de l’atelier, nos conseils pour vos appareils et les informations utiles du magasin.</p>
+            </div>
+            <span class="news-page__count">{{ articles|length }} publication{{ articles|length > 1 ? 's' : '' }}</span>
+        </header>
+
+        <section class="news-page__content" aria-labelledby="news-list-title">
+            <div class="section-heading section-heading--inline">
+                <div>
+                    <p class="section-heading__kicker">Toutes les actualités</p>
+                    <h2 id="news-list-title">Les dernières nouvelles de Mobile Clinic.</h2>
+                </div>
+            </div>
+
+            <div class="news-grid news-grid--archive">
+                {% for article in articles %}
+                    {% include 'components/_news_card.html.twig' with {
+                        article: article,
+                        featured: loop.first
+                    } only %}
+                {% else %}
+                    <div class="news-empty-state">
+                        {% include 'components/_icon.html.twig' with { name: 'news', size: 30 } only %}
+                        <strong>Les premières actualités arrivent bientôt.</strong>
+                        <p>Revenez prochainement pour découvrir les nouvelles de la boutique.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

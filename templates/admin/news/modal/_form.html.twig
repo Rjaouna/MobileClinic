@@ -1,0 +1,76 @@
+{% set article = article|default(null) %}
+{% set selected_media = article ? article.mediaType : 'image' %}
+
+<form class="modal-form news-admin-form" action="{{ action }}" method="post" enctype="multipart/form-data" data-ajax-form data-news-media-form{% if article is null %} data-ajax-reset="1"{% endif %}>
+    <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <label class="field-group field-group--wide">
+            <span>Titre de l’actualité</span>
+            <input type="text" name="title" value="{{ article ? article.title : '' }}" maxlength="160" required data-modal-initial-focus>
+        </label>
+
+        <label class="field-group field-group--wide">
+            <span>Contenu</span>
+            <textarea name="content" rows="8" minlength="20" required>{{ article ? article.content : '' }}</textarea>
+            <small>Présentez l’information simplement : ce texte sera repris sur la page publique.</small>
+        </label>
+
+        <fieldset class="field-group field-group--wide news-media-choice">
+            <legend>Type de média</legend>
+            <div class="segmented-choice">
+                {% for value, label in media_labels %}
+                    <label class="segmented-choice__item">
+                        <input type="radio" name="media_type" value="{{ value }}" {% if selected_media == value %}checked{% endif %} required>
+                        <span>
+                            {% include 'components/_icon.html.twig' with { name: value == 'video' ? 'video' : 'image', size: 19 } only %}
+                            {{ label }}
+                        </span>
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <label class="field-group field-group--wide news-media-field" data-news-image-fields>
+            <span>Photo</span>
+            <input type="file" name="image" accept="image/jpeg,image/png,image/webp" data-news-image-required="{{ article and article.imagePath ? '0' : '1' }}" {% if article is null %}required{% endif %}>
+            <small>JPG, PNG ou WebP, 6 Mo maximum. Une image horizontale offre le meilleur rendu.</small>
+            {% if article and article.imagePath %}
+                <span class="news-current-media"><img src="{{ article.imagePath }}" alt="Aperçu actuel"><span>Photo actuelle</span></span>
+            {% endif %}
+        </label>
+
+        <label class="field-group field-group--wide news-media-field" data-news-video-fields>
+            <span>Lien YouTube</span>
+            <input type="url" name="youtube_url" value="{{ article ? article.youtubeUrl : '' }}" placeholder="https://www.youtube.com/watch?v=...">
+            <small>Seul le lien est enregistré. Aucune vidéo n’est importée sur le serveur.</small>
+        </label>
+
+        <label class="field-group">
+            <span>Date de mise en ligne</span>
+            <input type="datetime-local" name="published_at" value="{{ article ? article.publishedAt|date('Y-m-d\\TH:i') : 'now'|date('Y-m-d\\TH:i') }}" required>
+            <small>La diffusion se termine automatiquement un mois après cette date.</small>
+        </label>
+
+        <label class="toggle-line news-active-toggle">
+            <input type="checkbox" name="is_active" value="1" {% if article is null or article.active %}checked{% endif %}>
+            <span>Actualité visible sur le site</span>
+        </label>
+
+        {% if article %}
+            <p class="news-expiry-note field-group--wide">
+                <strong>Fin de diffusion actuelle :</strong> {{ article.expiresAt|date('d/m/Y à H:i') }}.
+                Une alerte apparaîtra sur le dashboard à cette date.
+            </p>
+        {% endif %}
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: submit_label,
+        variant: 'primary',
+        type: 'submit',
+        icon: 'news',
+        class: 'modal-form__submit'
+    } only %}
+</form>

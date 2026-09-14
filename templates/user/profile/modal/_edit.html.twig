@@ -1,3 +1,26 @@
-<p class="modal-notice">
-    Les informations de profil client utiliseront cette modale commune lorsque les champs client seront ajoutés.
-</p>
+<form class="modal-form" action="{{ path('app_user_profile_information_update') }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('user_profile_information') }}">
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="profile-first-name">Prénom</label>
+            <input id="profile-first-name" type="text" name="first_name" value="{{ customer.firstName }}" maxlength="100" autocomplete="given-name" data-modal-initial-focus>
+        </div>
+        <div class="field-group">
+            <label for="profile-last-name">Nom</label>
+            <input id="profile-last-name" type="text" name="last_name" value="{{ customer.lastName }}" maxlength="100" autocomplete="family-name">
+        </div>
+    </div>
+
+    <p class="modal-notice">
+        Votre e-mail et votre téléphone sont liés à vos rendez-vous. Pour les modifier, contactez l’équipe en magasin.
+    </p>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Enregistrer mon profil',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

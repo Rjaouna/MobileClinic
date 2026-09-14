@@ -1,0 +1,67 @@
+{% macro money(cents) %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ cents < 0 ? '-' : '' }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+<div id="loyalty-transaction-list">
+    {% if loyalty.transactions is not empty %}
+        <div class="table-wrapper data-table-wrapper">
+            <table class="data-table data-table--professional">
+                <thead>
+                    <tr>
+                        <th>Mouvement</th>
+                        <th>Motif</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Créé le</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in loyalty.transactions %}
+                        <tr data-loyalty-transaction="{{ transaction.id }}">
+                            <td data-label="Mouvement">
+                                <strong>{{ transaction.typeLabel }}</strong>
+                                {% if transaction.administrator %}
+                                    <span>Par {{ transaction.administrator.email }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Motif">{{ transaction.reason }}</td>
+                            <td data-label="Montant">
+                                <strong class="{{ transaction.amountCents < 0 ? 'is-negative' : 'is-positive' }}">
+                                    {{ money.money(transaction.amountCents) }}
+                                </strong>
+                            </td>
+                            <td data-label="Statut">
+                                <span class="status-pill status-pill--{{ transaction.statusVariant }}">{{ transaction.statusLabel }}</span>
+                            </td>
+                            <td data-label="Créé le">{{ transaction.createdAt|date('d/m/Y H:i') }}</td>
+                            <td class="data-table__actions" data-label="Action">
+                                {% if transaction.pending %}
+                                    {% include 'components/_button.html.twig' with {
+                                        label: 'Annuler',
+                                        variant: 'danger',
+                                        size: 'compact',
+                                        type: 'button',
+                                        modal_target: 'loyalty-cancel-' ~ transaction.id
+                                    } only %}
+                                {% else %}
+                                    <span>Aucune action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <section class="empty-state empty-state--large">
+            <h2>Aucun mouvement</h2>
+            <p>Les gains, utilisations et corrections apparaîtront ici.</p>
+        </section>
+    {% endif %}
+</div>

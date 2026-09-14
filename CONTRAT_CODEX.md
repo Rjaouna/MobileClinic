@@ -1,10 +1,10 @@
-# Contrat de Travail Codex - SymClinic
+# Contrat de Travail Codex - Mobile Clinic
 
-Ce document sert de contrat de collaboration pour le projet SymClinic. Codex doit le relire avant toute intervention importante sur ce dépôt et l'utiliser comme référence pour prendre des décisions cohérentes.
+Ce document sert de contrat de collaboration pour le projet Mobile Clinic. Codex doit le relire avant toute intervention importante sur ce dépôt et l'utiliser comme référence pour prendre des décisions cohérentes.
 
 ## 1. Objectif du projet
 
-Construire un site Symfony professionnel, clair et maintenable pour SymClinic.
+Construire un site Symfony professionnel, clair et maintenable pour Mobile Clinic.
 
 Le projet doit rester propre, évolutif et facile à reprendre par un développeur humain.
 
@@ -159,12 +159,28 @@ templates/
 - Les textes longs peuvent garder une largeur de lecture locale pour rester confortables, mais la mise en page globale doit rester full width.
 - La police principale du site est `Manrope`, avec une pile de secours système. Elle doit être utilisée pour l'interface et les pages publiques afin de garder un rendu moderne, lisible et adapté au service mobile care.
 - Les composants attendus incluent au minimum : bouton, lien d'action, champ de recherche, bloc de prise de rendez-vous, badge, carte d'information, tableau, ligne de tableau, modale et alerte.
+- Toutes les listes de données administratives ou client doivent utiliser le composant et les classes `data-table` communes, pilotées par DataTables JS : barre d'outils avec titre, compteur, recherche DataTables, tri, pagination, choix du nombre de lignes, filtres intégrés, lignes lisibles, actions alignées et comportement responsive mobile.
+- À chaque fois qu'une page affiche un listing métier, même simple, Codex doit utiliser le même modèle `data-table` : clients, rendez-vous, réservations boutique, articles admin, mouvements fidélité, historiques et résultats filtrés. Les tableaux HTML nus, les listes en cartes répétées et les rendus ad hoc sont interdits pour ces listings, sauf cas justifié de catalogue visuel public ou de carte résumé de dashboard.
+- Les `data-table` doivent occuper toute la largeur disponible de leur écran ou de leur panneau. Les colonnes doivent garder des largeurs minimales cohérentes et éviter les retours à la ligne sur desktop. Les lignes doivent rester compactes : peu de padding vertical, boutons compacts dans les actions, textes secondaires en ellipsis si nécessaire. Les colonnes d'actions doivent rester sur une seule ligne sur desktop, sans empiler les boutons comme `Voir`, `Modifier` ou `Désactiver`. Sur mobile, le même composant peut passer en cartes lisibles sans perdre les libellés.
+- Tout badge avec un fond rouge, notamment `#ec1c24` ou `--color-primary`, doit toujours afficher son texte en blanc (`#fff` / `var(--color-white)`). Aucun style parent ne doit laisser un badge rouge avec un texte rouge, gris ou noir.
+- Tout bouton ou lien d’action avec un fond rouge, notamment les variantes `primary` et `danger`, doit toujours afficher l’intégralité de son contenu en blanc : texte, icône et libellé imbriqué. Cette règle est globale et doit être contrôlée après chaque modification CSS.
 - Un champ de recherche doit être un bloc réutilisable configurable avec son libellé, son placeholder, sa valeur, sa méthode et son action.
 - Un bloc de prise de rendez-vous doit être un composant réutilisable configurable avec son titre, son texte, son bouton et son action.
-- Toutes les modales doivent utiliser un composant commun et garder la même taille, le même comportement plein écran, le même fond d'écran assombri, le même bouton de fermeture et les mêmes styles de formulaire.
-- Les contenus propres à une modale peuvent changer, mais la structure visuelle de base ne doit pas être recodée différemment d'une page à l'autre.
+- Toutes les modales doivent utiliser le composant commun et occuper réellement toute la fenêtre, sur ordinateur comme sur mobile : `100vw` de largeur et `100dvh` de hauteur, sans marge, largeur maximale, hauteur maximale ni coins arrondis qui réduisent le panneau.
+- Toutes les modales gardent le même fond d'écran assombri, le même en-tête, le même bouton de fermeture, les mêmes styles de formulaire et un corps défilable indépendamment de l'en-tête. Une variante métier (`auth`, panier, navigation, candidature, etc.) ne doit jamais réintroduire une largeur ou une hauteur réduite.
+- Les contenus propres à une modale peuvent changer, mais la structure visuelle de base ne doit pas être recodée différemment d'une page à l'autre. Après chaque ajout ou modification, la modale doit être vérifiée sur ordinateur et sur mobile afin de confirmer qu'elle couvre toute la largeur et toute la hauteur sans débordement horizontal.
+- Les menus internes de dashboard doivent rester contextuels. Sur une page de module ou une fiche, le menu ne doit afficher que les actions, ancres et sous-sections liées à ce module, plus un lien de retour au dashboard principal et les actions de session nécessaires. Il ne doit pas lister les autres modules comme sous-menus.
+- Un menu interne ne doit pas contenir deux entrées qui mènent au même résultat, au même bloc principal déjà affiché ou à une action équivalente. Les ancres vers une recherche, une liste ou le bloc principal de la page sont interdites si ces zones sont déjà immédiatement visibles dans le parcours normal.
+- Les dashboards principaux peuvent servir de hubs et présenter les grandes rubriques de l'espace concerné, mais dès qu'un utilisateur entre dans une rubrique, le menu devient local à cette rubrique.
 - Le style général doit s'inspirer de la référence SYMA Mobile fournie : fond blanc, beaucoup d'air, rouge vif pour les actions, textes noirs lisibles, icônes simples, bordures fines gris clair, séparateurs discrets et boutons arrondis en pilule.
-- L'identité SYMA Mobile ne doit pas être copiée directement : pas de logo, pas de marque, seulement une direction graphique cohérente adaptée à SymClinic.
+- L'identité SYMA Mobile ne doit pas être copiée directement : pas de logo, pas de marque, seulement une direction graphique cohérente adaptée à Mobile Clinic.
+- Le nom commercial officiel et unique affiché sur le site est `Mobile Clinic`. L'ancien nom `SymClinic` est interdit dans les contenus visibles, titres de pages, métadonnées, textes par défaut, données de démonstration et documents remis au client. Les identifiants purement techniques et les adresses de connexion existantes ne doivent pas être renommés si cela risque de casser le fonctionnement ou les accès de test.
+- Le premier bloc de la page d'accueil suit la maquette définitivement validée par le client : texte et actions à gauche, photo plein hauteur d'un technicien en réparation à droite, fondu blanc progressif vers la droite, titre noir et rouge, bouton principal rouge, lien secondaire discret et trois avantages avec icônes cerclées. Aucun formulaire ni panneau ne doit masquer la photo dans ce bloc ; le parcours de rendez-vous s'ouvre dans la modale commune.
+- La photo du premier bloc reste administrable par import d’un fichier JPG, PNG ou WebP dans les paramètres généraux. En l’absence d’un nouveau fichier, la photo actuelle doit impérativement être conservée. Son remplacement ou son opacité ne doit pas casser cette composition, la lisibilité du texte ni le cadrage plein hauteur sur ordinateur et mobile.
+- Le titre noir, l’accroche rouge et le paragraphe du premier bloc sont administrables séparément dans la même rubrique que la photo. Ces contenus doivent toujours provenir des paramètres enregistrés et conserver leur hiérarchie visuelle respective.
+- Le footer suit la maquette définitivement validée par le client : fond blanc, logo et trois services à gauche, liens utiles au centre, réseaux sociaux et téléphone à droite, puis une barre basse avec copyright, promesse de marque et signature. Son arrière-plan doit conserver les décors validés : rubans rouges très translucides à gauche et grand téléphone gris en filigrane à droite avec deux accents rouges. Le logo, le nom de l’entreprise, le téléphone et les réseaux sociaux restent alimentés par les paramètres administrables existants.
+- Les coordonnées officielles du magasin sont centralisées dans les paramètres généraux et réutilisées partout : `18 Rue du Sec Arembault, 59800 Lille` et `03 20 50 71 03`. Les horaires sont administrables jour par jour et doivent rester cohérents entre le footer et les pages d’information.
+- Le lien de la fiche Google Business est administrable au même endroit. L’adresse du footer doit être cliquable, un bouton d’itinéraire doit rester visible et la page Contact doit réutiliser la même adresse, le même téléphone, les mêmes horaires et le même lien Google.
 
 ## 6. Frontend et expérience utilisateur
 
@@ -195,6 +211,8 @@ templates/
 - Le mot de passe temporaire doit être affiché dans l'espace client uniquement au moment utile, puis le client doit être invité à le changer.
 - Si l'adresse email existe déjà et que le client n'est pas connecté, le système ne doit pas donner accès automatiquement au compte existant.
 - Le client doit pouvoir consulter ses rendez-vous, annuler un rendez-vous actif et déplacer sa date vers un créneau disponible.
+- Chaque réservation boutique temporaire doit afficher un compte à rebours calculé depuis l’échéance du serveur, côté client et côté admin. Le seuil « expiration proche » est administrable en minutes, le compteur se met à jour sans rechargement et l’expiration déclenche le statut, la remise en vente et le remboursement fidélité prévus par le service métier commun.
+- La DataTable admin des réservations boutique doit permettre de repérer les délais confortables, proches, critiques ou expirés, et donner accès au téléphone du client pour un appel rapide.
 
 ## 8. Qualité et vérification
 

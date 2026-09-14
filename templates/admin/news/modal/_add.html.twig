@@ -1,0 +1,7 @@
+{% include 'admin/news/modal/_form.html.twig' with {
+    article: null,
+    action: path('app_admin_news_create'),
+    csrf_id: 'admin_news_create',
+    submit_label: 'Publier l’actualité',
+    media_labels: media_labels
+} only %}

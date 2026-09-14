@@ -1,0 +1,19 @@
+<div id="{{ stack_id|default('appointment-modal-stack') }}">
+    {% for appointment in appointments %}
+        {% embed 'components/_modal.html.twig' with {
+            id: 'appointment-status-' ~ appointment.id,
+            title: 'Mettre à jour le rendez-vous',
+            subtitle: appointment.device ~ ' · ' ~ appointment.problem
+        } %}
+            {% block modal_body %}
+                {% include 'admin/appointment/modal/_status.html.twig' with {
+                    appointment: appointment,
+                    admin_status_choices: admin_status_choices,
+                    status_consequences: status_consequences,
+                    status: status|default(''),
+                    search: search|default('')
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    {% endfor %}
+</div>

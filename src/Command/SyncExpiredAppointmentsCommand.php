@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Service\AppointmentScheduler;
+use App\Service\AppointmentReminderManager;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -13,11 +13,11 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:appointments:sync-expired',
-    description: 'Passe les rendez-vous actifs expirés en statut client pas présenté.',
+    description: 'Compatibilité : détecte les rendez-vous passés et crée les rappels administratifs.',
 )]
 final class SyncExpiredAppointmentsCommand extends Command
 {
-    public function __construct(private readonly AppointmentScheduler $appointmentScheduler)
+    public function __construct(private readonly AppointmentReminderManager $appointmentReminderManager)
     {
         parent::__construct();
     }
@@ -25,9 +25,14 @@ final class SyncExpiredAppointmentsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $count = $this->appointmentScheduler->syncExpiredAppointments();
+        $result = $this->appointmentReminderManager->refreshReminders();
 
-        $io->success(sprintf('%d rendez-vous expiré(s) synchronisé(s).', $count));
+        $io->success(sprintf(
+            '%d rappel(s) créé(s), %d renforcé(s), %d résolu(s).',
+            $result['created'],
+            $result['updated'],
+            $result['resolved'],
+        ));
 
         return Command::SUCCESS;
     }

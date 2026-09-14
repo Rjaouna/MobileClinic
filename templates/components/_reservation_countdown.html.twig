@@ -1,0 +1,40 @@
+{% set compact = compact|default(false) %}
+{% set audience = audience|default('customer') %}
+
+{% if reservation.reserved and reservation.expiresAt %}
+    <div class="reservation-countdown {{ compact ? 'reservation-countdown--compact' : '' }}"
+         data-reservation-countdown
+         data-starts-at="{{ reservation.createdAt|date('c') }}"
+         data-expires-at="{{ reservation.expiresAt|date('c') }}"
+         data-alert-seconds="{{ setting.productReservationAlertMinutes * 60 }}"
+         role="timer"
+         aria-live="off">
+        <span class="reservation-countdown__topline">
+            <span class="reservation-countdown__icon" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: 'clock', size: compact ? 14 : 16 } only %}
+            </span>
+            <span data-countdown-state>{{ compact ? 'Reste' : 'Temps restant' }}</span>
+        </span>
+        <strong data-countdown-value>Calcul en cours…</strong>
+        <span class="reservation-countdown__track" aria-hidden="true"><span data-countdown-progress></span></span>
+        <small>
+            {% if compact %}
+                Expire le
+            {% else %}
+                {{ audience == 'customer' ? 'Vos articles sont gardés jusqu’au' : 'Échéance' }}
+            {% endif %}
+            <time datetime="{{ reservation.expiresAt|date('c') }}">{{ reservation.expiresAt|date('d/m/Y à H:i') }}</time>
+        </small>
+    </div>
+{% elseif reservation.confirmed %}
+    <div class="reservation-countdown reservation-countdown--confirmed {{ compact ? 'reservation-countdown--compact' : '' }}">
+        <span class="reservation-countdown__topline">
+            <span class="reservation-countdown__icon" aria-hidden="true">{% include 'components/_icon.html.twig' with { name: 'check', size: 14 } only %}</span>
+            Réservation garantie
+        </span>
+        <strong>Sans expiration</strong>
+        <small>Validation définitive par le magasin.</small>
+    </div>
+{% else %}
+    <span class="reservation-countdown__inactive">Aucun délai actif</span>
+{% endif %}

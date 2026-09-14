@@ -1,0 +1,27 @@
+<div class="table-wrapper data-table-wrapper">
+    <table class="data-table data-table--professional">
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Prix</th>
+                <th>Infos</th>
+                <th>État</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+                {% include 'admin/product/partial/_row.html.twig' with {
+                    product: product,
+                    reserved_product_ids: reserved_product_ids
+                } only %}
+            {% else %}
+                <tr>
+                    <td colspan="5">
+                        <p class="empty-state">Aucun article promotionnel pour le moment.</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

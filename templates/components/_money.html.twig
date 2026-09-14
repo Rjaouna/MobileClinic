@@ -1,0 +1,7 @@
+{% macro format(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}

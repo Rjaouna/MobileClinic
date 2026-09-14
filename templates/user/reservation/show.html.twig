@@ -1,92 +1,85 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Rendez-vous #{{ appointment.id }} - SymClinic{% endblock %}
-{% block meta_description %}Détail d’un rendez-vous SymClinic.{% endblock %}
+{% block title %}Rendez-vous #{{ appointment.id }} - Mobile Clinic{% endblock %}
+{% block meta_description %}Détail d’un rendez-vous Mobile Clinic.{% endblock %}
 
 {% block body %}
-    <main class="dashboard-page dashboard-page--user">
+    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh', { appointment_id: appointment.id }) }}" data-user-live-refresh-interval="10000">
         <section class="dashboard-shell" aria-labelledby="reservation-show-title">
             <header class="dashboard-header">
-                <div>
-                    <p class="dashboard-kicker">Rendez-vous</p>
-                    <h1 id="reservation-show-title">{{ appointment.problem }}</h1>
-                    <p>{{ appointment.device }} le {{ appointment.scheduledAt|date('d/m/Y') }} à {{ appointment.scheduledAt|date('H:i') }}.</p>
-                </div>
+                {% include 'user/reservation/partial/_show_heading.html.twig' with {
+                    appointment: appointment
+                } only %}
 
-                <div class="dashboard-actions">
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Retour',
+                {% set reservation_show_items = [] %}
+                {% if appointment.canBeChangedByCustomer() %}
+                    {% set reservation_show_items = reservation_show_items|merge([
+                        {
+                            label: 'Déplacer',
+                            variant: 'primary',
+                            icon: 'calendar',
+                            modal_target: 'reservation-reschedule-modal',
+                            description: 'Choisir une nouvelle date.'
+                        },
+                        {
+                            label: 'Annuler',
+                            variant: 'danger',
+                            icon: 'x',
+                            modal_target: 'reservation-cancel-modal',
+                            description: 'Libérer ce créneau.'
+                        }
+                    ]) %}
+                {% endif %}
+                {% set reservation_show_items = reservation_show_items|merge([
+                    {
+                        label: 'Retour rendez-vous',
                         href: path('app_user_reservation_index'),
+                        variant: appointment.canBeChangedByCustomer() ? 'secondary' : 'primary',
+                        icon: 'calendar',
+                        description: 'Revenir à vos rendez-vous.'
+                    },
+                    {
+                        label: 'Mon espace',
+                        href: path('app_user_dashboard'),
                         variant: 'secondary',
-                        size: 'compact'
-                    } only %}
-                </div>
+                        icon: 'home',
+                        description: 'Retour au tableau de bord.'
+                    },
+                    {
+                        label: 'Déconnexion',
+                        href: path('app_logout'),
+                        variant: 'secondary',
+                        icon: 'logout',
+                        description: 'Quitter votre espace.'
+                    }
+                ]) %}
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'user-reservation-show-menu',
+                    kicker: 'Espace client',
+                    title: 'Menu rendez-vous',
+                    subtitle: 'Actions locales sur ce rendez-vous.',
+                    items: reservation_show_items
+                } only %}
             </header>
 
             {% include 'components/_flash_messages.html.twig' %}
 
-            <section class="admin-panel">
-                <div class="appointment-detail-grid">
-                    <div>
-                        <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
-                        <h2>Votre créneau</h2>
-                        <p>{{ appointment.scheduledAt|date('d/m/Y') }} de {{ appointment.scheduledAt|date('H:i') }} à {{ appointment.endsAt|date('H:i') }}</p>
-                    </div>
-                    <div>
-                        <h2>Contact</h2>
-                        <p>{{ appointment.email }}</p>
-                        <p>{{ appointment.phone ?: 'Téléphone non renseigné' }}</p>
-                    </div>
-                    <div>
-                        <h2>Message</h2>
-                        <p>{{ appointment.customerNote ?: 'Aucun message ajouté.' }}</p>
-                    </div>
-                </div>
+            {% include 'components/_loyalty_summary.html.twig' with {
+                id: 'user-reservation-show-loyalty',
+                title: 'Ma carte de fidélité',
+                loyalty: loyalty,
+                href: path('app_user_loyalty_index')
+            } only %}
 
-                {% if appointment.canBeChangedByCustomer() %}
-                    <div class="inline-actions">
-                        {% include 'components/_button.html.twig' with {
-                            label: 'Déplacer',
-                            variant: 'primary',
-                            type: 'button',
-                            modal_target: 'reservation-reschedule-modal'
-                        } only %}
-                        {% include 'components/_button.html.twig' with {
-                            label: 'Annuler',
-                            variant: 'danger',
-                            type: 'button',
-                            modal_target: 'reservation-cancel-modal'
-                        } only %}
-                    </div>
-                {% endif %}
-            </section>
+            {% include 'user/reservation/partial/_show_detail.html.twig' with {
+                appointment: appointment
+            } only %}
 
-            {% if appointment.canBeChangedByCustomer() %}
-                {% embed 'components/_modal.html.twig' with {
-                    id: 'reservation-reschedule-modal',
-                    title: 'Déplacer le rendez-vous',
-                    subtitle: 'Choisissez un nouveau créneau disponible.'
-                } %}
-                    {% block modal_body %}
-                        {% include 'user/reservation/modal/_show.html.twig' with {
-                            appointment: appointment,
-                            slot_days: slot_days
-                        } only %}
-                    {% endblock %}
-                {% endembed %}
-
-                {% embed 'components/_modal.html.twig' with {
-                    id: 'reservation-cancel-modal',
-                    title: 'Annuler le rendez-vous',
-                    subtitle: 'Cette action libère le créneau pour un autre client.'
-                } %}
-                    {% block modal_body %}
-                        {% include 'user/reservation/modal/_cancel.html.twig' with {
-                            appointment: appointment
-                        } only %}
-                    {% endblock %}
-                {% endembed %}
-            {% endif %}
+            {% include 'user/reservation/partial/_show_modal_stack.html.twig' with {
+                appointment: appointment,
+                slot_days: slot_days
+            } only %}
         </section>
     </main>
 {% endblock %}

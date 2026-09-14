@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+{% block title %}Promotions - Mobile Clinic{% endblock %}
+{% block meta_description %}Articles promotionnels Mobile Clinic à réserver et récupérer en magasin.{% endblock %}
+
+{% block body %}
+    {% set cart_count = cart_products|length %}
+    {% set available_loyalty = loyalty ? loyalty.available_balance_cents : 0 %}
+    {% set loyalty_discount = available_loyalty > cart_total_cents ? cart_total_cents : available_loyalty %}
+    {% set payable_total = cart_total_cents - loyalty_discount %}
+
+    {% include 'components/_public_header.html.twig' with {
+        active: 'promotions',
+        primary_action: 'cart',
+        cart_count: cart_count,
+        setting: setting
+    } only %}
+
+    <main class="store-page" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
+        <section class="store-hero" aria-labelledby="store-title">
+            <div class="store-hero__inner">
+                <div>
+                    {% include 'components/_badge.html.twig' with {
+                        label: 'Promotions magasin',
+                        icon: 'bag'
+                    } only %}
+                    <h1 id="store-title">Réservez vos articles au prix promo.</h1>
+                    <p>Ajoutez les articles au panier, utilisez votre carte fidélité si vous le souhaitez, puis récupérez le tout en magasin.</p>
+                </div>
+
+                <aside class="store-hero__notice">
+                    <span class="status-pill status-pill--warning">Réservation limitée</span>
+                    <strong>{{ setting.productReservationHoldLabel }}</strong>
+                    <p>Besoin de plus de temps ? Appelez le magasin au {{ setting.storePhone }} avant l’expiration.</p>
+                </aside>
+            </div>
+        </section>
+
+        <section class="home-band store-catalog" aria-labelledby="catalog-title" data-product-catalog>
+            <div class="home-band__inner">
+                {% include 'components/_flash_messages.html.twig' %}
+
+                <div class="section-heading store-catalog__heading">
+                    <p class="section-heading__kicker"><span data-product-result-count>{{ products|length }}</span> article<span data-product-result-plural>{{ products|length > 1 ? 's' : '' }}</span></p>
+                    <h2 id="catalog-title">Articles disponibles</h2>
+                </div>
+
+                <div class="store-toolbar">
+                    {% include 'components/_search_form.html.twig' with {
+                        id: 'product-search',
+                        label: 'Rechercher un article',
+                        placeholder: 'Téléphone, coque, chargeur...',
+                        action: path('app_public_product_index'),
+                        method: 'get',
+                        value: search,
+                        instant: true,
+                        show_button: false,
+                        class: 'search-form--catalog'
+                    } only %}
+                </div>
+
+                <div class="product-grid">
+                    {% for product in products %}
+                        {% include 'components/_product_card.html.twig' with {
+                            product: product,
+                            reserved_product_ids: reserved_product_ids,
+                            cart_product_ids: cart_product_ids
+                        } only %}
+                    {% endfor %}
+                </div>
+
+                <section class="empty-state empty-state--large" data-product-search-empty {% if products is not empty %}hidden{% endif %}>
+                    <h2>Aucun article trouvé</h2>
+                    <p>Essayez un autre mot-clé ou revenez plus tard pour les prochaines promotions.</p>
+                </section>
+            </div>
+        </section>
+
+        {% include 'components/_store_cart_modal.html.twig' with {
+            cart_products: cart_products,
+            cart_total_cents: cart_total_cents,
+            loyalty: loyalty,
+            setting: setting,
+            open_modal: open_modal|default(null)
+        } only %}
+
+        {% embed 'components/_modal.html.twig' with {
+            id: 'login-modal',
+            title: 'Réserver avec mon compte',
+            subtitle: 'Connectez-vous ou créez un compte pour garder vos articles en magasin.',
+            class: 'modal--auth',
+            is_open: open_modal|default(null) == 'login-modal'
+        } %}
+            {% block modal_body %}
+                {% include 'components/_login_form.html.twig' with {
+                    last_username: last_username|default(''),
+                    login_error: login_error|default(null),
+                    auth_panel: auth_panel|default('login'),
+                    target_path: path('app_public_product_index')
+                } only %}
+            {% endblock %}
+        {% endembed %}
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

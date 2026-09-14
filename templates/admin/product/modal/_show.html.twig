@@ -1,0 +1,39 @@
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+<div class="product-show">
+    <div class="product-show__media">
+        {% if product.photoPath %}
+            <img src="{{ product.photoPath }}" alt="{{ product.name }}">
+        {% else %}
+            {% include 'components/_icon.html.twig' with { name: 'bag', size: 46 } only %}
+        {% endif %}
+    </div>
+
+    <div class="product-show__content">
+        <span class="status-pill status-pill--{{ product.active ? 'success' : 'neutral' }}">{{ product.active ? 'Visible' : 'Masqué' }}</span>
+        <p>{{ product.description }}</p>
+        <div class="product-price product-price--large">
+            <span>{{ money.money(product.normalPriceCents) }}</span>
+            <strong>{{ money.money(product.promotionalPriceCents) }}</strong>
+        </div>
+
+        {% if product.customAttributes is not empty %}
+            <dl class="product-attributes">
+                {% for attribute in product.customAttributes %}
+                    <div>
+                        <dt>{{ attribute.label }}</dt>
+                        <dd>{{ attribute.value }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+        {% endif %}
+    </div>
+</div>

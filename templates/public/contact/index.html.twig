@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact et itinéraire - Mobile Clinic Lille{% endblock %}
+{% block meta_description %}Retrouvez Mobile Clinic au 18 Rue du Sec Arembault à Lille : itinéraire Google, téléphone et horaires d’ouverture.{% endblock %}
+
+{% block body %}
+    {% set google_business_url = setting.googleBusinessUrl %}
+    {% set phone_uri = setting.storePhone|replace({' ': '', '.': '', '-': ''}) %}
+
+    {% include 'components/_public_header.html.twig' with {
+        active: 'contact',
+        primary_action: 'appointment',
+        setting: setting
+    } only %}
+
+    <main class="contact-page">
+        <section class="contact-hero" aria-labelledby="contact-title">
+            <div class="contact-hero__content">
+                {% include 'components/_badge.html.twig' with {
+                    label: 'Mobile Clinic Lille',
+                    icon: 'map-pin'
+                } only %}
+                <h1 id="contact-title">Votre atelier mobile,<br><span>au cœur de Lille.</span></h1>
+                <p>Besoin d’un conseil, d’une réparation ou de récupérer un article ? Retrouvez-nous facilement en boutique.</p>
+                <div class="contact-hero__actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Itinéraire',
+                        href: google_business_url,
+                        target: '_blank',
+                        attributes: { rel: 'noopener noreferrer' },
+                        variant: 'primary',
+                        icon: 'map-pin'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: setting.storePhone,
+                        href: 'tel:' ~ phone_uri,
+                        variant: 'secondary',
+                        icon: 'phone'
+                    } only %}
+                </div>
+            </div>
+            <div class="contact-hero__marker" aria-hidden="true">
+                {% include 'components/_icon.html.twig' with { name: 'map-pin', size: 22 } only %}
+                <span>18 Rue du Sec Arembault</span>
+            </div>
+        </section>
+
+        <section class="contact-practical" aria-labelledby="contact-practical-title">
+            <div class="contact-practical__heading">
+                <p class="section-heading__kicker">Nous contacter</p>
+                <h2 id="contact-practical-title">Toutes les informations utiles, au même endroit.</h2>
+                <p>L’équipe vous accueille pour vos réparations, vos réservations boutique et vos questions sur la fidélité.</p>
+            </div>
+
+            <div class="contact-practical__details">
+                <article class="contact-detail">
+                    <span class="contact-detail__icon">{% include 'components/_icon.html.twig' with { name: 'map-pin', size: 23 } only %}</span>
+                    <div><span>Adresse</span><strong>{{ setting.storeAddress }}</strong></div>
+                    <a href="{{ google_business_url }}" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir l’adresse sur Google">Voir sur Google</a>
+                </article>
+                <article class="contact-detail">
+                    <span class="contact-detail__icon">{% include 'components/_icon.html.twig' with { name: 'phone', size: 23 } only %}</span>
+                    <div><span>Téléphone</span><strong>{{ setting.storePhone }}</strong></div>
+                    <a href="tel:{{ phone_uri }}">Appeler</a>
+                </article>
+            </div>
+        </section>
+
+        <section class="contact-hours" aria-labelledby="contact-hours-title">
+            <div class="contact-hours__heading">
+                <p class="section-heading__kicker">Horaires du magasin</p>
+                <h2 id="contact-hours-title">Passez quand cela vous arrange.</h2>
+                <p>Le jour actuel est mis en évidence pour retrouver l’information immédiatement.</p>
+            </div>
+            <div class="contact-hours__grid">
+                {% for day, hours in setting.storeOpeningHours %}
+                    <div class="contact-hours__day {{ day == current_day ? 'is-today' : '' }}">
+                        <span>{{ day_labels[day] }}</span>
+                        <strong>{{ hours }}</strong>
+                        {% if day == current_day %}<small>Aujourd’hui</small>{% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="contact-hours__action">
+                {% include 'components/_button.html.twig' with {
+                    label: 'Voir sur Google',
+                    href: google_business_url,
+                    target: '_blank',
+                    attributes: { rel: 'noopener noreferrer' },
+                    variant: 'primary',
+                    icon: 'map-pin'
+                } only %}
+                <span>Le lien s’ouvre dans un nouvel onglet.</span>
+            </div>
+        </section>
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}

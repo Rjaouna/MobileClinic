@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients admin - Mobile Clinic{% endblock %}
+{% block meta_description %}Gestion administrateur des clients Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="admin-customer-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Administration</p>
+                    <h1 id="admin-customer-title">Clients</h1>
+                    <p>Gérez les comptes clients sans casser l’historique des rendez-vous et de la fidélité.</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-customer-menu',
+                    kicker: 'Administration',
+                    title: 'Menu clients',
+                    subtitle: 'Sous-menus de la rubrique clients.',
+                    items: [
+                        {
+                            label: 'Créer un client',
+                            variant: 'primary',
+                            icon: 'user',
+                            modal_target: 'customer-create-modal',
+                            description: 'Ajouter un compte client.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            {% embed 'components/_data_table_shell.html.twig' with {
+                id: 'customer-list-title',
+                kicker: 'Clients',
+                title: 'Liste clients',
+                subtitle: 'Recherche instantanée, fidélité, historique RDV et statut du compte.',
+                count_label: pagination.total ~ ' client' ~ (pagination.total > 1 ? 's' : ''),
+                icon: 'user'
+            } %}
+                {% block table_actions %}
+                    <form class="filter-form filter-form--wide filter-form--instant data-table-filter" method="get" action="{{ path('app_admin_customer_index') }}" data-instant-filter>
+                        <label for="customer-search">Recherche</label>
+                        <input id="customer-search" type="search" name="q" value="{{ search }}" placeholder="Nom, téléphone ou e-mail" autocomplete="off">
+                        <label for="customer-filter">Filtre</label>
+                        <select id="customer-filter" name="filter">
+                            <option value="">Tous les clients</option>
+                            <option value="active" {% if filter == 'active' %}selected{% endif %}>Comptes actifs</option>
+                            <option value="inactive" {% if filter == 'inactive' %}selected{% endif %}>Comptes désactivés</option>
+                            <option value="with_balance" {% if filter == 'with_balance' %}selected{% endif %}>Avec cagnotte disponible</option>
+                            <option value="with_pending" {% if filter == 'with_pending' %}selected{% endif %}>Avec gain en attente</option>
+                        </select>
+                    </form>
+                {% endblock %}
+
+                {% block table_content %}
+                    <div class="table-wrapper data-table-wrapper">
+                        <table class="data-table data-table--professional">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Téléphone</th>
+                                    <th>Inscription</th>
+                                    <th>RDV</th>
+                                    <th>Dernier RDV</th>
+                                    <th>Disponible</th>
+                                    <th>En attente</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-table-body">
+                                {% include 'admin/customer/partial/_table_body.html.twig' with {
+                                    pagination: pagination,
+                                    search: search,
+                                    filter: filter
+                                } only %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+
+            {% include 'admin/customer/partial/_modal_stack.html.twig' with {
+                pagination: pagination,
+                search: search,
+                filter: filter
+            } only %}
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+{% set is_reserved = product.id in reserved_product_ids|default([]) %}
+{% set is_sold = product.sold %}
+
+<tr>
+    <td data-label="Article">
+        <div class="table-product">
+            <span class="table-product__media">
+                {% if product.photoPath %}
+                    <img src="{{ product.photoPath }}" alt="{{ product.name }}">
+                {% else %}
+                    {% include 'components/_icon.html.twig' with { name: 'bag', size: 20 } only %}
+                {% endif %}
+            </span>
+            <span>
+                <strong>{{ product.name }}</strong>
+                <small>{{ product.description|length > 88 ? product.description|slice(0, 88) ~ '…' : product.description }}</small>
+            </span>
+        </div>
+    </td>
+    <td data-label="Prix">
+        <strong>{{ money.money(product.promotionalPriceCents) }}</strong>
+        <span>Normal : {{ money.money(product.normalPriceCents) }}</span>
+    </td>
+    <td data-label="Infos">
+        {% if product.customAttributes is not empty %}
+            <span>{{ product.customAttributes|length }} info{{ product.customAttributes|length > 1 ? 's' : '' }}</span>
+        {% else %}
+            <span>Aucune info</span>
+        {% endif %}
+    </td>
+    <td data-label="État">
+        <span class="status-pill status-pill--{{ is_sold ? 'danger' : (is_reserved ? 'warning' : (product.active ? 'success' : 'neutral')) }}">
+            {{ is_sold ? 'Vendu' : (is_reserved ? 'Déjà réservé' : (product.active ? 'Visible' : 'Masqué')) }}
+        </span>
+        {% if is_sold and product.soldAt %}
+            <span>{{ product.soldAt|date('d/m/Y H:i') }}</span>
+        {% endif %}
+    </td>
+    <td class="data-table__actions" data-label="Actions">
+        <div class="inline-actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Voir',
+                variant: 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'product-show-' ~ product.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Modifier',
+                variant: 'primary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'product-edit-' ~ product.id
+            } only %}
+            {% if is_sold %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Vendu',
+                    variant: 'neutral',
+                    size: 'compact',
+                    disabled: true
+                } only %}
+            {% else %}
+                {% include 'components/_button.html.twig' with {
+                    label: product.active ? 'Masquer' : 'Afficher',
+                    variant: product.active ? 'danger' : 'secondary',
+                    size: 'compact',
+                    type: 'button',
+                    modal_target: 'product-toggle-' ~ product.id
+                } only %}
+            {% endif %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Supprimer',
+                variant: 'danger',
+                size: 'compact',
+                type: 'button',
+                icon: 'trash',
+                modal_target: 'product-delete-' ~ product.id
+            } only %}
+        </div>
+    </td>
+</tr>

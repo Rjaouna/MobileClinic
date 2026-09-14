@@ -1,0 +1,30 @@
+<section class="admin-panel" id="customer-detail-card" aria-labelledby="customer-detail-title">
+    <div class="admin-panel__header">
+        <div>
+            <p class="dashboard-kicker">Compte</p>
+            <h2 id="customer-detail-title">Informations client</h2>
+        </div>
+        <span class="status-pill status-pill--{{ customer.active ? 'success' : 'neutral' }}">
+            {{ customer.active ? 'Actif' : 'Désactivé' }}
+        </span>
+    </div>
+
+    <div class="appointment-detail-grid">
+        <div>
+            <h2>Nom</h2>
+            <p>{{ customer.displayName }}</p>
+        </div>
+        <div>
+            <h2>E-mail</h2>
+            <p>{{ customer.email }}</p>
+        </div>
+        <div>
+            <h2>Téléphone</h2>
+            <p>{{ customer.phone ?: 'Non renseigné' }}</p>
+        </div>
+        <div>
+            <h2>Inscription</h2>
+            <p>{{ customer.createdAt|date('d/m/Y') }}</p>
+        </div>
+    </div>
+</section>

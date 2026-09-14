@@ -1,0 +1,47 @@
+<tr id="recruitment-position-{{ position.id }}">
+    <td data-label="Poste">
+        <strong>{{ position.title }}</strong>
+        <span>{{ position.rhythm }}</span>
+    </td>
+    <td data-label="Catégorie">
+        <span class="status-pill status-pill--neutral">{{ position.category }}</span>
+    </td>
+    <td data-label="Compétences">
+        <div class="recruitment-position-tags recruitment-position-tags--compact">
+            {% for highlight in position.highlights %}
+                <span>{{ highlight }}</span>
+            {% endfor %}
+        </div>
+    </td>
+    <td data-label="Candidatures">
+        <strong>{{ position.applications|length }}</strong>
+    </td>
+    <td data-label="Visibilité">
+        <span class="status-pill status-pill--{{ position.active ? 'success' : 'neutral' }}">{{ position.active ? 'Visible' : 'Masqué' }}</span>
+    </td>
+    <td class="data-table__actions" data-label="Actions">
+        <div class="inline-actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Voir',
+                variant: 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'recruitment-position-show-' ~ position.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Modifier',
+                variant: 'primary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'recruitment-position-edit-' ~ position.id
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: position.active ? 'Masquer' : 'Afficher',
+                variant: position.active ? 'danger' : 'secondary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'recruitment-position-toggle-' ~ position.id
+            } only %}
+        </div>
+    </td>
+</tr>

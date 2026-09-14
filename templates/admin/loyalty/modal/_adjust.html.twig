@@ -1,0 +1,22 @@
+<form class="modal-form" action="{{ path('app_api_admin_loyalty_adjust', { id: customer.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_loyalty_adjust_' ~ customer.id) }}">
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="loyalty-adjust-amount">Montant de correction</label>
+            <input id="loyalty-adjust-amount" type="text" name="amount" placeholder="+2 ou -1,50" inputmode="decimal" data-modal-initial-focus required>
+        </div>
+        <div class="field-group field-group--wide">
+            <label for="loyalty-adjust-reason">Motif obligatoire</label>
+            <textarea id="loyalty-adjust-reason" name="reason" rows="3" required></textarea>
+        </div>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Enregistrer la correction',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

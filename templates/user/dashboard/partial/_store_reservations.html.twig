@@ -1,0 +1,53 @@
+{% set active_reservations = reservations|filter(reservation => reservation.reserved or reservation.confirmed) %}
+
+<section class="admin-panel dashboard-store-reservations" id="user-dashboard-store-reservations" aria-labelledby="user-dashboard-store-title">
+    <div class="admin-panel__header">
+        <div>
+            <p class="dashboard-kicker">Boutique</p>
+            <h2 id="user-dashboard-store-title">Mes articles réservés</h2>
+            <p>Le délai est actualisé automatiquement jusqu’à votre passage en magasin.</p>
+        </div>
+        {% include 'components/_button.html.twig' with {
+            label: active_reservations|length > 0 ? 'Tout voir' : 'Voir les promotions',
+            href: active_reservations|length > 0 ? path('app_user_product_reservation_index') : path('app_public_product_index'),
+            variant: active_reservations|length > 0 ? 'secondary' : 'primary',
+            size: 'compact',
+            icon: 'bag'
+        } only %}
+    </div>
+
+    {% if active_reservations|length > 0 %}
+        <div class="dashboard-store-reservations__grid">
+            {% for reservation in active_reservations %}
+                <article class="dashboard-store-reservation">
+                    <div class="dashboard-store-reservation__summary">
+                        <span class="status-pill status-pill--{{ reservation.statusVariant }}">{{ reservation.statusLabel }}</span>
+                        <h3>Réservation #{{ reservation.id }}</h3>
+                        <p>
+                            {% for item in reservation.items %}
+                                {{ item.productName }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        {% if reservation.reserved and reservation.storePhone %}
+                            <a class="reservation-countdown__contact" href="tel:{{ reservation.storePhone|replace({' ': '', '.': '', '-': ''}) }}">
+                                {% include 'components/_icon.html.twig' with { name: 'phone', size: 13 } only %}
+                                <span>Prévenir le magasin : {{ reservation.storePhone }}</span>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% include 'components/_reservation_countdown.html.twig' with {
+                        reservation: reservation,
+                        setting: setting,
+                        audience: 'customer'
+                    } only %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="dashboard-store-reservations__empty">
+            <span aria-hidden="true">{% include 'components/_icon.html.twig' with { name: 'bag', size: 22 } only %}</span>
+            <p><strong>Aucun article en attente de retrait.</strong> Les prochaines réservations apparaîtront ici avec leur temps restant.</p>
+        </div>
+    {% endif %}
+</section>

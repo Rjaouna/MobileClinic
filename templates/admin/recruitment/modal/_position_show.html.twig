@@ -1,0 +1,42 @@
+<div class="recruitment-position-detail">
+    <div class="recruitment-position-detail__heading">
+        <span class="status-pill status-pill--neutral">{{ position.category }}</span>
+        <span class="status-pill status-pill--{{ position.active ? 'success' : 'neutral' }}">{{ position.active ? 'Visible' : 'Masqué' }}</span>
+    </div>
+
+    <div>
+        <p class="dashboard-kicker">Présentation</p>
+        <p>{{ position.description }}</p>
+    </div>
+
+    <div>
+        <p class="dashboard-kicker">Rythme</p>
+        <strong>{{ position.rhythm }}</strong>
+    </div>
+
+    <div>
+        <p class="dashboard-kicker">Compétences</p>
+        <div class="recruitment-position-tags">
+            {% for highlight in position.highlights %}<span>{{ highlight }}</span>{% endfor %}
+        </div>
+    </div>
+
+    <div class="modal-form__footer">
+        {% if position.active %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Voir sur le site',
+                href: path('app_public_recruitment_index') ~ '#poste-' ~ position.id,
+                variant: 'secondary',
+                icon: 'home',
+                target: '_blank'
+            } only %}
+        {% endif %}
+        {% include 'components/_button.html.twig' with {
+            label: 'Modifier le poste',
+            variant: 'primary',
+            type: 'button',
+            icon: 'briefcase',
+            modal_target: 'recruitment-position-edit-' ~ position.id
+        } only %}
+    </div>
+</div>

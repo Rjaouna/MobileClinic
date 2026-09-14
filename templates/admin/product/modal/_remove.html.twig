@@ -1,0 +1,22 @@
+<form class="modal-form" action="{{ path('app_admin_product_delete', { id: product.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_product_delete_' ~ product.id) }}">
+
+    <p class="modal-notice">
+        Cette action supprime l’article du catalogue admin et de la boutique publique. Les anciennes réservations gardent leur historique.
+    </p>
+
+    {% if is_reserved|default(false) %}
+        <p class="modal-notice">
+            Cet article est encore lié à une réservation active. Annulez ou retirez la réservation avant de le supprimer.
+        </p>
+    {% endif %}
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Supprimer définitivement',
+        variant: 'danger',
+        type: 'submit',
+        icon: 'trash',
+        disabled: is_reserved|default(false),
+        class: 'modal-form__submit'
+    } only %}
+</form>

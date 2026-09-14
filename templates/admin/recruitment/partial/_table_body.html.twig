@@ -1,0 +1,56 @@
+{% for application in applications %}
+    <tr>
+        <td data-label="Candidat">
+            <strong>{{ application.displayName }}</strong>
+            <span>{{ application.email }}</span>
+            <span>{{ application.phone }}</span>
+        </td>
+        <td data-label="Poste">
+            <strong>{{ application.desiredPosition }}</strong>
+            {% if application.position %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Voir le poste',
+                    variant: 'secondary',
+                    size: 'compact',
+                    type: 'button',
+                    modal_target: 'recruitment-position-show-' ~ application.position.id
+                } only %}
+            {% else %}
+                <span>Annonce historique ou candidature spontanée</span>
+            {% endif %}
+            {% if application.resumePath %}
+                <span><a class="text-link" href="{{ application.resumePath }}" target="_blank" rel="noopener">CV joint</a></span>
+            {% else %}
+                <span>CV non joint</span>
+            {% endif %}
+        </td>
+        <td data-label="Disponibilité">{{ application.availability }}</td>
+        <td data-label="Expérience">{{ application.experienceLevel }}</td>
+        <td data-label="Statut">
+            <span class="status-pill status-pill--{{ application.statusVariant }}">{{ application.statusLabel }}</span>
+            {% if application.statusChangedAt %}
+                <span>{{ application.statusChangedAt|date('d/m/Y H:i') }}</span>
+            {% endif %}
+        </td>
+        <td data-label="Date">
+            <strong>{{ application.createdAt|date('d/m/Y') }}</strong>
+            <span>{{ application.createdAt|date('H:i') }}</span>
+        </td>
+        <td class="data-table__actions" data-label="Actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Traiter',
+                variant: application.status == 'new' ? 'primary' : 'secondary',
+                size: 'compact',
+                type: 'button',
+                icon: 'briefcase',
+                modal_target: 'recruitment-application-' ~ application.id
+            } only %}
+        </td>
+    </tr>
+{% else %}
+    <tr>
+        <td colspan="7">
+            <p class="empty-state">Aucune candidature ne correspond aux filtres.</p>
+        </td>
+    </tr>
+{% endfor %}

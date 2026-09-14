@@ -1,0 +1,65 @@
+{% macro money(cents) %}
+    {% set sign = cents < 0 ? '-' : '' %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ sign }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+{% set card_id = id|default('loyalty-summary') %}
+{% set available = loyalty.available_balance_cents|default(0) %}
+{% set pending = loyalty.pending_balance_cents|default(0) %}
+
+<section class="loyalty-card" id="{{ card_id }}" aria-labelledby="{{ card_id }}-title">
+    <div class="loyalty-card__header">
+        <div>
+            <p class="dashboard-kicker">Fidélité</p>
+            <h2 id="{{ card_id }}-title">{{ title|default('Ma cagnotte Mobile Clinic') }}</h2>
+            <p>Votre avantage est validé lorsque la réparation est terminée.</p>
+        </div>
+        <span class="status-pill status-pill--{{ pending > 0 ? 'warning' : 'success' }}">
+            {{ pending > 0 ? 'En attente' : 'À jour' }}
+        </span>
+    </div>
+
+    <div class="loyalty-card__amounts">
+        <article class="loyalty-amount loyalty-amount--available">
+            <span>Disponible</span>
+            <strong>{{ money.money(available) }}</strong>
+            <p>Utilisable en magasin sur une réparation ou un achat.</p>
+        </article>
+        <article class="loyalty-amount loyalty-amount--pending">
+            <span>En attente</span>
+            <strong>{{ money.money(pending) }}</strong>
+            <p>Les avantages sont mis en attente après rendez-vous, puis validés après réparation.</p>
+        </article>
+    </div>
+
+    {% if loyalty.recent_transactions|default([]) is not empty %}
+        <div class="loyalty-movements">
+            <div class="loyalty-movements__header">
+                <strong>Derniers mouvements</strong>
+                {% if href|default(null) %}
+                    <a class="text-link" href="{{ href }}">Voir tout</a>
+                {% endif %}
+            </div>
+            <ul>
+                {% for transaction in loyalty.recent_transactions %}
+                    <li>
+                        <span>
+                            {{ transaction.typeLabel }}
+                            <small>{{ transaction.reason }}</small>
+                        </span>
+                        <strong class="{{ transaction.amountCents < 0 ? 'is-negative' : 'is-positive' }}">
+                            {{ money.money(transaction.amountCents) }}
+                        </strong>
+                        <em class="status-pill status-pill--{{ transaction.statusVariant }}">{{ transaction.statusLabel }}</em>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <p class="loyalty-card__empty">Aucun mouvement fidélité pour le moment.</p>
+    {% endif %}
+</section>

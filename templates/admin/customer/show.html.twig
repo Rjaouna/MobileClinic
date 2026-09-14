@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Client {{ customer.displayName }} - Mobile Clinic{% endblock %}
+{% block meta_description %}Fiche client administrateur Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="customer-show-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Fiche client</p>
+                    <h1 id="customer-show-title">{{ customer.displayName }}</h1>
+                    <p>{{ customer.email }} · {{ customer.phone ?: 'Téléphone non renseigné' }}</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-customer-show-menu',
+                    kicker: 'Administration',
+                    title: 'Menu client',
+                    subtitle: 'Actions rapides sur cette fiche client.',
+                    items: [
+                        {
+                            label: 'Modifier',
+                            variant: 'primary',
+                            icon: 'user',
+                            modal_target: 'customer-edit-modal',
+                            description: 'Corriger les informations du client.'
+                        },
+                        {
+                            label: 'Retour clients',
+                            href: path('app_admin_customer_index'),
+                            variant: 'secondary',
+                            icon: 'user',
+                            description: 'Revenir à la liste clients.'
+                        },
+                        {
+                            label: 'Historique rendez-vous',
+                            href: '#customer-appointments-title',
+                            variant: 'secondary',
+                            icon: 'calendar',
+                            description: 'Voir les rendez-vous du client.'
+                        },
+                        {
+                            label: 'Carte fidélité',
+                            href: '#customer-show-loyalty',
+                            variant: 'secondary',
+                            icon: 'spark',
+                            description: 'Voir le solde sur cette fiche.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            {% include 'admin/customer/partial/_detail_card.html.twig' with {
+                customer: customer
+            } only %}
+
+            {% include 'components/_loyalty_summary.html.twig' with {
+                id: 'customer-show-loyalty',
+                title: 'Carte fidélité',
+                loyalty: loyalty,
+                href: path('app_admin_loyalty_show', { id: customer.id })
+            } only %}
+
+            {% embed 'components/_data_table_shell.html.twig' with {
+                id: 'customer-appointments-title',
+                kicker: 'Rendez-vous',
+                title: 'Historique rendez-vous',
+                subtitle: 'Toutes les demandes enregistrées sur cette fiche client.',
+                count_label: appointments|length ~ ' rendez-vous',
+                icon: 'calendar'
+            } %}
+                {% block table_content %}
+                    <div class="table-wrapper data-table-wrapper">
+                        <table class="data-table data-table--professional">
+                            <thead>
+                                <tr>
+                                    <th>Demande</th>
+                                    <th>Créneau</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                    <tr>
+                                        <td data-label="Demande">
+                                            <strong>{{ appointment.problem }}</strong>
+                                            <span>{{ appointment.device }}</span>
+                                        </td>
+                                        <td data-label="Créneau">
+                                            <strong>{{ appointment.scheduledAt|date('d/m/Y') }}</strong>
+                                            <span>{{ appointment.scheduledAt|date('H:i') }} - {{ appointment.endsAt|date('H:i') }}</span>
+                                        </td>
+                                        <td data-label="Statut">
+                                            <span class="status-pill status-pill--{{ appointment.statusVariant }}">{{ appointment.statusLabel }}</span>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3">
+                                            <section class="empty-state empty-state--large">
+                                                <h2>Aucun rendez-vous</h2>
+                                                <p>Ce client n’a pas encore de demande enregistrée.</p>
+                                            </section>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'customer-edit-modal',
+                title: 'Modifier le client',
+                subtitle: customer.email
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/customer/modal/_edit.html.twig' with {
+                        customer: customer,
+                        search: '',
+                        filter: '',
+                        page: 1
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        </section>
+    </main>
+{% endblock %}

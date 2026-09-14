@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fidélité admin - Mobile Clinic{% endblock %}
+{% block meta_description %}Gestion administrateur de la fidélité Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="admin-loyalty-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Administration</p>
+                    <h1 id="admin-loyalty-title">Cartes de fidélité</h1>
+                    <p>Suivez les soldes disponibles, les avantages en attente et les mouvements tracés.</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-loyalty-menu',
+                    kicker: 'Administration',
+                    title: 'Menu fidélité',
+                    subtitle: 'Sous-menus de la rubrique fidélité.',
+                    items: [
+                        {
+                            label: 'Réglages fidélité',
+                            variant: 'primary',
+                            icon: 'spark',
+                            modal_target: 'loyalty-settings-modal',
+                            description: 'Montant des gains et activation.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            {% embed 'components/_data_table_shell.html.twig' with {
+                id: 'loyalty-list-title',
+                kicker: 'Fidélité',
+                title: 'Liste fidélité',
+                subtitle: 'Soldes, mouvements en attente et état du programme fidélité.',
+                count_label: pagination.total ~ ' carte' ~ (pagination.total > 1 ? 's' : ''),
+                icon: 'spark'
+            } %}
+                {% block table_actions %}
+                    <div class="data-table-control-stack">
+                        {% include 'admin/loyalty/partial/_settings_state.html.twig' with {
+                            setting: setting
+                        } only %}
+
+                        <form class="filter-form filter-form--wide filter-form--instant data-table-filter" method="get" action="{{ path('app_admin_loyalty_index') }}" data-instant-filter>
+                            <label for="loyalty-search">Recherche</label>
+                            <input id="loyalty-search" type="search" name="q" value="{{ search }}" placeholder="Nom, téléphone ou e-mail" autocomplete="off">
+                            <label for="loyalty-filter">Filtre</label>
+                            <select id="loyalty-filter" name="filter">
+                                <option value="">Toutes les cartes</option>
+                                <option value="with_balance" {% if filter == 'with_balance' %}selected{% endif %}>Avec solde disponible</option>
+                                <option value="with_pending" {% if filter == 'with_pending' %}selected{% endif %}>Avec gain en attente</option>
+                                <option value="active" {% if filter == 'active' %}selected{% endif %}>Clients actifs</option>
+                                <option value="inactive" {% if filter == 'inactive' %}selected{% endif %}>Clients désactivés</option>
+                            </select>
+                        </form>
+                    </div>
+                {% endblock %}
+
+                {% block table_content %}
+                    <div class="table-wrapper data-table-wrapper">
+                        <table class="data-table data-table--professional">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Téléphone</th>
+                                    <th>Disponible</th>
+                                    <th>En attente</th>
+                                    <th>Statut</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loyalty-table-body">
+                                {% include 'admin/loyalty/partial/_table_body.html.twig' with {
+                                    pagination: pagination
+                                } only %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'loyalty-settings-modal',
+                title: 'Réglages fidélité',
+                subtitle: 'Le changement s’applique uniquement aux prochains rendez-vous.'
+            } %}
+                {% block modal_body %}
+                    {% include 'admin/loyalty/modal/_settings.html.twig' with {
+                        setting: setting
+                    } only %}
+                {% endblock %}
+            {% endembed %}
+        </section>
+    </main>
+{% endblock %}

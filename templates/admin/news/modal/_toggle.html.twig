@@ -1,0 +1,10 @@
+<form class="modal-confirmation" action="{{ path('app_admin_news_toggle', { id: article.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_news_' ~ article.id) }}">
+    <div class="ajax-form-errors" data-ajax-errors hidden></div>
+    <p>{{ article.active ? 'Cette actualité ne sera plus visible sur le site public.' : 'Cette actualité sera visible dès que sa date de mise en ligne sera atteinte.' }}</p>
+    {% include 'components/_button.html.twig' with {
+        label: article.active ? 'Masquer l’actualité' : 'Afficher l’actualité',
+        variant: article.active ? 'danger' : 'primary',
+        type: 'submit'
+    } only %}
+</form>

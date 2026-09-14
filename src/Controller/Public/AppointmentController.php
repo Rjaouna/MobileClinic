@@ -10,6 +10,7 @@ use App\Repository\AppointmentRepository;
 use App\Repository\UserRepository;
 use App\Service\AppointmentScheduler;
 use App\Service\CustomerAccountFactory;
+use App\Service\LoyaltyManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 
 final class AppointmentController extends AbstractController
 {
@@ -25,6 +27,7 @@ final class AppointmentController extends AbstractController
         private readonly CustomerAccountFactory $customerAccountFactory,
         private readonly AppointmentRepository $appointmentRepository,
         private readonly UserRepository $userRepository,
+        private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
     ) {
@@ -80,6 +83,12 @@ final class AppointmentController extends AbstractController
 
         $currentUser = $this->getUser();
         $currentCustomer = $currentUser instanceof User ? $currentUser : null;
+
+        if ($currentCustomer instanceof User) {
+            $data['email'] = $currentCustomer->getEmail();
+            $data['phone'] = $currentCustomer->getPhone() ?? '';
+        }
+
         $errors = $this->validate($data, $currentCustomer);
         $slotData = null;
 
@@ -123,11 +132,11 @@ final class AppointmentController extends AbstractController
             ->setCustomerNote($data['customer_note']);
 
         $this->entityManager->persist($appointment);
-        $this->entityManager->flush();
+        $this->loyaltyManager->createPendingAppointmentReward($appointment);
 
         if ($account['temporary_password'] !== null) {
             $request->getSession()->getFlashBag()->add('temporary_password', $account['temporary_password']);
-            $this->security->login($account['user'], 'form_login', 'main');
+            $this->security->login($account['user'], 'form_login', 'main', [(new RememberMeBadge())->enable()]);
         }
 
         $this->addFlash('success', 'Votre rendez-vous a bien été créé.');
@@ -157,7 +166,9 @@ final class AppointmentController extends AbstractController
         }
 
         if ($data['phone'] === '') {
-            $errors[] = 'Indiquez un numéro de téléphone.';
+            $errors[] = $currentCustomer instanceof User
+                ? 'Ajoutez un numéro de téléphone à votre profil avant de prendre rendez-vous.'
+                : 'Indiquez un numéro de téléphone.';
         } else {
             $phoneCheck = $this->validatePhone($data['phone'], $currentCustomer);
 
@@ -205,7 +216,7 @@ final class AppointmentController extends AbstractController
             return [
                 'message' => $currentCustomer instanceof User
                     ? 'Ce numéro de téléphone est déjà associé à un autre compte client.'
-                    : 'Ce numéro de téléphone existe déjà. Connectez-vous pour prendre rendez-vous avec ce compte.',
+                    : 'Connectez-vous pour continuer avec ce numéro, ou vérifiez les informations saisies.',
                 'normalized_phone' => $normalizedPhone,
                 'requires_login' => !($currentCustomer instanceof User),
             ];

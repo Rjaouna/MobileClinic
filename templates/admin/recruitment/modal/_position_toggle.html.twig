@@ -1,0 +1,16 @@
+<form class="modal-form" action="{{ path('app_admin_recruitment_position_toggle', { id: position.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_recruitment_position_' ~ position.id) }}">
+    <div class="notice-box">
+        <strong>{{ position.active ? 'Masquer ce poste ?' : 'Rendre ce poste visible ?' }}</strong>
+        <p>
+            {{ position.active
+                ? 'Il ne sera plus proposé aux nouveaux candidats. Les candidatures déjà reçues resteront accessibles.'
+                : 'Il réapparaîtra immédiatement dans les opportunités et dans le formulaire de candidature.' }}
+        </p>
+    </div>
+    {% include 'components/_button.html.twig' with {
+        label: position.active ? 'Masquer le poste' : 'Afficher le poste',
+        variant: position.active ? 'danger' : 'primary',
+        type: 'submit'
+    } only %}
+</form>

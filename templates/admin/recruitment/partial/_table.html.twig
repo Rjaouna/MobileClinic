@@ -1,0 +1,20 @@
+<div class="table-wrapper data-table-wrapper">
+    <table class="data-table data-table--professional">
+        <thead>
+            <tr>
+                <th>Candidat</th>
+                <th>Poste</th>
+                <th>Disponibilité</th>
+                <th>Expérience</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="recruitment-table-body">
+            {% include 'admin/recruitment/partial/_table_body.html.twig' with {
+                applications: applications
+            } only %}
+        </tbody>
+    </table>
+</div>

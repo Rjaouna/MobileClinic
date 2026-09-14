@@ -1,0 +1,42 @@
+<form class="modal-form" action="{{ path('app_api_admin_customer_update', { id: customer.id }) }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_customer_edit_' ~ customer.id) }}">
+    <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+    <input type="hidden" name="_list_filter" value="{{ filter|default('') }}">
+    <input type="hidden" name="_list_page" value="{{ page|default(1) }}">
+
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="customer-edit-{{ customer.id }}-first-name">Prénom</label>
+            <input id="customer-edit-{{ customer.id }}-first-name" type="text" name="first_name" value="{{ customer.firstName }}" autocomplete="given-name" data-modal-initial-focus>
+        </div>
+        <div class="field-group">
+            <label for="customer-edit-{{ customer.id }}-last-name">Nom</label>
+            <input id="customer-edit-{{ customer.id }}-last-name" type="text" name="last_name" value="{{ customer.lastName }}" autocomplete="family-name">
+        </div>
+        <div class="field-group">
+            <label for="customer-edit-{{ customer.id }}-email">Adresse e-mail</label>
+            <input id="customer-edit-{{ customer.id }}-email" type="email" name="email" value="{{ customer.email }}" autocomplete="email" required>
+        </div>
+        <div class="field-group">
+            <label for="customer-edit-{{ customer.id }}-phone">Téléphone</label>
+            <input id="customer-edit-{{ customer.id }}-phone" type="tel" name="phone" value="{{ customer.phone }}" autocomplete="tel" required>
+        </div>
+        <div class="field-group field-group--wide">
+            <label for="customer-edit-{{ customer.id }}-password">Nouveau mot de passe</label>
+            <input id="customer-edit-{{ customer.id }}-password" type="password" name="password" minlength="8" placeholder="Laisser vide pour ne pas changer">
+        </div>
+        <label class="toggle-line field-group--wide">
+            <input type="checkbox" name="is_active" {% if customer.active %}checked{% endif %}>
+            <span>Compte actif</span>
+        </label>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Enregistrer',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

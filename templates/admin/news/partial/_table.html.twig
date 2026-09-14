@@ -1,0 +1,16 @@
+<div class="table-wrapper data-table-wrapper">
+    <table class="data-table data-table--professional" data-page-length="10">
+        <thead>
+            <tr>
+                <th>Actualité</th>
+                <th>Média</th>
+                <th>Mise en ligne</th>
+                <th>État</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="news-table-body">
+            {% include 'admin/news/partial/_table_body.html.twig' with { articles: articles } only %}
+        </tbody>
+    </table>
+</div>

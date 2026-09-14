@@ -1,0 +1,37 @@
+<div id="news-list-region">
+    {% embed 'components/_data_table_shell.html.twig' with {
+        id: 'news-list-title',
+        kicker: 'Communication',
+        title: 'Publications',
+        subtitle: 'Les modifications sont répercutées immédiatement sur le site public.',
+        count_label: articles|length ~ ' actualité' ~ (articles|length > 1 ? 's' : ''),
+        icon: 'news'
+    } %}
+        {% block table_actions %}
+            <form class="filter-form filter-form--wide filter-form--instant data-table-filter" data-instant-filter>
+                <label for="news-search">Recherche</label>
+                <input id="news-search" type="search" placeholder="Titre ou contenu" autocomplete="off">
+
+                <label for="news-media-filter">Média</label>
+                <select id="news-media-filter" name="media_type">
+                    <option value="">Tous les médias</option>
+                    {% for value, label in media_labels %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="news-status-filter">État</label>
+                <select id="news-status-filter" name="filter">
+                    <option value="">Tous les états</option>
+                    <option value="active">Visibles</option>
+                    <option value="inactive">Masquées</option>
+                    <option value="expired">Expirées</option>
+                </select>
+            </form>
+        {% endblock %}
+
+        {% block table_content %}
+            {% include 'admin/news/partial/_table.html.twig' with { articles: articles } only %}
+        {% endblock %}
+    {% endembed %}
+</div>

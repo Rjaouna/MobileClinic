@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -24,10 +25,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private string $email = '';
 
     #[ORM\Column(length: 40, nullable: true)]
+    #[Assert\Length(max: 40)]
     private ?string $phone = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $lastName = null;
 
     /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
@@ -38,6 +50,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     private bool $mustChangePassword = false;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $isActive = true;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $temporaryPasswordIssuedAt = null;
@@ -51,6 +66,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** @var Collection<int, Appointment> */
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Appointment::class, orphanRemoval: true)]
     private Collection $appointments;
+
+    #[ORM\OneToOne(mappedBy: 'customer', targetEntity: LoyaltyAccount::class, cascade: ['persist'])]
+    private ?LoyaltyAccount $loyaltyAccount = null;
 
     public function __construct()
     {
@@ -71,6 +89,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = mb_strtolower(trim($email));
+        $this->touch();
 
         return $this;
     }
@@ -87,6 +106,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->touch();
 
         return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): self
+    {
+        $firstName = $firstName !== null ? trim($firstName) : null;
+        $this->firstName = $firstName !== '' ? $firstName : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): self
+    {
+        $lastName = $lastName !== null ? trim($lastName) : null;
+        $this->lastName = $lastName !== '' ? $lastName : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getDisplayName(): string
+    {
+        $name = trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
+
+        return $name !== '' ? $name : $this->email;
     }
 
     public static function normalizePhone(string $phone): string
@@ -145,9 +199,64 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'roles' => $this->roles,
+            'password' => $this->password,
+            'mustChangePassword' => $this->mustChangePassword,
+            'isActive' => $this->isActive,
+            'temporaryPasswordIssuedAt' => $this->temporaryPasswordIssuedAt,
+            'createdAt' => $this->createdAt,
+            'updatedAt' => $this->updatedAt,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        $this->id = is_int($data['id'] ?? null) ? $data['id'] : null;
+        $this->email = is_string($data['email'] ?? null) ? $data['email'] : '';
+        $this->phone = is_string($data['phone'] ?? null) ? $data['phone'] : null;
+        $this->firstName = is_string($data['firstName'] ?? null) ? $data['firstName'] : null;
+        $this->lastName = is_string($data['lastName'] ?? null) ? $data['lastName'] : null;
+        $this->roles = is_array($data['roles'] ?? null) ? array_values(array_filter($data['roles'], 'is_string')) : [];
+        $this->password = is_string($data['password'] ?? null) ? $data['password'] : '';
+        $this->mustChangePassword = (bool) ($data['mustChangePassword'] ?? false);
+        $this->isActive = (bool) ($data['isActive'] ?? true);
+        $this->temporaryPasswordIssuedAt = ($data['temporaryPasswordIssuedAt'] ?? null) instanceof \DateTimeImmutable ? $data['temporaryPasswordIssuedAt'] : null;
+        $this->createdAt = ($data['createdAt'] ?? null) instanceof \DateTimeImmutable ? $data['createdAt'] : new \DateTimeImmutable();
+        $this->updatedAt = ($data['updatedAt'] ?? null) instanceof \DateTimeImmutable ? $data['updatedAt'] : null;
+        $this->appointments = new ArrayCollection();
+        $this->loyaltyAccount = null;
+    }
+
     public function mustChangePassword(): bool
     {
         return $this->mustChangePassword;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+        $this->touch();
+
+        return $this;
     }
 
     public function requirePasswordChange(): self
@@ -187,6 +296,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getAppointments(): Collection
     {
         return $this->appointments;
+    }
+
+    public function getLoyaltyAccount(): ?LoyaltyAccount
+    {
+        return $this->loyaltyAccount;
+    }
+
+    public function setLoyaltyAccount(?LoyaltyAccount $loyaltyAccount): self
+    {
+        if ($loyaltyAccount?->getCustomer() !== $this) {
+            $loyaltyAccount?->setCustomer($this);
+        }
+
+        $this->loyaltyAccount = $loyaltyAccount;
+
+        return $this;
     }
 
     public function addAppointment(Appointment $appointment): self

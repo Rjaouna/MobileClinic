@@ -1,0 +1,91 @@
+{% set product = product|default(null) %}
+{% set attributes = product ? product.customAttributes : [] %}
+
+<form class="modal-form product-admin-form" action="{{ action }}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="_token" value="{{ csrf_token(csrf_id) }}">
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="{{ form_id }}-name">Nom de l’article</label>
+            <input id="{{ form_id }}-name" type="text" name="name" value="{{ product ? product.name : '' }}" maxlength="140" required data-modal-initial-focus>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form_id }}-photo">Photo</label>
+            <input id="{{ form_id }}-photo" type="file" name="photo" accept="image/*">
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form_id }}-normal-price">Prix normal</label>
+            <input id="{{ form_id }}-normal-price" type="text" name="normal_price" inputmode="decimal" value="{{ product ? (product.normalPriceCents / 100)|number_format(2, ',', '') : '' }}" placeholder="129,90" required>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form_id }}-promo-price">Prix promo</label>
+            <input id="{{ form_id }}-promo-price" type="text" name="promotional_price" inputmode="decimal" value="{{ product ? (product.promotionalPriceCents / 100)|number_format(2, ',', '') : '' }}" placeholder="89,90" required>
+        </div>
+
+        <div class="field-group field-group--wide">
+            <label for="{{ form_id }}-description">Description</label>
+            <textarea id="{{ form_id }}-description" name="description" required>{{ product ? product.description : '' }}</textarea>
+        </div>
+    </div>
+
+    <section class="attribute-builder" data-attribute-list>
+        <div class="attribute-builder__header">
+            <div>
+                <p class="dashboard-kicker">Infos personnalisées</p>
+                <h3>Libellé et valeur libres</h3>
+            </div>
+            {% include 'components/_button.html.twig' with {
+                label: 'Ajouter une info',
+                variant: 'secondary',
+                size: 'compact',
+                type: 'button',
+                attributes: { 'data-add-attribute-row': true }
+            } only %}
+        </div>
+
+        <div class="attribute-builder__rows" data-attribute-rows>
+            {% for attribute in attributes %}
+                <div class="attribute-row">
+                    <input type="text" name="custom_label[]" value="{{ attribute.label }}" placeholder="Libellé">
+                    <input type="text" name="custom_value[]" value="{{ attribute.value }}" placeholder="Valeur">
+                    <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette information">
+                        {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                    </button>
+                </div>
+            {% else %}
+                <div class="attribute-row">
+                    <input type="text" name="custom_label[]" placeholder="Libellé">
+                    <input type="text" name="custom_value[]" placeholder="Valeur">
+                    <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette information">
+                        {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <template data-attribute-template>
+            <div class="attribute-row">
+                <input type="text" name="custom_label[]" placeholder="Libellé">
+                <input type="text" name="custom_value[]" placeholder="Valeur">
+                <button type="button" class="attribute-row__remove" data-remove-attribute-row aria-label="Supprimer cette information">
+                    {% include 'components/_icon.html.twig' with { name: 'x', size: 18 } only %}
+                </button>
+            </div>
+        </template>
+    </section>
+
+    <label class="toggle-line">
+        <input type="checkbox" name="is_active" value="1" {% if product is null or product.active %}checked{% endif %}>
+        <span>Article visible dans les promotions</span>
+    </label>
+
+    {% include 'components/_button.html.twig' with {
+        label: submit_label,
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

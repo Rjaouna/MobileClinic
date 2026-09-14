@@ -1,0 +1,23 @@
+<form class="modal-form" action="{{ path('app_api_admin_loyalty_settings') }}" method="post" data-ajax-form>
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_loyalty_settings') }}">
+    <div class="ajax-form-alert" data-ajax-errors hidden></div>
+
+    <div class="modal-form__grid">
+        <div class="field-group">
+            <label for="loyalty-setting-reward">Gain par rendez-vous</label>
+            <input id="loyalty-setting-reward" type="text" name="appointment_reward" value="{{ (setting.appointmentRewardCents / 100)|number_format(2, ',', ' ') }}" inputmode="decimal" data-modal-initial-focus required>
+            <span class="field-help">Le montant est enregistré en centimes sur chaque réservation.</span>
+        </div>
+        <label class="toggle-line field-group--wide">
+            <input type="checkbox" name="is_enabled" {% if setting.enabled %}checked{% endif %}>
+            <span>Programme fidélité actif</span>
+        </label>
+    </div>
+
+    {% include 'components/_button.html.twig' with {
+        label: 'Enregistrer les réglages',
+        variant: 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

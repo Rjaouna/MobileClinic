@@ -1,0 +1,66 @@
+{% macro money(cents) %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ cents < 0 ? '-' : '' }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+{% set customer = row.customer %}
+
+<tr data-customer-row="{{ customer.id }}">
+    <td data-label="Client">
+        <strong>{{ customer.displayName }}</strong>
+        <span>{{ customer.email }}</span>
+    </td>
+    <td data-label="Téléphone">{{ customer.phone ?: 'Non renseigné' }}</td>
+    <td data-label="Inscription">{{ customer.createdAt|date('d/m/Y') }}</td>
+    <td data-label="RDV">{{ row.appointment_count }}</td>
+    <td data-label="Dernier RDV">{{ row.last_appointment_at ? row.last_appointment_at|date('d/m/Y H:i') : 'Aucun' }}</td>
+    <td data-label="Disponible"><strong>{{ money.money(row.available_balance_cents) }}</strong></td>
+    <td data-label="En attente">{{ money.money(row.pending_balance_cents) }}</td>
+    <td data-label="Statut">
+        <span class="status-pill status-pill--{{ customer.active ? 'success' : 'neutral' }}">
+            {{ customer.active ? 'Actif' : 'Désactivé' }}
+        </span>
+    </td>
+    <td class="data-table__actions" data-label="Actions">
+        <div class="inline-actions">
+            {% include 'components/_button.html.twig' with {
+                label: 'Voir',
+                href: path('app_admin_customer_show', { id: customer.id }),
+                variant: 'secondary',
+                size: 'compact'
+            } only %}
+            {% include 'components/_button.html.twig' with {
+                label: 'Modifier',
+                variant: 'primary',
+                size: 'compact',
+                type: 'button',
+                modal_target: 'customer-edit-' ~ customer.id
+            } only %}
+            {% if customer.active %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Désactiver',
+                    variant: 'danger',
+                    size: 'compact',
+                    type: 'button',
+                    modal_target: 'customer-delete-' ~ customer.id
+                } only %}
+            {% else %}
+                <form class="inline-form" action="{{ path('app_api_admin_customer_toggle', { id: customer.id }) }}" method="post" data-ajax-form>
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_customer_toggle_' ~ customer.id) }}">
+                    <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+                    <input type="hidden" name="_list_filter" value="{{ filter|default('') }}">
+                    <input type="hidden" name="_list_page" value="{{ page|default(1) }}">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Activer',
+                        variant: 'primary',
+                        size: 'compact',
+                        type: 'submit'
+                    } only %}
+                </form>
+            {% endif %}
+        </div>
+    </td>
+</tr>

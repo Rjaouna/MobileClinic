@@ -1,0 +1,18 @@
+<form class="modal-form" action="{{ path('app_admin_product_toggle', { id: product.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('admin_product_' ~ product.id) }}">
+
+    <p class="modal-notice">
+        {% if product.active %}
+            L’article sera masqué de la boutique publique. Les réservations existantes restent conservées.
+        {% else %}
+            L’article redeviendra visible dans la boutique si aucune réservation active ne le bloque.
+        {% endif %}
+    </p>
+
+    {% include 'components/_button.html.twig' with {
+        label: product.active ? 'Masquer l’article' : 'Afficher l’article',
+        variant: product.active ? 'danger' : 'primary',
+        type: 'submit',
+        class: 'modal-form__submit'
+    } only %}
+</form>

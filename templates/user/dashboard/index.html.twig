@@ -1,62 +1,118 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon espace - SymClinic{% endblock %}
-{% block meta_description %}Espace client SymClinic.{% endblock %}
+{% block title %}Mon espace - Mobile Clinic{% endblock %}
+{% block meta_description %}Espace client Mobile Clinic.{% endblock %}
 
 {% block body %}
-    <main class="dashboard-page dashboard-page--user" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
+    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh') }}" data-user-live-refresh-interval="10000" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
         <section class="dashboard-shell" aria-labelledby="user-dashboard-title">
             <header class="dashboard-header">
                 <div>
                     <p class="dashboard-kicker">Espace client</p>
                     <h1 id="user-dashboard-title">Mon espace</h1>
-                    <p>Connecté avec {{ user_email }}.</p>
+                    {% include 'user/partial/_account_line.html.twig' with {
+                        id: 'user-dashboard-account-line',
+                        customer: customer
+                    } only %}
                 </div>
 
-                <div class="dashboard-actions">
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Prendre rendez-vous',
-                        variant: 'primary',
-                        size: 'compact',
-                        icon: 'tool',
-                        type: 'button',
-                        modal_target: 'appointment-modal'
-                    } only %}
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Mes rendez-vous',
-                        href: path('app_user_reservation_index'),
-                        variant: 'secondary',
-                        size: 'compact',
-                        icon: 'calendar'
-                    } only %}
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Déconnexion',
-                        href: path('app_logout'),
-                        variant: 'secondary',
-                        size: 'compact'
-                    } only %}
-                </div>
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'user-dashboard-menu',
+                    kicker: 'Espace client',
+                    title: 'Menu espace',
+                    subtitle: 'Accès principaux de votre tableau de bord.',
+                    items: [
+                        {
+                            label: 'Prendre rendez-vous',
+                            variant: 'primary',
+                            icon: 'tool',
+                            modal_target: 'appointment-modal',
+                            description: 'Choisir un créneau de réparation.'
+                        },
+                        {
+                            label: 'Mes rendez-vous',
+                            href: path('app_user_reservation_index'),
+                            variant: 'secondary',
+                            icon: 'calendar',
+                            description: 'Suivre ou modifier vos demandes.'
+                        },
+                        {
+                            label: 'Promotions',
+                            href: path('app_public_product_index'),
+                            variant: 'secondary',
+                            icon: 'bag',
+                            description: 'Réserver un article en magasin.'
+                        },
+                        {
+                            label: 'Réservations boutique',
+                            href: path('app_user_product_reservation_index'),
+                            variant: 'secondary',
+                            icon: 'bag',
+                            description: 'Suivre vos articles réservés.'
+                        },
+                        {
+                            label: 'Ma fidélité',
+                            href: path('app_user_loyalty_index'),
+                            variant: 'secondary',
+                            icon: 'spark',
+                            description: 'Voir votre cagnotte.'
+                        },
+                        {
+                            label: 'Mon profil',
+                            href: path('app_user_profile_index'),
+                            variant: 'secondary',
+                            icon: 'user',
+                            description: 'Modifier vos informations.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter votre espace.'
+                        }
+                    ]
+                } only %}
             </header>
 
             {% include 'components/_flash_messages.html.twig' %}
 
-            <div class="dashboard-grid">
-                <article class="dashboard-card">
-                    <span>Mes rendez-vous</span>
-                    <strong>{{ appointments|length }}</strong>
-                    <p>Suivez vos réparations programmées.</p>
-                </article>
-                <article class="dashboard-card">
-                    <span>Prochain passage</span>
-                    <strong>{{ next_appointment ? next_appointment.scheduledAt|date('d/m') : 'Aucun' }}</strong>
-                    <p>{{ next_appointment ? next_appointment.problem ~ ' à ' ~ next_appointment.scheduledAt|date('H:i') : 'Réservez un créneau depuis votre espace.' }}</p>
-                </article>
-                <article class="dashboard-card">
-                    <span>Profil</span>
-                    <strong>Compte</strong>
-                    <p><a class="text-link" href="{{ path('app_user_profile_index') }}">Modifier mon mot de passe</a></p>
-                </article>
-            </div>
+            {% include 'user/dashboard/partial/_overview.html.twig' with {
+                customer: customer,
+                appointments: appointments,
+                next_appointment: next_appointment
+            } only %}
+
+            {% include 'components/_loyalty_summary.html.twig' with {
+                id: 'user-dashboard-loyalty',
+                title: 'Ma cagnotte fidélité',
+                loyalty: loyalty,
+                href: path('app_user_loyalty_index')
+            } only %}
+
+            <section class="admin-panel" aria-labelledby="user-dashboard-appointments-title">
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Suivi</p>
+                        <h2 id="user-dashboard-appointments-title">Mes derniers rendez-vous</h2>
+                        <p>Les statuts affichés ici se mettent à jour automatiquement.</p>
+                    </div>
+                </div>
+
+                {% include 'user/reservation/partial/_list.html.twig' with {
+                    appointments: appointments
+                } only %}
+            </section>
+
+            {% include 'user/dashboard/partial/_store_reservations.html.twig' with {
+                reservations: product_reservations,
+                setting: setting
+            } only %}
+
+            {% include 'user/reservation/partial/_modal_stack.html.twig' with {
+                appointments: appointments,
+                slot_days: slot_days
+            } only %}
 
             {% include 'components/_appointment_modal.html.twig' with {
                 id: 'appointment-modal',
@@ -66,6 +122,8 @@
                 data: appointment_data|default({}),
                 errors: appointment_errors|default([]),
                 customer_email: user_email,
+                customer_phone: customer.phone,
+                is_connected_customer: true,
                 redirect_to: 'user_dashboard'
             } only %}
         </section>

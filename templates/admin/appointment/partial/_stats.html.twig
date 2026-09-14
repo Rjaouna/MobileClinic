@@ -1,0 +1,32 @@
+<div id="appointment-stats-grid" class="dashboard-grid dashboard-grid--four">
+    <article class="dashboard-card dashboard-card--compact">
+        <span>À valider</span>
+        <strong>{{ stats.pending }}</strong>
+        <p>Rendez-vous en attente.</p>
+    </article>
+    <article class="dashboard-card dashboard-card--compact">
+        <span>À traiter</span>
+        <strong>{{ stats.interventions }}</strong>
+        <p>Heure passée, décision admin requise.</p>
+    </article>
+    <article class="dashboard-card dashboard-card--compact">
+        <span>Clients arrivés</span>
+        <strong>{{ stats.confirmed }}</strong>
+        <p>Présence confirmée.</p>
+    </article>
+    <article class="dashboard-card dashboard-card--compact">
+        <span>En cours</span>
+        <strong>{{ stats.in_progress }}</strong>
+        <p>Réparations démarrées.</p>
+    </article>
+    <article class="dashboard-card dashboard-card--compact">
+        <span>À venir</span>
+        <strong>{{ stats.upcoming }}</strong>
+        <p>Créneaux actifs.</p>
+    </article>
+    <article class="dashboard-card dashboard-card--compact">
+        <span>Clients absents</span>
+        <strong>{{ stats.no_show }}</strong>
+        <p>Statut posé par l’équipe.</p>
+    </article>
+</div>

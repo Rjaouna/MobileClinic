@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Article {{ product.name }} - Mobile Clinic{% endblock %}
+{% block meta_description %}Détail administrateur d’un article promotionnel Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="admin-product-show-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Article promotionnel</p>
+                    <h1 id="admin-product-show-title">{{ product.name }}</h1>
+                    <p>{{ product.sold ? 'Article vendu et retiré de la boutique.' : (is_reserved ? 'Article déjà réservé par un client.' : 'Article disponible dans le catalogue admin.') }}</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-product-show-menu',
+                    kicker: 'Administration',
+                    title: 'Menu article',
+                    subtitle: 'Actions rapides sur cette promotion.',
+                    items: [
+                        {
+                            label: 'Modifier',
+                            variant: 'primary',
+                            icon: 'bag',
+                            modal_target: 'product-edit-' ~ product.id,
+                            description: 'Mettre à jour l’article.'
+                        },
+                        {
+                            label: 'Retour catalogue',
+                            href: path('app_admin_product_index'),
+                            variant: 'secondary',
+                            icon: 'bag',
+                            description: 'Revenir à la boutique admin.'
+                        },
+                        {
+                            label: 'Réservations boutique',
+                            href: path('app_admin_product_index') ~ '#product-reservation-title',
+                            variant: 'secondary',
+                            icon: 'briefcase',
+                            description: 'Voir les articles gardés.'
+                        },
+                        {
+                            label: 'Supprimer',
+                            variant: 'danger',
+                            icon: 'trash',
+                            modal_target: 'product-delete-' ~ product.id,
+                            description: 'Retirer définitivement du catalogue.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            <section class="admin-panel">
+                {% include 'admin/product/modal/_show.html.twig' with {
+                    product: product
+                } only %}
+            </section>
+
+            {% include 'admin/product/partial/_modal_stack.html.twig' with {
+                products: [product],
+                reserved_product_ids: is_reserved ? [product.id] : []
+            } only %}
+        </section>
+    </main>
+{% endblock %}

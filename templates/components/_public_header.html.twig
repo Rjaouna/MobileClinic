@@ -1,0 +1,138 @@
+{% set active = active|default('') %}
+{% set primary_action = primary_action|default('appointment') %}
+{% set cart_count = cart_count|default(null) %}
+{% set appointment_modal_available = appointment_modal_available|default(active == 'repair') %}
+{% set navigation = [
+    { key: 'repair', label: 'Réparation', icon: 'tool', href: path('app_public_home') ~ '#rendez-vous' },
+    { key: 'loyalty', label: 'Fidélité', icon: 'spark', href: path('app_public_home') ~ '#avantages' },
+    { key: 'news', label: 'Actualités', icon: 'news', href: path('app_public_news_index') },
+    { key: 'recruitment', label: 'Recrutement', icon: 'briefcase', href: path('app_public_recruitment_index') },
+    { key: 'contact', label: 'Contact', icon: 'map-pin', href: path('app_public_contact') },
+    { key: 'promotions', label: 'Promotions', icon: 'tag', href: path('app_public_product_index'), highlight: true }
+] %}
+
+<header class="site-header">
+    <div class="site-header__inner">
+        <a class="brand" href="{{ path('app_public_home') }}" aria-label="Accueil Mobile Clinic">
+            {% include 'components/_site_logo.html.twig' with {
+                setting: setting|default(null),
+                variant: 'header',
+                alt: 'Mobile Clinic'
+            } only %}
+        </a>
+
+        <nav class="site-nav" aria-label="Navigation principale">
+            {% for item in navigation %}
+                {% set item_classes = [
+                    'site-nav__link',
+                    active == item.key ? 'is-active' : '',
+                    item.highlight|default(false) ? 'site-nav__link--highlight' : ''
+                ]|filter(class => class is not empty)|join(' ') %}
+                <a href="{{ item.href }}" class="{{ item_classes }}">
+                    {% include 'components/_icon.html.twig' with { name: item.icon, size: 17 } only %}
+                    <span>{{ item.label }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+
+        <div class="site-actions site-actions--desktop">
+            {% if app.user %}
+                {% set account_url = is_granted('ROLE_ADMIN') ? path('app_admin_dashboard') : path('app_user_dashboard') %}
+                {% include 'components/_account_chip.html.twig' with {
+                    user: app.user,
+                    href: account_url
+                } only %}
+            {% else %}
+                <a class="account-button" href="{{ path('app_login') }}" aria-label="Se connecter">
+                    {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
+                </a>
+            {% endif %}
+
+            {% if primary_action == 'cart' %}
+                {% include 'components/_button.html.twig' with {
+                    label: cart_count is not null and cart_count > 0 ? 'Panier · ' ~ cart_count : 'Voir le panier',
+                    href: path('app_public_product_index', { modal: 'cart-modal' }),
+                    variant: 'primary',
+                    size: 'compact',
+                    icon: 'bag',
+                    modal_target: 'cart-modal'
+                } only %}
+            {% else %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Prendre rendez-vous',
+                    href: appointment_modal_available ? null : path('app_public_home', { modal: 'appointment-modal' }),
+                    variant: 'primary',
+                    size: 'compact',
+                    icon: 'tool',
+                    aria_label: 'Prendre rendez-vous',
+                    type: 'button',
+                    modal_target: appointment_modal_available ? 'appointment-modal' : null
+                } only %}
+            {% endif %}
+        </div>
+
+        <button class="public-menu-button" type="button" data-modal-open="public-navigation-modal" aria-controls="public-navigation-modal" aria-haspopup="dialog" aria-label="Ouvrir le menu">
+            {% include 'components/_icon.html.twig' with { name: 'menu', size: 23 } only %}
+        </button>
+    </div>
+</header>
+
+{% embed 'components/_modal.html.twig' with {
+    id: 'public-navigation-modal',
+    title: 'Menu Mobile Clinic',
+    subtitle: app.user ? 'Retrouvez vos services et votre espace.' : 'Réparation, actualités, promotions et recrutement.',
+    class: 'modal--navigation'
+} %}
+    {% block modal_body %}
+        <nav class="public-mobile-nav" aria-label="Navigation mobile">
+            {% for item in navigation %}
+                <a href="{{ item.href }}" class="public-mobile-nav__link {{ active == item.key ? 'is-active' : '' }} {{ item.highlight|default(false) ? 'public-mobile-nav__link--highlight' : '' }}">
+                    <span class="public-mobile-nav__icon" aria-hidden="true">
+                        {% include 'components/_icon.html.twig' with { name: item.icon, size: 21 } only %}
+                    </span>
+                    <span>
+                        <strong>{{ item.label }}</strong>
+                        <small>
+                            {% if item.key == 'repair' %}Réserver une intervention{% elseif item.key == 'loyalty' %}Découvrir vos avantages{% elseif item.key == 'news' %}Suivre la vie de la boutique{% elseif item.key == 'recruitment' %}Consulter les opportunités{% elseif item.key == 'contact' %}Adresse, horaires et itinéraire{% else %}Voir les offres magasin{% endif %}
+                        </small>
+                    </span>
+                </a>
+            {% endfor %}
+        </nav>
+
+        <div class="public-mobile-nav__actions">
+            {% if app.user %}
+                {% set account_url = is_granted('ROLE_ADMIN') ? path('app_admin_dashboard') : path('app_user_dashboard') %}
+                {% include 'components/_button.html.twig' with {
+                    label: is_granted('ROLE_ADMIN') ? 'Administration' : 'Mon espace client',
+                    href: account_url,
+                    variant: 'secondary',
+                    icon: 'user'
+                } only %}
+            {% else %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Se connecter ou créer un compte',
+                    href: path('app_login'),
+                    variant: 'secondary',
+                    icon: 'user'
+                } only %}
+            {% endif %}
+
+            {% if primary_action == 'cart' %}
+                {% include 'components/_button.html.twig' with {
+                    label: cart_count is not null and cart_count > 0 ? 'Panier · ' ~ cart_count : 'Voir le panier',
+                    href: path('app_public_product_index', { modal: 'cart-modal' }),
+                    variant: 'primary',
+                    icon: 'bag'
+                } only %}
+            {% else %}
+                {% include 'components/_button.html.twig' with {
+                    label: 'Prendre rendez-vous',
+                    href: path('app_public_home', { modal: 'appointment-modal' }),
+                    variant: 'primary',
+                    icon: 'tool'
+                } only %}
+            {% endif %}
+        </div>
+    {% endblock %}
+{% endembed %}

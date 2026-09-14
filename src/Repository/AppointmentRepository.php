@@ -20,9 +20,11 @@ final class AppointmentRepository extends ServiceEntityRepository
     }
 
     /** @return list<Appointment> */
-    public function findForAdmin(?string $status = null): array
+    public function findForAdmin(?string $status = null, string $search = ''): array
     {
         $qb = $this->createQueryBuilder('appointment')
+            ->addSelect('customer')
+            ->leftJoin('appointment.customer', 'customer')
             ->addOrderBy('appointment.scheduledAt', 'DESC')
             ->addOrderBy('appointment.id', 'DESC');
 
@@ -30,6 +32,23 @@ final class AppointmentRepository extends ServiceEntityRepository
             $qb
                 ->andWhere('appointment.status = :status')
                 ->setParameter('status', $status);
+        }
+
+        $search = mb_strtolower(trim($search));
+
+        if ($search !== '') {
+            $qb
+                ->andWhere(
+                    'LOWER(appointment.email) LIKE :search
+                    OR appointment.phone LIKE :search
+                    OR LOWER(appointment.device) LIKE :search
+                    OR LOWER(appointment.problem) LIKE :search
+                    OR LOWER(customer.email) LIKE :search
+                    OR customer.phone LIKE :search
+                    OR LOWER(customer.firstName) LIKE :search
+                    OR LOWER(customer.lastName) LIKE :search',
+                )
+                ->setParameter('search', '%'.$search.'%');
         }
 
         return $qb->getQuery()->getResult();
@@ -55,6 +74,22 @@ final class AppointmentRepository extends ServiceEntityRepository
             ->andWhere('appointment.scheduledAt <= :deadline')
             ->setParameter('statuses', Appointment::ACTIVE_STATUSES)
             ->setParameter('deadline', $deadline)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return list<Appointment> */
+    public function findReminderCandidates(\DateTimeImmutable $deadline): array
+    {
+        return $this->createQueryBuilder('appointment')
+            ->addSelect('customer')
+            ->join('appointment.customer', 'customer')
+            ->andWhere('appointment.status IN (:statuses)')
+            ->andWhere('appointment.scheduledAt <= :deadline')
+            ->setParameter('statuses', Appointment::ADMIN_DECISION_REQUIRED_STATUSES)
+            ->setParameter('deadline', $deadline)
+            ->addOrderBy('appointment.scheduledAt', 'ASC')
+            ->addOrderBy('appointment.id', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -127,6 +162,21 @@ final class AppointmentRepository extends ServiceEntityRepository
             ->select('COUNT(appointment.id)')
             ->andWhere('appointment.status = :status')
             ->setParameter('status', $status)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** @param list<string> $statuses */
+    public function countByStatuses(array $statuses): int
+    {
+        if ($statuses === []) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('appointment')
+            ->select('COUNT(appointment.id)')
+            ->andWhere('appointment.status IN (:statuses)')
+            ->setParameter('statuses', $statuses)
             ->getQuery()
             ->getSingleScalarResult();
     }

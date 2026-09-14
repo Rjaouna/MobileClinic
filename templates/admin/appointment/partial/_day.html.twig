@@ -1,3 +1,5 @@
+{% set settings_mode = settings_mode|default(false) %}
+
 <section class="admin-panel admin-day-panel" id="jour-{{ selected_day }}" aria-labelledby="selected-day-title">
     <div class="admin-panel__header">
         <div>
@@ -18,7 +20,7 @@
 
             {% include 'components/_button.html.twig' with {
                 label: 'Retour semaine',
-                href: path('app_admin_appointment_index') ~ '#availability-title',
+                href: path(settings_mode ? 'app_admin_settings_index' : 'app_admin_appointment_index') ~ '#availability-title',
                 variant: 'secondary',
                 size: 'compact'
             } only %}
@@ -38,6 +40,9 @@
             <form action="{{ path('app_admin_appointment_day_toggle', { day: selected_day }) }}" method="post">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_day_' ~ selected_day) }}">
                 <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                {% if settings_mode %}
+                    <input type="hidden" name="_redirect_settings" value="1">
+                {% endif %}
                 {% include 'components/_button.html.twig' with {
                     label: selected_day_summary.is_visible ? 'Cacher toute la journée' : 'Afficher toute la journée',
                     variant: selected_day_summary.is_visible ? 'danger' : 'primary',
@@ -64,6 +69,9 @@
                     <form action="{{ path('app_admin_appointment_availability_toggle', { id: availability.id }) }}" method="post">
                         <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_' ~ availability.id) }}">
                         <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                        {% if settings_mode %}
+                            <input type="hidden" name="_redirect_settings" value="1">
+                        {% endif %}
                         {% include 'components/_button.html.twig' with {
                             label: availability.enabled ? 'Désactiver' : 'Activer',
                             variant: 'secondary',
@@ -75,6 +83,9 @@
                     <form action="{{ path('app_admin_appointment_availability_delete', { id: availability.id }) }}" method="post">
                         <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_' ~ availability.id) }}">
                         <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
+                        {% if settings_mode %}
+                            <input type="hidden" name="_redirect_settings" value="1">
+                        {% endif %}
                         {% include 'components/_button.html.twig' with {
                             label: 'Supprimer',
                             variant: 'danger',
@@ -107,7 +118,9 @@
             {% include 'admin/appointment/modal/_add.html.twig' with {
                 days: days,
                 setting: setting,
-                selected_day: selected_day
+                selected_day: selected_day,
+                settings_mode: settings_mode,
+                availability_ranges_by_day: availability_ranges_by_day|default({})
             } only %}
         {% endblock %}
     {% endembed %}

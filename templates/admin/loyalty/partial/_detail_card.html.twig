@@ -1,0 +1,44 @@
+{% macro money(cents) %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ cents < 0 ? '-' : '' }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+<section class="loyalty-admin-card" id="loyalty-detail-card" aria-labelledby="loyalty-detail-title" data-loyalty-customer-id="{{ customer.id }}">
+    <div class="loyalty-card__header">
+        <div>
+            <p class="dashboard-kicker">Carte fidélité</p>
+            <h2 id="loyalty-detail-title">{{ customer.displayName }}</h2>
+            <p>{{ customer.email }} · {{ customer.phone ?: 'Téléphone non renseigné' }}</p>
+        </div>
+        <span class="status-pill status-pill--{{ customer.active ? 'success' : 'neutral' }}">
+            {{ customer.active ? 'Client actif' : 'Client désactivé' }}
+        </span>
+    </div>
+
+    <div class="loyalty-card__amounts">
+        <article class="loyalty-amount loyalty-amount--available">
+            <span>Cagnotte disponible</span>
+            <strong data-loyalty-available-balance>{{ money.money(loyalty.available_balance_cents) }}</strong>
+            <p>Solde restant, actualisé après chaque utilisation.</p>
+        </article>
+        <article class="loyalty-amount loyalty-amount--pending">
+            <span>Avantages en attente</span>
+            <strong>{{ money.money(loyalty.pending_balance_cents) }}</strong>
+            <p>Validés quand la réparation passe en statut terminé.</p>
+        </article>
+        <article class="loyalty-amount">
+            <span>Gains validés</span>
+            <strong>{{ money.money(loyalty.validated_gains_cents) }}</strong>
+            <p>Total historique des récompenses créditées.</p>
+        </article>
+        <article class="loyalty-amount">
+            <span>Avantages utilisés</span>
+            <strong>{{ money.money(loyalty.redeemed_cents) }}</strong>
+            <p>Débits effectués en magasin.</p>
+        </article>
+    </div>
+</section>

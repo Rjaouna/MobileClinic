@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Actualités admin - Mobile Clinic{% endblock %}
+{% block meta_description %}Gestion des actualités publiques Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="admin-news-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Administration</p>
+                    <h1 id="admin-news-title">Actualités</h1>
+                    <p>Publiez les nouvelles de la boutique avec une photo ou un lien vidéo YouTube.</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'admin-news-menu',
+                    kicker: 'Administration',
+                    title: 'Menu actualités',
+                    subtitle: 'Les actions utiles de cette rubrique.',
+                    items: [
+                        {
+                            label: 'Nouvelle actualité',
+                            variant: 'primary',
+                            icon: 'news',
+                            modal_target: 'news-add-modal',
+                            description: 'Publier une information.'
+                        },
+                        {
+                            label: 'Voir la page publique',
+                            href: path('app_public_news_index'),
+                            variant: 'secondary',
+                            icon: 'eye',
+                            description: 'Contrôler le rendu public.'
+                        },
+                        {
+                            label: 'Dashboard',
+                            href: path('app_admin_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour à la vue générale.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter la session admin.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+            <div class="ajax-toast" data-ajax-toast hidden></div>
+
+            {% include 'admin/news/partial/_stats.html.twig' with { stats: stats } only %}
+
+            {% include 'admin/news/partial/_list.html.twig' with {
+                articles: articles,
+                media_labels: media_labels,
+                stats: stats
+            } only %}
+
+            {% include 'admin/news/partial/_modal_stack.html.twig' with {
+                articles: articles,
+                media_labels: media_labels,
+                stats: stats
+            } only %}
+        </section>
+    </main>
+{% endblock %}

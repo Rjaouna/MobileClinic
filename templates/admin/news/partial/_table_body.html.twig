@@ -1,0 +1,7 @@
+{% for article in articles %}
+    {% include 'admin/news/partial/_row.html.twig' with { article: article } only %}
+{% else %}
+    <tr>
+        <td colspan="5"><p class="empty-state">Aucune actualité pour le moment.</p></td>
+    </tr>
+{% endfor %}

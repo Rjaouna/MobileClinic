@@ -1,0 +1,6 @@
+<div id="{{ id }}" class="account-line">
+    {% include 'components/_account_chip.html.twig' with {
+        user: customer,
+        role_label: 'Client connecté'
+    } only %}
+</div>

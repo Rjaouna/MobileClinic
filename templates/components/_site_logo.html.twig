@@ -1,0 +1,14 @@
+{% set variant = variant|default('header') %}
+{% set logo_path = setting ? setting.siteLogoPath : null %}
+
+{% if logo_path %}
+    <img class="brand__logo brand__logo--{{ variant }}" src="{{ logo_path }}" alt="{{ alt|default('Mobile Clinic') }}">
+{% else %}
+    <span class="brand__mark {{ variant == 'footer' ? 'brand__mark--footer' : '' }}">S</span>
+    {% if variant == 'header' %}
+        <span class="brand__text">
+            <span class="brand__name">Mobile Clinic</span>
+            <span class="brand__baseline">Mobile care</span>
+        </span>
+    {% endif %}
+{% endif %}

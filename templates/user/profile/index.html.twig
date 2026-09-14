@@ -1,36 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon profil - SymClinic{% endblock %}
-{% block meta_description %}Profil client SymClinic.{% endblock %}
+{% block title %}Mon profil - Mobile Clinic{% endblock %}
+{% block meta_description %}Profil client Mobile Clinic.{% endblock %}
 
 {% block body %}
-    <main class="dashboard-page dashboard-page--user">
+    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh') }}" data-user-live-refresh-interval="10000">
         <section class="dashboard-shell" aria-labelledby="profile-title">
             <header class="dashboard-header">
                 <div>
                     <p class="dashboard-kicker">Espace client</p>
                     <h1 id="profile-title">Mon profil</h1>
-                    <p>{{ customer.email }}</p>
+                    {% include 'user/partial/_account_line.html.twig' with {
+                        id: 'user-profile-account-line',
+                        customer: customer
+                    } only %}
                 </div>
 
-                <div class="dashboard-actions">
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Mes rendez-vous',
-                        href: path('app_user_reservation_index'),
-                        variant: 'secondary',
-                        size: 'compact'
-                    } only %}
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Changer le mot de passe',
-                        variant: 'primary',
-                        size: 'compact',
-                        type: 'button',
-                        modal_target: 'password-modal'
-                    } only %}
-                </div>
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'user-profile-menu',
+                    kicker: 'Espace client',
+                    title: 'Menu profil',
+                    subtitle: 'Sous-menus de votre profil.',
+                    items: [
+                        {
+                            label: 'Modifier mes infos',
+                            variant: 'primary',
+                            icon: 'user',
+                            modal_target: 'profile-edit-modal',
+                            description: 'Ajouter ou corriger nom et prénom.'
+                        },
+                        {
+                            label: 'Changer le mot de passe',
+                            variant: 'secondary',
+                            icon: 'tool',
+                            modal_target: 'password-modal',
+                            description: 'Sécuriser votre espace.'
+                        },
+                        {
+                            label: 'Mon espace',
+                            href: path('app_user_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour au tableau de bord.'
+                        },
+                        {
+                            label: 'Déconnexion',
+                            href: path('app_logout'),
+                            variant: 'secondary',
+                            icon: 'logout',
+                            description: 'Quitter votre espace.'
+                        }
+                    ]
+                } only %}
             </header>
 
             {% include 'components/_flash_messages.html.twig' %}
+            <div class="ajax-toast" data-ajax-toast hidden></div>
 
             {% if customer.mustChangePassword() %}
                 <section class="temporary-password-box">
@@ -48,26 +73,21 @@
                 </section>
             {% endif %}
 
-            <section class="admin-panel">
-                <div class="appointment-detail-grid">
-                    <div>
-                        <h2>Adresse email</h2>
-                        <p>{{ customer.email }}</p>
-                    </div>
-                    <div>
-                        <h2>Téléphone</h2>
-                        <p>{{ customer.phone ?: 'Non renseigné' }}</p>
-                    </div>
-                    <div>
-                        <h2>Compte créé</h2>
-                        <p>{{ customer.createdAt|date('d/m/Y') }}</p>
-                    </div>
-                    <div>
-                        <h2>Mot de passe</h2>
-                        <p>{{ customer.mustChangePassword() ? 'À changer' : 'Défini' }}</p>
-                    </div>
-                </div>
-            </section>
+            {% include 'user/profile/partial/_summary.html.twig' with {
+                customer: customer
+            } only %}
+
+            {% embed 'components/_modal.html.twig' with {
+                id: 'profile-edit-modal',
+                title: 'Modifier mon profil',
+                subtitle: 'Ajoutez ou corrigez votre nom et votre prénom.'
+            } %}
+                {% block modal_body %}
+                    {% include 'user/profile/modal/_edit.html.twig' with {
+                        customer: customer
+                    } only %}
+                {% endblock %}
+            {% endembed %}
 
             {% embed 'components/_modal.html.twig' with {
                 id: 'password-modal',

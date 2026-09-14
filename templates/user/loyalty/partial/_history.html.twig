@@ -1,0 +1,51 @@
+{% embed 'components/_data_table_shell.html.twig' with {
+    section_id_attr: 'user-loyalty-history',
+    id: 'loyalty-history-title',
+    kicker: 'Historique',
+    title: 'Tous les mouvements',
+    subtitle: 'Suivez les gains, utilisations et remboursements liés à votre carte.',
+    count_label: loyalty.transactions|length ~ ' mouvement' ~ (loyalty.transactions|length > 1 ? 's' : ''),
+    icon: 'clock'
+} %}
+    {% block table_content %}
+        {% import 'components/_money.html.twig' as money %}
+
+        {% if loyalty.transactions is not empty %}
+            <div class="table-wrapper data-table-wrapper">
+                <table class="data-table data-table--professional">
+                    <thead>
+                        <tr>
+                            <th>Mouvement</th>
+                            <th>Motif</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in loyalty.transactions %}
+                            <tr>
+                                <td data-label="Mouvement"><strong>{{ transaction.typeLabel }}</strong></td>
+                                <td data-label="Motif">{{ transaction.reason }}</td>
+                                <td data-label="Montant">
+                                    <strong class="{{ transaction.amountCents < 0 ? 'is-negative' : 'is-positive' }}">
+                                        {{ money.format(transaction.amountCents) }}
+                                    </strong>
+                                </td>
+                                <td data-label="Statut">
+                                    <span class="status-pill status-pill--{{ transaction.statusVariant }}">{{ transaction.statusLabel }}</span>
+                                </td>
+                                <td data-label="Date">{{ transaction.createdAt|date('d/m/Y H:i') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <section class="empty-state empty-state--large">
+                <h2>Aucun avantage pour le moment</h2>
+                <p>Votre premier gain apparaîtra ici après une demande de rendez-vous.</p>
+            </section>
+        {% endif %}
+    {% endblock %}
+{% endembed %}

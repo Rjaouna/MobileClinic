@@ -1,7 +1,12 @@
 {% set selected_day = selected_day|default(null) %}
+{% set settings_mode = settings_mode|default(false) %}
+{% set availability_ranges_by_day = availability_ranges_by_day|default({}) %}
 
-<form class="modal-form" action="{{ path('app_admin_appointment_availability_create') }}" method="post">
+<form class="modal-form" action="{{ path('app_admin_appointment_availability_create') }}" method="post" data-availability-form data-availability-ranges="{{ availability_ranges_by_day|json_encode|e('html_attr') }}">
     <input type="hidden" name="_token" value="{{ csrf_token('admin_appointment_availability_create') }}">
+    {% if settings_mode %}
+        <input type="hidden" name="_redirect_settings" value="1">
+    {% endif %}
     {% if selected_day %}
         <input type="hidden" name="day_of_week" value="{{ selected_day }}">
         <input type="hidden" name="_redirect_day" value="{{ selected_day }}">
@@ -45,10 +50,15 @@
         </label>
     </div>
 
+    <div class="ajax-form-alert availability-conflict-alert" data-availability-conflict-alert aria-live="polite" hidden></div>
+
     {% include 'components/_button.html.twig' with {
         label: 'Ajouter la plage',
         variant: 'primary',
         type: 'submit',
-        class: 'modal-form__submit'
+        class: 'modal-form__submit',
+        attributes: {
+            'data-availability-submit': true
+        }
     } only %}
 </form>

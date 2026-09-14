@@ -1,112 +1,54 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SymClinic - Réparation mobile sans attente{% endblock %}
-{% block meta_description %}Réservez une réparation mobile, mettez un article de côté et retrouvez vos avantages fidélité avec SymClinic.{% endblock %}
+{% block title %}Mobile Clinic - Réparation mobile sans attente{% endblock %}
+{% block meta_description %}Réservez une réparation mobile, mettez un article de côté et retrouvez vos avantages fidélité avec Mobile Clinic.{% endblock %}
 
 {% block body %}
-    {% set navigation = [
-        { label: 'Réparation', href: '#rendez-vous' },
-        { label: 'Boutique', href: '#recherche' },
-        { label: 'Fidélité', href: '#avantages' },
-        { label: 'Promotions', href: '#services' },
-        { label: 'Recrutement', href: '#contact' }
-    ] %}
-
-    <header class="site-header">
-        <div class="site-header__inner">
-            <a class="brand" href="{{ path('app_public_home') }}" aria-label="Accueil SymClinic">
-                <span class="brand__mark">S</span>
-                <span class="brand__text">
-                    <span class="brand__name">SymClinic</span>
-                    <span class="brand__baseline">Mobile care</span>
-                </span>
-            </a>
-
-            <nav class="site-nav" aria-label="Navigation principale">
-                {% for item in navigation %}
-                    <a href="{{ item.href }}">{{ item.label }}</a>
-                {% endfor %}
-            </nav>
-
-            <div class="site-actions">
-                {% if app.user %}
-                    {% set account_url = is_granted('ROLE_ADMIN') ? path('app_admin_dashboard') : path('app_user_dashboard') %}
-                    <a class="account-button" href="{{ account_url }}" aria-label="Accéder à mon espace">
-                        {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
-                    </a>
-                {% else %}
-                <button class="account-button" type="button" data-modal-open="login-modal" aria-controls="login-modal" aria-haspopup="dialog" aria-label="Se connecter">
-                    {% include 'components/_icon.html.twig' with { name: 'user', size: 20 } only %}
-                </button>
-                {% endif %}
-                {% include 'components/_button.html.twig' with {
-                    label: 'Prendre rendez-vous',
-                    variant: 'primary',
-                    size: 'compact',
-                    icon: 'tool',
-                    aria_label: 'Prendre rendez-vous',
-                    type: 'button',
-                    modal_target: 'appointment-modal'
-                } only %}
-            </div>
-        </div>
-    </header>
+    {% include 'components/_public_header.html.twig' with {
+        active: 'repair',
+        primary_action: 'appointment',
+        setting: general_setting
+    } only %}
 
     <main class="home-page" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
-        <section class="hero" aria-labelledby="home-hero-title">
+        <section class="hero hero--with-background hero--approved" aria-labelledby="home-hero-title" style="--hero-background-image: url('{{ home_hero_photo_path|e('html_attr') }}'); --hero-background-opacity: {{ home_hero_photo_opacity|default(100) }}%;">
             <div class="hero__inner">
                 <div class="hero__content">
                     {% include 'components/_badge.html.twig' with {
-                        label: 'Réparation - boutique - fidélité',
-                        icon: 'spark'
+                        label: 'Réparation - boutique - fidélité'
                     } only %}
 
                     <h1 id="home-hero-title" class="hero__title">
-                        Votre téléphone,
-                        <span>sans attente inutile.</span>
+                        {{ home_hero_title }}
+                        <span>{{ home_hero_highlight }}</span>
                     </h1>
 
-                    <p class="hero__intro">
-                        Réservez une réparation ou mettez un article de côté en quelques instants.
-                        Votre espace client garde tout au même endroit.
-                    </p>
+                    <p class="hero__intro">{{ home_hero_description }}</p>
 
                     <div class="hero__actions">
                         {% include 'components/_button.html.twig' with {
                             label: 'Réserver une réparation',
                             variant: 'primary',
-                            icon: 'tool',
+                            icon: 'arrow-right',
+                            icon_position: 'end',
                             type: 'button',
                             modal_target: 'appointment-modal'
                         } only %}
                         {% include 'components/_button.html.twig' with {
                             label: 'Réserver un article',
-                            href: '#recherche',
+                            href: path('app_public_product_index'),
                             variant: 'secondary',
-                            icon: 'bag'
+                            icon: 'arrow-right',
+                            icon_position: 'end'
                         } only %}
                     </div>
 
-                    <div class="hero__features" id="avantages" aria-label="Avantages SymClinic">
-                        {% include 'components/_feature_item.html.twig' with { label: 'Sans paiement en ligne', icon: 'check' } only %}
+                    <div class="hero__features" id="avantages" aria-label="Avantages Mobile Clinic">
+                        {% include 'components/_feature_item.html.twig' with { label: 'Sans paiement en ligne', icon: 'bolt' } only %}
                         {% include 'components/_feature_item.html.twig' with { label: 'Article gardé 24 h', icon: 'clock' } only %}
-                        {% include 'components/_feature_item.html.twig' with { label: 'Avantages fidélité', icon: 'spark' } only %}
+                        {% include 'components/_feature_item.html.twig' with { label: 'Avantages fidélité', icon: 'gift' } only %}
                     </div>
                 </div>
-
-                {% include 'components/_appointment_block.html.twig' with {
-                    id: 'rendez-vous',
-                    title: 'Que souhaitez-vous faire ?',
-                    subtitle: 'Commencez ici, on vous guide ensuite.',
-                    status: 'Simple & rapide',
-                    action: '#rendez-vous',
-                    method: 'get',
-                    devices: devices,
-                    problems: problems,
-                    modal_target: 'appointment-modal',
-                    button_label: 'Voir les créneaux',
-                    note: 'Votre avantage fidélité est ajouté uniquement après le retrait ou la réparation réalisée.'
-                } only %}
             </div>
         </section>
 
@@ -116,7 +58,7 @@
                     <p class="section-heading__kicker">Services</p>
                     <h2 id="services-title">Réparer, réserver, récupérer simplement.</h2>
                     <p>
-                        SymClinic rassemble les demandes rapides du quotidien : une réparation,
+                        Mobile Clinic rassemble les demandes rapides du quotidien : une réparation,
                         un article à garder de côté ou un avantage fidélité à retrouver.
                     </p>
                 </div>
@@ -129,25 +71,98 @@
             </div>
         </section>
 
-        <section class="home-band home-band--search" id="recherche" aria-labelledby="search-title">
-            <div class="home-band__inner home-band__inner--split">
-                <div class="compact-copy">
-                    <p class="section-heading__kicker">Recherche rapide</p>
-                    <h2 id="search-title">Trouvez une réparation, un article ou un service.</h2>
+        <section class="home-band home-band--news" id="actualites" aria-labelledby="home-news-title">
+            <div class="home-band__inner home-news">
+                <div class="home-news__heading">
+                    <div class="section-heading">
+                        <p class="section-heading__kicker">Actualités</p>
+                        <h2 id="home-news-title">Les nouvelles de l’atelier et de la boutique.</h2>
+                        <p>Conseils, services et nouveautés : retrouvez l’essentiel de la vie Mobile Clinic.</p>
+                    </div>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Toutes les actualités',
+                        href: path('app_public_news_index'),
+                        variant: 'secondary',
+                        icon: 'news'
+                    } only %}
+                </div>
+
+                <div class="news-grid news-grid--home">
+                    {% for article in latest_news %}
+                        {% include 'components/_news_card.html.twig' with {
+                            article: article,
+                            featured: loop.first
+                        } only %}
+                    {% else %}
+                        <div class="news-empty-state">
+                            {% include 'components/_icon.html.twig' with { name: 'news', size: 30 } only %}
+                            <strong>Les premières actualités arrivent bientôt.</strong>
+                            <p>Les nouveautés de l’atelier seront publiées ici.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="home-band home-band--promotions" id="promotions" aria-labelledby="home-promotions-title" style="--home-promotion-image: url('{{ home_promotion_photo_path|e('html_attr') }}');" data-promotion-parallax>
+            <div class="home-band__inner home-promotions">
+                <div class="home-promotions__heading">
+                    <div>
+                        <p class="section-heading__kicker">Promotions magasin</p>
+                        <h2 id="home-promotions-title">Les dernières offres à garder de côté.</h2>
+                        <p>Réservez en ligne, utilisez votre cagnotte fidélité et récupérez vos articles directement en magasin.</p>
+                    </div>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Voir toutes les promotions',
+                        href: path('app_public_product_index'),
+                        variant: 'primary',
+                        icon: 'tag'
+                    } only %}
+                </div>
+
+                <div class="product-grid home-promotions__grid">
+                    {% for product in latest_products %}
+                        {% include 'components/_product_card.html.twig' with {
+                            product: product,
+                            reserved_product_ids: reserved_product_ids,
+                            cart_product_ids: []
+                        } only %}
+                    {% else %}
+                        <div class="home-promotions__empty">
+                            <strong>Les prochaines offres arrivent bientôt.</strong>
+                            <span>Retrouvez ici les nouveautés ajoutées par la boutique.</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="home-band home-band--recruitment" id="recrutement" aria-labelledby="home-recruitment-title">
+            <div class="home-band__inner home-recruitment">
+                <div class="home-recruitment__content">
+                    <p class="section-heading__kicker">Recrutement</p>
+                    <h2 id="home-recruitment-title">Envie de rejoindre une équipe mobile care utile et proche des clients ?</h2>
                     <p>
-                        Lancez une recherche avant de vous déplacer et préparez votre passage
-                        avec les informations dont vous avez besoin.
+                        Technicien réparation, conseiller boutique ou candidature spontanée :
+                        envoyez votre profil en ligne et suivez un parcours simple.
                     </p>
                 </div>
 
-                {% include 'components/_search_form.html.twig' with {
-                    id: 'home-search',
-                    label: 'Rechercher dans SymClinic',
-                    placeholder: 'Ex. écran iPhone, batterie, chargeur...',
-                    action: '#recherche',
-                    method: 'get',
-                    button_label: 'Rechercher'
-                } only %}
+                <div class="home-recruitment__panel">
+                    <span class="home-recruitment__icon" aria-hidden="true">
+                        {% include 'components/_icon.html.twig' with { name: 'briefcase', size: 28 } only %}
+                    </span>
+                    <div>
+                        <strong>Nous recrutons</strong>
+                        <span>Atelier, boutique et relation client.</span>
+                    </div>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Voir les postes',
+                        href: path('app_public_recruitment_index'),
+                        variant: 'primary',
+                        icon: 'briefcase'
+                    } only %}
+                </div>
             </div>
         </section>
 
@@ -163,28 +178,29 @@
             data: appointment_data|default({}),
             errors: appointment_errors|default([]),
             customer_email: app.user ? app.user.userIdentifier : '',
+            customer_phone: app.user ? app.user.phone : '',
+            is_connected_customer: app.user ? true : false,
             redirect_to: 'home'
         } only %}
 
         {% embed 'components/_modal.html.twig' with {
             id: 'login-modal',
-            title: 'Connexion',
-            subtitle: 'Connectez-vous pour accéder à votre espace.',
+            title: 'Votre espace Mobile Clinic',
+            subtitle: 'Connectez-vous ou créez votre compte client en quelques instants.',
+            class: 'modal--auth',
             is_open: open_modal|default(null) == 'login-modal'
         } %}
             {% block modal_body %}
                 {% include 'components/_login_form.html.twig' with {
                     last_username: last_username|default(''),
-                    login_error: login_error|default(null)
+                    login_error: login_error|default(null),
+                    registration_data: registration_data|default({}),
+                    registration_errors: registration_errors|default([]),
+                    auth_panel: auth_panel|default('login')
                 } only %}
             {% endblock %}
         {% endembed %}
     </main>
 
-    <footer class="site-footer" id="contact">
-        <div class="site-footer__inner">
-            <strong>SymClinic</strong>
-            <span>Réparation, boutique et fidélité au même endroit.</span>
-        </div>
-    </footer>
+    {% include 'components/_public_footer.html.twig' with { setting: general_setting } only %}
 {% endblock %}

@@ -1,0 +1,40 @@
+{% macro money(cents) %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ cents < 0 ? '-' : '' }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+{% for row in pagination.items %}
+    {% set customer = row.customer %}
+    <tr>
+        <td data-label="Client">
+            <strong>{{ customer.displayName }}</strong>
+            <span>{{ customer.email }}</span>
+        </td>
+        <td data-label="Téléphone">{{ customer.phone ?: 'Non renseigné' }}</td>
+        <td data-label="Disponible"><strong>{{ money.money(row.available_balance_cents) }}</strong></td>
+        <td data-label="En attente">{{ money.money(row.pending_balance_cents) }}</td>
+        <td data-label="Statut">
+            <span class="status-pill status-pill--{{ customer.active ? 'success' : 'neutral' }}">
+                {{ customer.active ? 'Actif' : 'Désactivé' }}
+            </span>
+        </td>
+        <td class="data-table__actions" data-label="Action">
+            {% include 'components/_button.html.twig' with {
+                label: 'Ouvrir',
+                href: path('app_admin_loyalty_show', { id: customer.id }),
+                variant: 'primary',
+                size: 'compact'
+            } only %}
+        </td>
+    </tr>
+{% else %}
+    <tr>
+        <td colspan="6">
+            <p class="empty-state">Aucune carte fidélité ne correspond à cette recherche.</p>
+        </td>
+    </tr>
+{% endfor %}

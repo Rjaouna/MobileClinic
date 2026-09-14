@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }} - Mobile Clinic{% endblock %}
+{% block meta_description %}{{ article.summary(155) }}{% endblock %}
+
+{% block body %}
+    {% include 'components/_public_header.html.twig' with {
+        active: 'news',
+        primary_action: 'appointment',
+        setting: setting
+    } only %}
+
+    <main class="news-detail-page">
+        <article class="news-detail">
+            <header class="news-detail__header">
+                <a class="news-detail__back" href="{{ path('app_public_news_index') }}">← Toutes les actualités</a>
+                <div class="news-card__meta">
+                    <time datetime="{{ article.publishedAt|date('Y-m-d') }}">Publié le {{ article.publishedAt|date('d/m/Y') }}</time>
+                    <span>{{ article.mediaLabel }}</span>
+                </div>
+                <h1>{{ article.title }}</h1>
+            </header>
+
+            <div class="news-detail__media">
+                {% if article.image and article.imagePath %}
+                    <img src="{{ article.imagePath }}" alt="{{ article.title }}">
+                {% elseif article.video and article.youtubeEmbedUrl %}
+                    <iframe src="{{ article.youtubeEmbedUrl }}" title="{{ article.title }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                {% endif %}
+            </div>
+
+            <div class="news-detail__body">
+                {{ article.content|nl2br }}
+            </div>
+        </article>
+
+        {% if latest_articles is not empty %}
+            <section class="news-related" aria-labelledby="news-related-title">
+                <div class="section-heading section-heading--inline">
+                    <div>
+                        <p class="section-heading__kicker">À découvrir aussi</p>
+                        <h2 id="news-related-title">Les dernières publications.</h2>
+                    </div>
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Voir toutes les actualités',
+                        href: path('app_public_news_index'),
+                        variant: 'secondary',
+                        icon: 'news'
+                    } only %}
+                </div>
+                <div class="news-grid news-grid--related">
+                    {% for related_article in latest_articles|slice(0, 3) %}
+                        {% include 'components/_news_card.html.twig' with { article: related_article } only %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+    </main>
+
+    {% include 'components/_public_footer.html.twig' with { setting: setting } only %}
+{% endblock %}
