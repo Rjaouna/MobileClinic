@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\HomePageDataProvider;
 use App\Service\GeneralSettingManager;
+use App\Service\CustomerNotificationMailer;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,6 +32,7 @@ final class HomeController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly Security $security,
         private readonly GeneralSettingManager $generalSettingManager,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -113,7 +115,13 @@ final class HomeController extends AbstractController
             return $this->redirectToRoute('app_login', ['auth' => 'register']);
         }
 
-        $this->addFlash('success', 'Votre compte client a bien été créé.');
+        $emailSent = $this->notificationMailer->sendAccountCreated($customer);
+        $this->addFlash(
+            $emailSent ? 'success' : 'warning',
+            $emailSent
+                ? 'Votre compte client a bien été créé. Un e-mail de confirmation vient de vous être envoyé.'
+                : 'Votre compte est créé, mais l’e-mail de confirmation n’a pas pu être envoyé. Vous pouvez tout de même vous connecter.',
+        );
         $this->security->login($customer, 'form_login', 'main', [(new RememberMeBadge())->enable()]);
 
         $targetPath = $this->sanitizeTargetPath((string) $request->request->get('_target_path'));

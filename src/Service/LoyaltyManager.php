@@ -22,6 +22,7 @@ final class LoyaltyManager
         private readonly LoyaltyAccountRepository $accountRepository,
         private readonly LoyaltyTransactionRepository $transactionRepository,
         private readonly LoyaltySettingRepository $settingRepository,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -40,9 +41,10 @@ final class LoyaltyManager
         return $setting;
     }
 
-    public function createPendingAppointmentReward(Appointment $appointment): ?LoyaltyTransaction
+    public function createPendingAppointmentReward(Appointment $appointment, bool $notify = true): ?LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($appointment): ?LoyaltyTransaction {
+        $created = false;
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($appointment, &$created): ?LoyaltyTransaction {
             $setting = $this->getSetting();
 
             if (!$setting->isEnabled() || $setting->getAppointmentRewardCents() <= 0) {
@@ -73,19 +75,29 @@ final class LoyaltyManager
                 ->setReason('Avantage fidélité créé après une demande de rendez-vous.');
 
             $this->entityManager->persist($transaction);
+            $created = true;
 
             return $transaction;
         });
+
+        if ($notify && $created && $transaction instanceof LoyaltyTransaction) {
+            $this->notificationMailer->sendLoyaltyMovement($transaction);
+        }
+
+        return $transaction;
     }
 
-    public function syncAppointmentStatus(Appointment $appointment, ?User $administrator = null): ?LoyaltyTransaction
+    public function syncAppointmentStatus(Appointment $appointment, ?User $administrator = null, bool $notify = true): ?LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($appointment, $administrator): ?LoyaltyTransaction {
+        $previousStatus = null;
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($appointment, $administrator, &$previousStatus): ?LoyaltyTransaction {
             $reward = $this->transactionRepository->findAppointmentReward($appointment);
 
             if (!$reward instanceof LoyaltyTransaction) {
                 return null;
             }
+
+            $previousStatus = $reward->getStatus();
 
             if ($appointment->getStatus() === Appointment::STATUS_COMPLETED) {
                 return $this->validatePendingReward($reward, $administrator);
@@ -105,11 +117,17 @@ final class LoyaltyManager
 
             return $reward;
         });
+
+        if ($notify && $transaction instanceof LoyaltyTransaction && $previousStatus !== $transaction->getStatus()) {
+            $this->notificationMailer->sendLoyaltyMovement($transaction);
+        }
+
+        return $transaction;
     }
 
     public function manualCredit(User $customer, int $amountCents, string $reason, User $administrator): LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
             $this->assertPositiveAmount($amountCents);
             $reason = $this->sanitizeRequiredReason($reason);
             $account = $this->getOrCreateAccount($customer);
@@ -127,11 +145,15 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        $this->notificationMailer->sendLoyaltyMovement($transaction);
+
+        return $transaction;
     }
 
     public function redeem(User $customer, int $amountCents, string $reason, User $administrator): LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
             $this->assertPositiveAmount($amountCents);
             $reason = $this->sanitizeRequiredReason($reason);
             $account = $this->getOrCreateAccount($customer);
@@ -153,11 +175,15 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        $this->notificationMailer->sendLoyaltyMovement($transaction);
+
+        return $transaction;
     }
 
-    public function redeemForProductReservation(ProductReservation $reservation, int $amountCents): ?LoyaltyTransaction
+    public function redeemForProductReservation(ProductReservation $reservation, int $amountCents, bool $notify = true): ?LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $amountCents): ?LoyaltyTransaction {
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($reservation, $amountCents): ?LoyaltyTransaction {
             if ($amountCents <= 0) {
                 return null;
             }
@@ -187,11 +213,17 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        if ($notify && $transaction instanceof LoyaltyTransaction) {
+            $this->notificationMailer->sendLoyaltyMovement($transaction);
+        }
+
+        return $transaction;
     }
 
-    public function refundProductReservation(ProductReservation $reservation, ?User $administrator, string $reason): ?LoyaltyTransaction
+    public function refundProductReservation(ProductReservation $reservation, ?User $administrator, string $reason, bool $notify = true): ?LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $administrator, $reason): ?LoyaltyTransaction {
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($reservation, $administrator, $reason): ?LoyaltyTransaction {
             $amountCents = $reservation->getRefundableLoyaltyCents();
 
             if ($amountCents <= 0) {
@@ -220,11 +252,17 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        if ($notify && $transaction instanceof LoyaltyTransaction) {
+            $this->notificationMailer->sendLoyaltyMovement($transaction);
+        }
+
+        return $transaction;
     }
 
     public function manualAdjustment(User $customer, int $amountCents, string $reason, User $administrator): LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
+        $transaction = $this->entityManager->wrapInTransaction(function () use ($customer, $amountCents, $reason, $administrator): LoyaltyTransaction {
             if ($amountCents === 0) {
                 throw new \InvalidArgumentException('Le montant de correction doit être différent de zéro.');
             }
@@ -249,11 +287,15 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        $this->notificationMailer->sendLoyaltyMovement($transaction);
+
+        return $transaction;
     }
 
     public function cancelPendingTransaction(LoyaltyTransaction $transaction, string $reason, User $administrator): LoyaltyTransaction
     {
-        return $this->entityManager->wrapInTransaction(function () use ($transaction, $reason, $administrator): LoyaltyTransaction {
+        $result = $this->entityManager->wrapInTransaction(function () use ($transaction, $reason, $administrator): LoyaltyTransaction {
             if (!$transaction->isPending()) {
                 throw new \InvalidArgumentException('Seul un mouvement en attente peut être annulé depuis cette action.');
             }
@@ -266,6 +308,10 @@ final class LoyaltyManager
 
             return $transaction;
         });
+
+        $this->notificationMailer->sendLoyaltyMovement($result);
+
+        return $result;
     }
 
     public function updateSetting(int $appointmentRewardCents, bool $isEnabled): LoyaltySetting

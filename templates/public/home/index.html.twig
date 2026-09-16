@@ -109,15 +109,15 @@
                 <div class="home-promotions__heading">
                     <div>
                         <p class="section-heading__kicker">Promotions magasin</p>
-                        <h2 id="home-promotions-title">Les dernières offres à garder de côté.</h2>
+                        <h2 id="home-promotions-title">Les dernières offres <span>à garder de côté.</span></h2>
                         <p>Réservez en ligne, utilisez votre cagnotte fidélité et récupérez vos articles directement en magasin.</p>
+                        {% include 'components/_button.html.twig' with {
+                            label: 'Voir toutes les promotions',
+                            href: path('app_public_product_index'),
+                            variant: 'primary',
+                            icon: 'tag'
+                        } only %}
                     </div>
-                    {% include 'components/_button.html.twig' with {
-                        label: 'Voir toutes les promotions',
-                        href: path('app_public_product_index'),
-                        variant: 'primary',
-                        icon: 'tag'
-                    } only %}
                 </div>
 
                 <div class="product-grid home-promotions__grid">

@@ -1,0 +1,21 @@
+RENDEZ-VOUS {{ brand_name|upper }}
+
+{% if is_admin_copy %}Le rendez-vous de {{ customer.displayName }} a été mis à jour.{% else %}{{ title }}.{% endif %}
+
+Date : {{ scheduled_label }}
+Appareil : {{ appointment.device }}
+Intervention : {{ appointment.problem }}
+Statut : {{ appointment.statusLabel }}
+{% if appointment.adminNote %}Message du magasin : {{ appointment.adminNote }}{% endif %}
+
+{% if is_admin_copy %}
+Administration : {{ admin_appointment_url }}
+{% else %}
+Voir le rendez-vous : {{ manage_url }}
+{% if appointment.canBeChangedByCustomer %}Déplacer : {{ reschedule_url }}
+Annuler : {{ cancel_url }}{% endif %}
+{% endif %}
+
+{{ setting.storeAddress }}
+{{ setting.storePhone }}
+{{ setting.storeOpeningHoursSummary }}

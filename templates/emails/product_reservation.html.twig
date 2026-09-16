@@ -1,0 +1,48 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block email_title %}Réservation boutique {{ brand_name }}{% endblock %}
+
+{% block email_content %}
+    <p class="eyebrow">Réservation boutique #{{ reservation.id }}</p>
+    <h1>{{ is_admin_copy ? 'Une réservation boutique a changé.' : title }}</h1>
+    <p>
+        {% if is_admin_copy %}
+            La réservation de <strong>{{ customer.displayName }}</strong> est maintenant au statut « {{ reservation.statusLabel }} ».
+        {% elseif event == 'created' %}
+            Vos articles sont mis de côté en magasin. Aucun paiement en ligne n’a été effectué.
+        {% elseif event == 'confirmed' %}
+            Le magasin a validé définitivement votre réservation. Elle ne sera plus annulée automatiquement par le délai.
+        {% elseif event == 'sold' %}
+            Merci pour votre visite. Le retrait de vos articles est maintenant terminé.
+        {% elseif event in ['cancelled_by_customer', 'cancelled_by_admin'] %}
+            Les articles ont été libérés. La part de cagnotte utilisée a été recréditée lorsqu’un remboursement était dû.
+        {% elseif event == 'expired' %}
+            Le délai de garde est terminé. Les articles ont été libérés et la part de cagnotte utilisée a été recréditée.
+        {% else %}
+            Le magasin a mis à jour votre réservation.
+        {% endif %}
+    </p>
+
+    <span class="status">{{ reservation.statusLabel }}</span>
+    <div class="panel">
+        <table class="detail" role="presentation">
+            {% if is_admin_copy %}<tr><td class="detail-label">Client</td><td class="detail-value">{{ customer.displayName }} · {{ customer.phone ?: 'Téléphone non renseigné' }}</td></tr>{% endif %}
+            <tr><td class="detail-label">Articles</td><td class="detail-value">{% for item in reservation.items %}{{ item.productName }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>
+            <tr><td class="detail-label">Total promo</td><td class="detail-value">{{ total_label }}</td></tr>
+            {% if reservation.loyaltyUsedCents > 0 %}<tr><td class="detail-label">Fidélité utilisée</td><td class="detail-value">{{ loyalty_used_label }}</td></tr>{% endif %}
+            {% if reservation.loyaltyRefundedCents > 0 %}<tr><td class="detail-label">Fidélité remboursée</td><td class="detail-value">{{ loyalty_refunded_label }}</td></tr>{% endif %}
+            <tr><td class="detail-label">À régler en magasin</td><td class="detail-value" style="color:#ec1c24;">{{ payable_label }}</td></tr>
+            {% if reservation.expiresAt %}<tr><td class="detail-label">Gardée jusqu’au</td><td class="detail-value">{{ expires_label }}</td></tr>{% endif %}
+            {% if reservation.adminNote %}<tr><td class="detail-label">Message du magasin</td><td class="detail-value">{{ reservation.adminNote }}</td></tr>{% endif %}
+        </table>
+    </div>
+
+    {% if is_admin_copy %}
+        <a class="button" href="{{ admin_reservation_url }}">Ouvrir les réservations</a>
+    {% else %}
+        <a class="button" href="{{ reservation_url }}">Voir ma réservation</a>
+        {% if reservation.canBeCancelledByCustomer %}
+            <a class="button button--secondary" href="{{ reservation_url }}">Gérer ou annuler</a>
+        {% endif %}
+    {% endif %}
+{% endblock %}

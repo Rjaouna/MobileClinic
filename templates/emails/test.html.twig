@@ -1,0 +1,11 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block email_title %}Test des notifications {{ brand_name }}{% endblock %}
+
+{% block email_content %}
+    <p class="eyebrow">Configuration e-mail</p>
+    <h1>Les notifications sont correctement configurées.</h1>
+    <p>Ce message valide le serveur d’envoi, le modèle graphique, le logo et les coordonnées de la boutique.</p>
+    <div class="panel panel--accent"><p style="margin:0;color:#101827;font-weight:700;">Compte · Rendez-vous · Fidélité · Réservations boutique</p></div>
+    <a class="button" href="{{ site_url }}">Ouvrir le site</a>
+{% endblock %}

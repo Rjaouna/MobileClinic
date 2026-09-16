@@ -1,0 +1,45 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block email_title %}Rendez-vous {{ brand_name }}{% endblock %}
+
+{% block email_content %}
+    <p class="eyebrow">Rendez-vous réparation</p>
+    <h1>{{ is_admin_copy ? 'Un rendez-vous client a changé.' : title }}</h1>
+    {% if is_admin_copy %}
+        <p>Le rendez-vous de <strong>{{ customer.displayName }}</strong> nécessite la mise à jour de votre suivi.</p>
+    {% elseif event == 'created' %}
+        <p>Bonjour {{ customer.firstName ?: customer.displayName }}, votre demande a bien été enregistrée. Retrouvez ci-dessous les informations utiles.</p>
+    {% elseif event == 'rescheduled' %}
+        <p>La nouvelle date de votre rendez-vous est confirmée. Votre avantage fidélité associé reste conservé.</p>
+    {% else %}
+        <p>Le magasin a mis à jour l’avancement de votre rendez-vous. Vous pouvez suivre son évolution depuis votre espace client.</p>
+    {% endif %}
+
+    <span class="status">{{ appointment.statusLabel }}</span>
+    <div class="panel">
+        <table class="detail" role="presentation">
+            {% if is_admin_copy %}<tr><td class="detail-label">Client</td><td class="detail-value">{{ customer.displayName }} · {{ appointment.phone ?: customer.phone }}</td></tr>{% endif %}
+            <tr><td class="detail-label">Date</td><td class="detail-value">{{ scheduled_label }}</td></tr>
+            <tr><td class="detail-label">Appareil</td><td class="detail-value">{{ appointment.device }}</td></tr>
+            <tr><td class="detail-label">Intervention</td><td class="detail-value">{{ appointment.problem }}</td></tr>
+            <tr><td class="detail-label">Statut</td><td class="detail-value">{{ appointment.statusLabel }}</td></tr>
+            {% if appointment.adminNote %}<tr><td class="detail-label">Message du magasin</td><td class="detail-value">{{ appointment.adminNote }}</td></tr>{% endif %}
+        </table>
+    </div>
+
+    {% if appointment.status == constant('App\\Entity\\Appointment::STATUS_COMPLETED') %}
+        <div class="panel panel--accent"><p style="margin:0;">La réparation est terminée et l’avantage fidélité lié au rendez-vous est désormais validé.</p></div>
+    {% elseif appointment.status in [constant('App\\Entity\\Appointment::STATUS_CANCELLED_BY_CLIENT'), constant('App\\Entity\\Appointment::STATUS_CANCELLED_BY_ADMIN'), constant('App\\Entity\\Appointment::STATUS_NO_SHOW')] %}
+        <div class="panel"><p style="margin:0;">Le rendez-vous n’est plus actif et l’avantage fidélité en attente associé a été annulé.</p></div>
+    {% endif %}
+
+    {% if is_admin_copy %}
+        <a class="button" href="{{ admin_appointment_url }}">Ouvrir les rendez-vous</a>
+    {% else %}
+        <a class="button" href="{{ manage_url }}">Voir mon rendez-vous</a>
+        {% if appointment.canBeChangedByCustomer and reschedule_url and cancel_url %}
+            <a class="button button--secondary" href="{{ reschedule_url }}">Déplacer</a>
+            <a class="button button--secondary" href="{{ cancel_url }}">Annuler</a>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block email_title %}{{ brand_name }}{% endblock %}</title>
+    <style>
+        body { margin: 0; padding: 0; background: #f3f5f8; color: #101827; font-family: Arial, Helvetica, sans-serif; }
+        table { border-collapse: collapse; }
+        img { border: 0; display: block; max-width: 100%; }
+        a { color: #ec1c24; }
+        .shell { width: 100%; background: #f3f5f8; padding: 28px 12px; }
+        .email { width: 100%; max-width: 680px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e7ef; border-radius: 8px; overflow: hidden; }
+        .header { padding: 24px 30px; border-bottom: 4px solid #ec1c24; }
+        .logo { width: 210px; max-height: 74px; object-fit: contain; object-position: left center; }
+        .brand { margin: 0; color: #101827; font-size: 24px; font-weight: 800; }
+        .brand span { color: #ec1c24; }
+        .content { padding: 34px 30px 26px; }
+        .eyebrow { margin: 0 0 10px; color: #ec1c24; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+        h1 { margin: 0 0 14px; color: #101827; font-size: 28px; line-height: 1.2; }
+        h2 { margin: 26px 0 12px; color: #101827; font-size: 18px; }
+        p { margin: 0 0 16px; color: #526078; font-size: 15px; line-height: 1.65; }
+        .status { display: inline-block; margin: 4px 0 20px; padding: 8px 12px; border-radius: 999px; background: #ec1c24; color: #ffffff !important; font-size: 13px; font-weight: 700; }
+        .panel { margin: 20px 0; padding: 18px; background: #f8fafc; border: 1px solid #e2e7ef; border-radius: 7px; }
+        .panel--accent { background: #fff5f5; border-color: #ffc9cc; }
+        .detail { width: 100%; }
+        .detail td { padding: 10px 0; border-bottom: 1px solid #e2e7ef; vertical-align: top; }
+        .detail tr:last-child td { border-bottom: 0; }
+        .detail-label { width: 38%; padding-right: 16px !important; color: #6b778c; font-size: 13px; }
+        .detail-value { color: #101827; font-size: 14px; font-weight: 700; }
+        .button { display: inline-block; margin: 4px 8px 4px 0; padding: 13px 18px; border-radius: 7px; background: #ec1c24; color: #ffffff !important; font-size: 14px; font-weight: 700; text-decoration: none; }
+        .button--secondary { background: #ffffff; color: #101827 !important; border: 1px solid #cad3e1; }
+        .contact { padding: 22px 30px; background: #101114; color: #ffffff; }
+        .contact-title { margin: 0 0 8px; color: #ffffff; font-size: 16px; font-weight: 700; }
+        .contact p, .contact a { margin: 0; color: #e7e9ee; font-size: 13px; line-height: 1.6; }
+        .footer { padding: 18px 30px 24px; background: #101114; border-top: 1px solid #2b2d33; color: #adb4c0; font-size: 12px; line-height: 1.6; }
+        .footer a { color: #ffffff; }
+        @media only screen and (max-width: 520px) {
+            .shell { padding: 0; }
+            .email { border: 0; border-radius: 0; }
+            .header, .content, .contact, .footer { padding-left: 20px; padding-right: 20px; }
+            h1 { font-size: 24px; }
+            .detail-label { width: 42%; }
+            .button { display: block; margin-right: 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <div class="email">
+        <div class="header">
+            {% if logo_url %}
+                <img class="logo" src="{{ logo_url }}" alt="{{ brand_name }}">
+            {% else %}
+                <p class="brand"><span>MOBILE</span> CLINIC</p>
+            {% endif %}
+        </div>
+
+        <div class="content">
+            {% block email_content %}{% endblock %}
+        </div>
+
+        <div class="contact">
+            <p class="contact-title">Votre boutique {{ brand_name }}</p>
+            <p>
+                <a href="{{ setting.googleBusinessUrl }}">{{ setting.storeAddress }}</a><br>
+                <a href="tel:{{ setting.storePhone|replace({' ': ''}) }}">{{ setting.storePhone }}</a><br>
+                {{ setting.storeOpeningHoursSummary }}
+            </p>
+        </div>
+
+        <div class="footer">
+            Cet e-mail concerne une action effectuée sur votre espace {{ brand_name }}.<br>
+            <a href="{{ site_url }}">Accéder au site</a> · <a href="{{ site_url }}/confidentialite">Confidentialité</a> · <a href="{{ site_url }}/mentions-legales">Mentions légales</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

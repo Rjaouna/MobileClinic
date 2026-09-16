@@ -30,7 +30,7 @@ security:
                 enable_csrf: true
                 csrf_token_id: authenticate
                 default_target_path: app_after_login
-                always_use_default_target_path: true
+                always_use_default_target_path: false
             logout:
                 path: app_logout
                 target: /

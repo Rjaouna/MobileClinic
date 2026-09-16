@@ -1,0 +1,28 @@
+{% if is_admin_copy %}
+NOUVEAU COMPTE CLIENT
+
+Le compte de {{ customer.displayName }} vient d’être créé.
+E-mail : {{ customer.email }}
+Téléphone : {{ customer.phone ?: 'Non renseigné' }}
+Origine : {{ created_by_admin ? 'Administration' : 'Site public' }}
+
+Ouvrir le client : {{ customer_admin_url }}
+{% else %}
+BIENVENUE CHEZ {{ brand_name|upper }}
+
+Bonjour {{ customer.firstName ?: customer.displayName }},
+
+Votre espace client est prêt. Vous pouvez y suivre vos rendez-vous, vos réservations boutique et votre cagnotte fidélité.
+{% if temporary_password %}
+
+Mot de passe temporaire : {{ temporary_password }}
+Pour votre sécurité, changez-le dès votre première connexion et ne le transmettez jamais.
+{% endif %}
+
+Connexion : {{ login_url }}
+Profil : {{ profile_url }}
+{% endif %}
+
+{{ setting.storeAddress }}
+{{ setting.storePhone }}
+{{ setting.storeOpeningHoursSummary }}

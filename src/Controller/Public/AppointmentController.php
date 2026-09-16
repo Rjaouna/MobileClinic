@@ -10,6 +10,7 @@ use App\Repository\AppointmentRepository;
 use App\Repository\UserRepository;
 use App\Service\AppointmentScheduler;
 use App\Service\CustomerAccountFactory;
+use App\Service\CustomerNotificationMailer;
 use App\Service\LoyaltyManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +31,7 @@ final class AppointmentController extends AbstractController
         private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -133,6 +135,16 @@ final class AppointmentController extends AbstractController
 
         $this->entityManager->persist($appointment);
         $this->loyaltyManager->createPendingAppointmentReward($appointment);
+
+        if ($account['created']) {
+            $accountEmailSent = $this->notificationMailer->sendAccountCreated($account['user'], $account['temporary_password']);
+
+            if (!$accountEmailSent) {
+                $this->addFlash('warning', 'Votre compte est créé, mais l’e-mail contenant le mot de passe temporaire n’a pas pu être envoyé. Conservez le mot de passe affiché dans votre espace.');
+            }
+        }
+
+        $this->notificationMailer->sendAppointmentCreated($appointment);
 
         if ($account['temporary_password'] !== null) {
             $request->getSession()->getFlashBag()->add('temporary_password', $account['temporary_password']);

@@ -20,6 +20,7 @@ final class ProductReservationManager
         private readonly ProductReservationRepository $reservationRepository,
         private readonly LoyaltyManager $loyaltyManager,
         private readonly GeneralSettingManager $generalSettingManager,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -38,7 +39,8 @@ final class ProductReservationManager
     /** @param list<int> $productIds */
     public function createReservation(User $customer, array $productIds, bool $useLoyalty): ProductReservation
     {
-        return $this->entityManager->wrapInTransaction(function () use ($customer, $productIds, $useLoyalty): ProductReservation {
+        $loyaltyTransaction = null;
+        $reservation = $this->entityManager->wrapInTransaction(function () use ($customer, $productIds, $useLoyalty, &$loyaltyTransaction): ProductReservation {
             $products = $this->productRepository->findActiveByIds($productIds);
 
             if ($products === []) {
@@ -90,15 +92,27 @@ final class ProductReservationManager
 
             $this->entityManager->persist($reservation);
             $this->entityManager->flush();
-            $this->loyaltyManager->redeemForProductReservation($reservation, $reservation->getLoyaltyUsedCents());
+            $loyaltyTransaction = $this->loyaltyManager->redeemForProductReservation(
+                $reservation,
+                $reservation->getLoyaltyUsedCents(),
+                false,
+            );
 
             return $reservation;
         });
+
+        $this->notificationMailer->sendProductReservationChanged($reservation, 'created');
+
+        if ($loyaltyTransaction !== null) {
+            $this->notificationMailer->sendLoyaltyMovement($loyaltyTransaction);
+        }
+
+        return $reservation;
     }
 
     public function confirm(ProductReservation $reservation, User $administrator, string $note = ''): ProductReservation
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $note): ProductReservation {
+        $result = $this->entityManager->wrapInTransaction(function () use ($reservation, $note): ProductReservation {
             if (!$reservation->isReserved()) {
                 throw new \InvalidArgumentException('Seule une réservation en attente de retrait peut être validée.');
             }
@@ -107,11 +121,15 @@ final class ProductReservationManager
                 ->setAdminNote($note)
                 ->confirm();
         });
+
+        $this->notificationMailer->sendProductReservationChanged($result, 'confirmed');
+
+        return $result;
     }
 
     public function withdraw(ProductReservation $reservation, User $administrator, string $note = ''): ProductReservation
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $note): ProductReservation {
+        $result = $this->entityManager->wrapInTransaction(function () use ($reservation, $note): ProductReservation {
             if (!$reservation->isReserved() && !$reservation->isConfirmed()) {
                 throw new \InvalidArgumentException('Seule une réservation gardée en magasin peut être marquée comme retirée.');
             }
@@ -126,11 +144,16 @@ final class ProductReservationManager
 
             return $reservation;
         });
+
+        $this->notificationMailer->sendProductReservationChanged($result, 'sold');
+
+        return $result;
     }
 
     public function cancelByCustomer(ProductReservation $reservation, User $customer): ProductReservation
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $customer): ProductReservation {
+        $loyaltyTransaction = null;
+        $result = $this->entityManager->wrapInTransaction(function () use ($reservation, $customer, &$loyaltyTransaction): ProductReservation {
             if ($reservation->getCustomer() !== $customer) {
                 throw new \InvalidArgumentException('Cette réservation ne vous appartient pas.');
             }
@@ -140,19 +163,29 @@ final class ProductReservationManager
             }
 
             $reservation->cancelByCustomer();
-            $this->loyaltyManager->refundProductReservation(
+            $loyaltyTransaction = $this->loyaltyManager->refundProductReservation(
                 $reservation,
                 null,
                 sprintf('Remboursement fidélité après annulation client de la réservation boutique #%d.', $reservation->getId() ?? 0),
+                false,
             );
 
             return $reservation;
         });
+
+        $this->notificationMailer->sendProductReservationChanged($result, 'cancelled_by_customer');
+
+        if ($loyaltyTransaction !== null) {
+            $this->notificationMailer->sendLoyaltyMovement($loyaltyTransaction);
+        }
+
+        return $result;
     }
 
     public function cancelByAdmin(ProductReservation $reservation, User $administrator, string $note = ''): ProductReservation
     {
-        return $this->entityManager->wrapInTransaction(function () use ($reservation, $administrator, $note): ProductReservation {
+        $loyaltyTransaction = null;
+        $result = $this->entityManager->wrapInTransaction(function () use ($reservation, $administrator, $note, &$loyaltyTransaction): ProductReservation {
             if (!$reservation->isReserved()) {
                 throw new \InvalidArgumentException('Seule une réservation en attente de retrait peut être annulée.');
             }
@@ -160,14 +193,23 @@ final class ProductReservationManager
             $reservation
                 ->setAdminNote($note)
                 ->cancelByAdmin();
-            $this->loyaltyManager->refundProductReservation(
+            $loyaltyTransaction = $this->loyaltyManager->refundProductReservation(
                 $reservation,
                 $administrator,
                 sprintf('Remboursement fidélité après annulation admin de la réservation boutique #%d.', $reservation->getId() ?? 0),
+                false,
             );
 
             return $reservation;
         });
+
+        $this->notificationMailer->sendProductReservationChanged($result, 'cancelled_by_admin');
+
+        if ($loyaltyTransaction !== null) {
+            $this->notificationMailer->sendLoyaltyMovement($loyaltyTransaction);
+        }
+
+        return $result;
     }
 
     /**
@@ -178,25 +220,42 @@ final class ProductReservationManager
         $now ??= new \DateTimeImmutable();
         $expired = 0;
         $refundedCents = 0;
+        $expiredReservations = [];
+        $loyaltyTransactions = [];
 
-        $this->entityManager->wrapInTransaction(function () use ($now, &$expired, &$refundedCents): void {
+        $this->entityManager->wrapInTransaction(function () use ($now, &$expired, &$refundedCents, &$expiredReservations, &$loyaltyTransactions): void {
             foreach ($this->reservationRepository->findExpirable($now) as $reservation) {
                 $refundable = $reservation->getRefundableLoyaltyCents();
                 $reservation->expire();
-                $this->loyaltyManager->refundProductReservation(
+                $loyaltyTransaction = $this->loyaltyManager->refundProductReservation(
                     $reservation,
                     null,
                     sprintf('Remboursement fidélité après expiration automatique de la réservation boutique #%d.', $reservation->getId() ?? 0),
+                    false,
                 );
 
                 ++$expired;
                 $refundedCents += $refundable;
+                $expiredReservations[] = $reservation;
+
+                if ($loyaltyTransaction !== null) {
+                    $loyaltyTransactions[] = $loyaltyTransaction;
+                }
             }
         });
+
+        foreach ($expiredReservations as $reservation) {
+            $this->notificationMailer->sendProductReservationChanged($reservation, 'expired');
+        }
+
+        foreach ($loyaltyTransactions as $transaction) {
+            $this->notificationMailer->sendLoyaltyMovement($transaction);
+        }
 
         return [
             'expired' => $expired,
             'refunded_cents' => $refundedCents,
         ];
     }
+
 }

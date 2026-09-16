@@ -11,6 +11,7 @@ use App\Repository\AppointmentRepository;
 use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
 use App\Service\LoyaltyManager;
+use App\Service\CustomerNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,6 +29,7 @@ final class AppointmentController extends AbstractController
         private readonly AppointmentRepository $appointmentRepository,
         private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -198,6 +200,7 @@ final class AppointmentController extends AbstractController
         $user = $this->getUser();
         $admin = $user instanceof User ? $user : null;
 
+        $previousStatus = $appointment->getStatus();
         $appointment
             ->setStatus($status)
             ->setStatusChangedBy($admin)
@@ -205,6 +208,11 @@ final class AppointmentController extends AbstractController
 
         $this->loyaltyManager->syncAppointmentStatus($appointment, $admin);
         $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
+
+        if ($previousStatus !== $appointment->getStatus()) {
+            $this->notificationMailer->sendAppointmentChanged($appointment);
+        }
+
         $this->addFlash('success', 'Le statut du rendez-vous a été mis à jour.');
 
         return $this->redirectToRoute('app_admin_appointment_index');

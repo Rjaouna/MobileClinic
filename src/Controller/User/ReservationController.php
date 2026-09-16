@@ -12,6 +12,7 @@ use App\Repository\ProductReservationRepository;
 use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
 use App\Service\GeneralSettingManager;
+use App\Service\CustomerNotificationMailer;
 use App\Service\LoyaltyManager;
 use App\Service\ProductReservationManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,6 +35,7 @@ final class ReservationController extends AbstractController
         private readonly ProductReservationManager $productReservationManager,
         private readonly GeneralSettingManager $generalSettingManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -57,7 +59,7 @@ final class ReservationController extends AbstractController
     }
 
     #[Route('/espace-client/rendez-vous/{id}', name: 'app_user_reservation_show', methods: ['GET'])]
-    public function show(Appointment $appointment): Response
+    public function show(Appointment $appointment, Request $request): Response
     {
         $this->denyUnlessOwner($appointment);
         $customer = $this->getCustomer();
@@ -66,6 +68,7 @@ final class ReservationController extends AbstractController
             'appointment' => $appointment,
             'loyalty' => $this->loyaltyManager->buildAccountView($customer, 4),
             'slot_days' => $this->appointmentScheduler->getBookableSlotDays($appointment),
+            'open_modal' => $request->query->get('modal'),
         ]);
     }
 
@@ -98,6 +101,7 @@ final class ReservationController extends AbstractController
         $appointment->setStatus(Appointment::STATUS_CANCELLED_BY_CLIENT);
         $this->loyaltyManager->syncAppointmentStatus($appointment, $this->getCustomer());
         $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
+        $this->notificationMailer->sendAppointmentChanged($appointment);
         $this->addFlash('success', 'Votre rendez-vous a été annulé.');
 
         return $this->redirectToRoute('app_user_reservation_index');
@@ -130,6 +134,7 @@ final class ReservationController extends AbstractController
 
         $this->appointmentReminderManager->resolveAppointmentNotifications($appointment);
         $this->entityManager->flush();
+        $this->notificationMailer->sendAppointmentChanged($appointment, 'rescheduled');
         $this->addFlash('success', 'Votre rendez-vous a été déplacé.');
 
         return $this->redirectToRoute('app_user_reservation_show', ['id' => $appointment->getId()]);

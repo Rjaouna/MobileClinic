@@ -1,0 +1,27 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block email_title %}Fidélité {{ brand_name }}{% endblock %}
+
+{% block email_content %}
+    <p class="eyebrow">Carte fidélité</p>
+    <h1>{{ is_admin_copy ? 'Un mouvement fidélité a été enregistré.' : 'Votre cagnotte a été mise à jour.' }}</h1>
+    <p>{% if is_admin_copy %}Le solde de <strong>{{ customer.displayName }}</strong> vient de changer.{% else %}Chaque mouvement est tracé pour que votre solde reste clair et vérifiable.{% endif %}</p>
+
+    <span class="status">{{ transaction.statusLabel }}</span>
+    <div class="panel">
+        <table class="detail" role="presentation">
+            {% if is_admin_copy %}<tr><td class="detail-label">Client</td><td class="detail-value">{{ customer.displayName }}</td></tr>{% endif %}
+            <tr><td class="detail-label">Mouvement</td><td class="detail-value">{{ transaction.typeLabel }}</td></tr>
+            <tr><td class="detail-label">Montant</td><td class="detail-value" style="color:#ec1c24;">{{ amount_label }}</td></tr>
+            <tr><td class="detail-label">Nouveau solde</td><td class="detail-value">{{ balance_label }}</td></tr>
+            <tr><td class="detail-label">Statut</td><td class="detail-value">{{ transaction.statusLabel }}</td></tr>
+            <tr><td class="detail-label">Motif</td><td class="detail-value">{{ transaction.reason }}</td></tr>
+        </table>
+    </div>
+
+    {% if is_admin_copy %}
+        <a class="button" href="{{ customer_admin_url }}">Ouvrir la carte fidélité</a>
+    {% else %}
+        <a class="button" href="{{ loyalty_url }}">Consulter ma cagnotte</a>
+    {% endif %}
+{% endblock %}

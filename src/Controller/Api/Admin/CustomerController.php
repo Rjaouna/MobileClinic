@@ -6,6 +6,7 @@ namespace App\Controller\Api\Admin;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\CustomerNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +24,7 @@ final class CustomerController extends AbstractController
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly ValidatorInterface $validator,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -52,11 +54,20 @@ final class CustomerController extends AbstractController
             return $this->validationError($errors);
         }
 
-        $customer->setPassword($this->passwordHasher->hashPassword($customer, $password));
+        $customer
+            ->setPassword($this->passwordHasher->hashPassword($customer, $password))
+            ->requirePasswordChange();
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
+        $emailSent = $this->notificationMailer->sendAccountCreated($customer, $password, true);
 
-        return $this->success('Le client a été créé.', $request, $customer);
+        return $this->success(
+            $emailSent
+                ? 'Le client a été créé et son accès lui a été envoyé par e-mail.'
+                : 'Le client a été créé, mais l’e-mail d’accès n’a pas pu être envoyé.',
+            $request,
+            $customer,
+        );
     }
 
     #[Route('/api/admin/clients/{id}', name: 'app_api_admin_customer_update', methods: ['POST'])]

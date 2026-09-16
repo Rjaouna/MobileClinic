@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\AppointmentRepository;
 use App\Service\AppointmentReminderManager;
 use App\Service\LoyaltyManager;
+use App\Service\CustomerNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +27,7 @@ final class AppointmentController extends AbstractController
         private readonly AppointmentReminderManager $appointmentReminderManager,
         private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly CustomerNotificationMailer $notificationMailer,
     ) {
     }
 
@@ -60,6 +62,8 @@ final class AppointmentController extends AbstractController
         $action = (string) $request->request->get('status');
         $admin = $this->getAdmin();
         $adminNote = (string) $request->request->get('admin_note');
+        $previousStatus = $appointment->getStatus();
+        $previousSchedule = $appointment->getScheduledAt()->format('Y-m-d H:i').':'.$appointment->getDurationMinutes();
 
         if ($action !== 'reschedule' && !in_array($action, Appointment::ADMIN_ACTION_STATUSES, true)) {
             return $this->validationError('Le statut sélectionné est invalide.');
@@ -84,6 +88,7 @@ final class AppointmentController extends AbstractController
 
             $this->appointmentReminderManager->refreshReminders();
             $this->entityManager->flush();
+            $this->notificationMailer->sendAppointmentChanged($appointment, 'rescheduled');
 
             return $this->success($request, 'Le rendez-vous a été reporté.');
         }
@@ -103,6 +108,14 @@ final class AppointmentController extends AbstractController
 
         $this->loyaltyManager->syncAppointmentStatus($appointment, $admin);
         $this->appointmentReminderManager->refreshReminders();
+        $currentSchedule = $appointment->getScheduledAt()->format('Y-m-d H:i').':'.$appointment->getDurationMinutes();
+
+        if ($previousStatus !== $appointment->getStatus() || $previousSchedule !== $currentSchedule) {
+            $this->notificationMailer->sendAppointmentChanged(
+                $appointment,
+                $previousSchedule !== $currentSchedule ? 'rescheduled' : 'status_changed',
+            );
+        }
 
         return $this->success($request, $scheduleChange === null
             ? 'Le statut du rendez-vous a été mis à jour.'

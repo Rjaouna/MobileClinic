@@ -1,0 +1,16 @@
+RÉSERVATION BOUTIQUE #{{ reservation.id }}
+
+{% if is_admin_copy %}La réservation de {{ customer.displayName }} a changé.{% else %}{{ title }}.{% endif %}
+
+Statut : {{ reservation.statusLabel }}
+Articles : {% for item in reservation.items %}{{ item.productName }}{% if not loop.last %}, {% endif %}{% endfor %}
+Total promo : {{ total_label }}
+Fidélité utilisée : {{ loyalty_used_label }}
+Fidélité remboursée : {{ loyalty_refunded_label }}
+À régler en magasin : {{ payable_label }}
+{% if reservation.expiresAt %}Gardée jusqu’au : {{ expires_label }}{% endif %}
+
+{% if is_admin_copy %}Administration : {{ admin_reservation_url }}{% else %}Voir ma réservation : {{ reservation_url }}{% endif %}
+
+{{ setting.storeAddress }}
+{{ setting.storePhone }}

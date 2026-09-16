@@ -1,0 +1,36 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block email_title %}Votre compte {{ brand_name }}{% endblock %}
+
+{% block email_content %}
+    <p class="eyebrow">Espace client</p>
+    {% if is_admin_copy %}
+        <h1>Un compte client vient d’être créé.</h1>
+        <p>Le compte de <strong>{{ customer.displayName }}</strong> est désormais disponible dans l’administration.</p>
+        <div class="panel">
+            <table class="detail" role="presentation">
+                <tr><td class="detail-label">Client</td><td class="detail-value">{{ customer.displayName }}</td></tr>
+                <tr><td class="detail-label">E-mail</td><td class="detail-value">{{ customer.email }}</td></tr>
+                <tr><td class="detail-label">Téléphone</td><td class="detail-value">{{ customer.phone ?: 'Non renseigné' }}</td></tr>
+                <tr><td class="detail-label">Origine</td><td class="detail-value">{{ created_by_admin ? 'Créé par l’administration' : 'Créé depuis le site' }}</td></tr>
+            </table>
+        </div>
+        <a class="button" href="{{ customer_admin_url }}">Ouvrir le client</a>
+    {% else %}
+        <h1>Bienvenue {{ customer.firstName ?: customer.displayName }}.</h1>
+        <p>Votre espace client {{ brand_name }} est prêt. Vous pouvez y suivre vos rendez-vous, vos réservations boutique et votre cagnotte fidélité.</p>
+
+        {% if temporary_password %}
+            <div class="panel panel--accent">
+                <p style="margin-bottom:8px;color:#101827;font-weight:700;">Votre mot de passe temporaire</p>
+                <p style="margin:0;color:#ec1c24;font-size:22px;font-weight:800;letter-spacing:1px;">{{ temporary_password }}</p>
+            </div>
+            <p>Pour votre sécurité, connectez-vous puis choisissez immédiatement un nouveau mot de passe depuis votre profil. Ne transmettez jamais ce code.</p>
+        {% else %}
+            <p>Connectez-vous avec l’adresse <strong>{{ customer.email }}</strong> et le mot de passe choisi lors de votre inscription.</p>
+        {% endif %}
+
+        <a class="button" href="{{ login_url }}">Me connecter</a>
+        <a class="button button--secondary" href="{{ profile_url }}">Gérer mon profil</a>
+    {% endif %}
+{% endblock %}

@@ -4,7 +4,7 @@
 {% block meta_description %}Détail d’un rendez-vous Mobile Clinic.{% endblock %}
 
 {% block body %}
-    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh', { appointment_id: appointment.id }) }}" data-user-live-refresh-interval="10000">
+    <main class="dashboard-page dashboard-page--user" data-user-live-refresh data-user-live-refresh-url="{{ path('app_api_user_live_refresh', { appointment_id: appointment.id }) }}" data-user-live-refresh-interval="10000" {% if open_modal|default(null) %}data-initial-modal="{{ open_modal }}"{% endif %}>
         <section class="dashboard-shell" aria-labelledby="reservation-show-title">
             <header class="dashboard-header">
                 {% include 'user/reservation/partial/_show_heading.html.twig' with {

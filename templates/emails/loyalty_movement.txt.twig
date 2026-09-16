@@ -1,0 +1,14 @@
+FIDÉLITÉ {{ brand_name|upper }}
+
+{% if is_admin_copy %}Mouvement enregistré pour {{ customer.displayName }}.{% else %}Votre cagnotte a été mise à jour.{% endif %}
+
+Type : {{ transaction.typeLabel }}
+Montant : {{ amount_label }}
+Nouveau solde : {{ balance_label }}
+Statut : {{ transaction.statusLabel }}
+Motif : {{ transaction.reason }}
+
+{% if is_admin_copy %}Ouvrir la carte : {{ customer_admin_url }}{% else %}Consulter ma cagnotte : {{ loyalty_url }}{% endif %}
+
+{{ setting.storeAddress }}
+{{ setting.storePhone }}

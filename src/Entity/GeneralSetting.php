@@ -29,7 +29,7 @@ class GeneralSetting
     public const DEFAULT_HOME_HERO_TITLE = 'Votre téléphone,';
     public const DEFAULT_HOME_HERO_HIGHLIGHT = 'sans attente inutile.';
     public const DEFAULT_HOME_HERO_DESCRIPTION = 'Réservez une réparation ou mettez un article de côté en quelques instants. Un service rapide, clair et professionnel.';
-    public const DEFAULT_HOME_PROMOTION_PHOTO_PATH = '/images/home-promotions-store-v2.webp';
+    public const DEFAULT_HOME_PROMOTION_PHOTO_PATH = '/images/home-promotions-lifestyle-v3.webp';
     public const DEFAULT_LEGAL_PROFILE = [
         'company_name' => 'Mobile Clinic',
         'trade_name' => 'Mobile Clinic',
