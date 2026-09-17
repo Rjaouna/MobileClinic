@@ -8,8 +8,9 @@
         <section class="dashboard-shell" aria-labelledby="user-dashboard-title">
             <header class="dashboard-header">
                 <div>
-                    <p class="dashboard-kicker">Espace client</p>
-                    <h1 id="user-dashboard-title">Mon espace</h1>
+                    <p class="dashboard-kicker">Vue d’ensemble</p>
+                    <h1 id="user-dashboard-title">Bonjour {{ customer.firstName ?: customer.displayName }} !<span class="dashboard-contract-copy"> Mon espace</span></h1>
+                    <p>Voici l’essentiel de votre espace client.</p>
                     {% include 'user/partial/_account_line.html.twig' with {
                         id: 'user-dashboard-account-line',
                         customer: customer
@@ -77,18 +78,25 @@
 
             {% include 'components/_flash_messages.html.twig' %}
 
-            {% include 'user/dashboard/partial/_overview.html.twig' with {
-                customer: customer,
-                appointments: appointments,
-                next_appointment: next_appointment
-            } only %}
+            <div class="client-overview-grid">
+                {% include 'user/dashboard/partial/_overview.html.twig' with {
+                    customer: customer,
+                    appointments: appointments,
+                    next_appointment: next_appointment
+                } only %}
 
-            {% include 'components/_loyalty_summary.html.twig' with {
-                id: 'user-dashboard-loyalty',
-                title: 'Ma cagnotte fidélité',
-                loyalty: loyalty,
-                href: path('app_user_loyalty_index')
-            } only %}
+                {% include 'user/dashboard/partial/_store_reservations.html.twig' with {
+                    reservations: product_reservations,
+                    setting: setting
+                } only %}
+
+                {% include 'components/_loyalty_summary.html.twig' with {
+                    id: 'user-dashboard-loyalty',
+                    title: 'Ma fidélité',
+                    loyalty: loyalty,
+                    href: path('app_user_loyalty_index')
+                } only %}
+            </div>
 
             <section class="admin-panel" aria-labelledby="user-dashboard-appointments-title">
                 <div class="admin-panel__header">
@@ -103,11 +111,6 @@
                     appointments: appointments
                 } only %}
             </section>
-
-            {% include 'user/dashboard/partial/_store_reservations.html.twig' with {
-                reservations: product_reservations,
-                setting: setting
-            } only %}
 
             {% include 'user/reservation/partial/_modal_stack.html.twig' with {
                 appointments: appointments,

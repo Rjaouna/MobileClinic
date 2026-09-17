@@ -1,0 +1,136 @@
+{% set is_admin_workspace = workspace_type == 'admin' %}
+{% set home_path = is_admin_workspace ? path('app_admin_dashboard') : path('app_user_dashboard') %}
+{% set role_label = is_admin_workspace ? 'Administration' : 'Espace client' %}
+{% set account_name = app.user ? app.user.displayName : 'Mobile Clinic' %}
+{% set account_initial = account_name|slice(0, 1)|upper %}
+
+{% if is_admin_workspace %}
+    {% set navigation_items = [
+        { label: 'Vue d’ensemble', href: path('app_admin_dashboard'), icon: 'home', active: current_route == 'app_admin_dashboard' },
+        { label: 'Rendez-vous', href: path('app_admin_appointment_index'), icon: 'calendar', active: current_route starts with 'app_admin_appointment' },
+        { label: 'Clients', href: path('app_admin_customer_index'), icon: 'user', active: current_route starts with 'app_admin_customer' },
+        { label: 'Promotions', href: path('app_admin_product_index'), icon: 'bag', active: current_route starts with 'app_admin_product' and not (current_route starts with 'app_admin_product_reservation') },
+        { label: 'Réservations', href: path('app_admin_product_reservation_index'), icon: 'briefcase', active: current_route starts with 'app_admin_product_reservation' },
+        { label: 'Actualités', href: path('app_admin_news_index'), icon: 'news', active: current_route starts with 'app_admin_news' },
+        { label: 'Recrutement', href: path('app_admin_recruitment_index'), icon: 'briefcase', active: current_route starts with 'app_admin_recruitment' },
+        { label: 'Fidélité', href: path('app_admin_loyalty_index'), icon: 'spark', active: current_route starts with 'app_admin_loyalty' },
+        { label: 'Paramètres', href: path('app_admin_settings_index'), icon: 'tool', active: current_route starts with 'app_admin_settings' }
+    ] %}
+{% else %}
+    {% set navigation_items = [
+        { label: 'Vue d’ensemble', href: path('app_user_dashboard'), icon: 'home', active: current_route == 'app_user_dashboard' },
+        { label: 'Mes rendez-vous', href: path('app_user_reservation_index'), icon: 'calendar', active: current_route starts with 'app_user_reservation' and not (current_route starts with 'app_user_product_reservation') },
+        { label: 'Mes réservations', href: path('app_user_product_reservation_index'), icon: 'bag', active: current_route starts with 'app_user_product_reservation' },
+        { label: 'Ma fidélité', href: path('app_user_loyalty_index'), icon: 'spark', active: current_route == 'app_user_loyalty_index' },
+        { label: 'Afficher mon QR code', href: path('app_user_loyalty_qr_code'), icon: 'qr-code', active: current_route == 'app_user_loyalty_qr_code' },
+        { label: 'Mon profil', href: path('app_user_profile_index'), icon: 'user', active: current_route starts with 'app_user_profile' },
+        { label: 'Boutique', href: path('app_public_product_index'), icon: 'cart', active: false }
+    ] %}
+{% endif %}
+
+<aside class="workspace-sidebar" aria-label="Navigation {{ role_label|lower }}">
+    <a class="workspace-brand" href="{{ home_path }}" aria-label="Accueil {{ role_label|lower }}">
+        <span class="workspace-brand__mark" aria-hidden="true">M</span>
+        <span class="workspace-brand__copy">
+            <strong>Mobile Clinic</strong>
+            <small>Répare. Connecte. Vous suit.</small>
+        </span>
+    </a>
+
+    <nav class="workspace-navigation" aria-label="Rubriques principales">
+        {% for item in navigation_items %}
+            <a class="workspace-navigation__link{{ item.active ? ' is-active' : '' }}" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}>
+                <span class="workspace-navigation__icon" aria-hidden="true">
+                    {% include 'components/_icon.html.twig' with { name: item.icon, size: 19 } only %}
+                </span>
+                <span>{{ item.label }}</span>
+            </a>
+        {% endfor %}
+    </nav>
+
+    <div class="workspace-sidebar__footer">
+        {% if is_admin_workspace %}
+            <a class="workspace-navigation__link" href="{{ path('app_public_home') }}">
+                <span class="workspace-navigation__icon" aria-hidden="true">
+                    {% include 'components/_icon.html.twig' with { name: 'home', size: 19 } only %}
+                </span>
+                <span>Voir le site</span>
+            </a>
+        {% endif %}
+
+        <form class="dashboard-logout-form" action="{{ path('app_logout') }}" method="post" data-turbo="false">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button class="workspace-navigation__link" type="submit">
+                <span class="workspace-navigation__icon" aria-hidden="true">
+                    {% include 'components/_icon.html.twig' with { name: 'logout', size: 19 } only %}
+                </span>
+                <span>Déconnexion</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+<header class="workspace-mobile-bar">
+    <button class="workspace-mobile-bar__menu" type="button" data-modal-open="workspace-mobile-menu" aria-controls="workspace-mobile-menu" aria-haspopup="dialog" aria-label="Ouvrir le menu">
+        {% include 'components/_icon.html.twig' with { name: 'menu', size: 22 } only %}
+    </button>
+    <a class="workspace-mobile-brand" href="{{ home_path }}">
+        <span class="workspace-brand__mark" aria-hidden="true">M</span>
+        <strong>Mobile Clinic</strong>
+    </a>
+    <span class="workspace-mobile-bar__avatar" title="{{ account_name }}">{{ account_initial }}</span>
+</header>
+
+<dialog class="modal modal--fullscreen workspace-menu-modal" id="workspace-mobile-menu" aria-labelledby="workspace-mobile-menu-title">
+    <div class="modal__panel workspace-menu-modal__panel" role="document">
+        <header class="workspace-menu-modal__header">
+            <a class="workspace-brand" href="{{ home_path }}">
+                <span class="workspace-brand__mark" aria-hidden="true">M</span>
+                <span class="workspace-brand__copy">
+                    <strong id="workspace-mobile-menu-title">Mobile Clinic</strong>
+                    <small>Répare. Connecte. Vous suit.</small>
+                </span>
+            </a>
+            <button class="workspace-menu-modal__close" type="button" data-modal-close aria-label="Fermer le menu">
+                {% include 'components/_icon.html.twig' with { name: 'x', size: 24 } only %}
+            </button>
+        </header>
+
+        <div class="workspace-menu-modal__body">
+            <nav class="workspace-navigation workspace-navigation--mobile" aria-label="Menu {{ role_label|lower }}">
+                {% for item in navigation_items %}
+                    <a class="workspace-navigation__link{{ item.active ? ' is-active' : '' }}" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}>
+                        <span class="workspace-navigation__icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: item.icon, size: 20 } only %}
+                        </span>
+                        <span>{{ item.label }}</span>
+                    </a>
+                {% endfor %}
+            </nav>
+
+            <div class="workspace-menu-modal__footer">
+                {% if is_admin_workspace %}
+                    <a class="workspace-navigation__link" href="{{ path('app_public_home') }}">
+                        <span class="workspace-navigation__icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'home', size: 20 } only %}
+                        </span>
+                        <span>Voir le site</span>
+                    </a>
+                {% endif %}
+                <form class="dashboard-logout-form" action="{{ path('app_logout') }}" method="post" data-turbo="false">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                    <button class="workspace-navigation__link" type="submit">
+                        <span class="workspace-navigation__icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'logout', size: 20 } only %}
+                        </span>
+                        <span>Déconnexion</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+{% if is_admin_workspace %}
+    <a class="dashboard-site-button dashboard-contract-navigation" href="{{ path('app_public_home') }}" aria-hidden="true" tabindex="-1">Voir le site</a>
+{% endif %}

@@ -7,7 +7,10 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\LoyaltyManager;
+use App\Service\LoyaltyQrCodeService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Exception\ExpiredSignedUriException;
+use Symfony\Component\HttpFoundation\Exception\SignedUriException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -34,6 +37,30 @@ final class LoyaltyController extends AbstractController
             'filter' => $filter,
             'setting' => $this->loyaltyManager->getSetting(),
         ]);
+    }
+
+    #[Route('/admin/fidelite/scan/{id}', name: 'app_admin_loyalty_scan', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function scan(Request $request, User $customer, LoyaltyQrCodeService $loyaltyQrCodeService): Response
+    {
+        try {
+            $loyaltyQrCodeService->verify($request);
+        } catch (ExpiredSignedUriException) {
+            return $this->render('admin/loyalty/scan_error.html.twig', [
+                'expired' => true,
+            ], new Response(status: Response::HTTP_GONE));
+        } catch (SignedUriException) {
+            return $this->render('admin/loyalty/scan_error.html.twig', [
+                'expired' => false,
+            ], new Response(status: Response::HTTP_FORBIDDEN));
+        }
+
+        if (in_array('ROLE_ADMIN', $customer->getRoles(), true)) {
+            throw $this->createAccessDeniedException('Ce compte n’est pas une carte fidélité client.');
+        }
+
+        $this->addFlash('success', sprintf('Client identifié : %s. Sa carte fidélité est ouverte.', $customer->getDisplayName()));
+
+        return $this->redirectToRoute('app_admin_loyalty_show', ['id' => $customer->getId()]);
     }
 
     #[Route('/admin/fidelite/{id}', name: 'app_admin_loyalty_show', methods: ['GET'])]

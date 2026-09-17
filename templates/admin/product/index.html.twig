@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Promotions admin - Mobile Clinic{% endblock %}
-{% block meta_description %}Gestion administrateur des promotions et réservations boutique Mobile Clinic.{% endblock %}
+{% block meta_description %}Gestion administrateur du catalogue promotionnel Mobile Clinic.{% endblock %}
 
 {% block body %}
-    <main class="dashboard-page dashboard-page--admin" data-admin-store-live-refresh data-admin-store-live-refresh-url="{{ path('app_api_admin_product_reservation_refresh') }}" data-admin-store-live-refresh-interval="10000">
+    <main class="dashboard-page dashboard-page--admin">
         <section class="dashboard-shell" aria-labelledby="admin-product-title">
             <header class="dashboard-header">
                 <div>
                     <p class="dashboard-kicker">Administration</p>
                     <h1 id="admin-product-title">Promotions</h1>
-                    <p>Ajoutez des articles, gérez les infos personnalisées et suivez les réservations magasin.</p>
+                    <p>Ajoutez des articles et gérez les offres visibles dans la boutique.</p>
                 </div>
 
                 {% include 'components/_dashboard_navigation.html.twig' with {
@@ -25,13 +25,6 @@
                             icon: 'bag',
                             modal_target: 'product-add-modal',
                             description: 'Créer une promotion boutique.'
-                        },
-                        {
-                            label: 'Réservations boutique',
-                            href: path('app_admin_product_index') ~ '#product-reservation-title',
-                            variant: 'secondary',
-                            icon: 'briefcase',
-                            description: 'Articles gardés en magasin.'
                         },
                         {
                             label: 'Articles vendus',
@@ -86,44 +79,6 @@
                     {% include 'admin/product/partial/_table.html.twig' with {
                         products: products,
                         reserved_product_ids: reserved_product_ids
-                    } only %}
-                {% endblock %}
-            {% endembed %}
-
-            {% embed 'components/_data_table_shell.html.twig' with {
-                id: 'product-reservation-title',
-                kicker: 'Réservations boutique',
-                title: 'Articles gardés en magasin',
-                subtitle: 'Une validation définitive empêche l’annulation automatique par délai.',
-                count_label: reservations|length ~ ' réservation' ~ (reservations|length > 1 ? 's' : ''),
-                icon: 'briefcase'
-            } %}
-                {% block table_actions %}
-                    <form class="filter-form filter-form--wide filter-form--instant data-table-filter" method="get" action="{{ path('app_admin_product_index') }}" data-instant-filter>
-                        <label for="reservation-search">Recherche</label>
-                        <input id="reservation-search" type="search" name="reservation_search" placeholder="Client, téléphone ou article" autocomplete="off">
-                        <label for="reservation-status-filter">Statut</label>
-                        <select id="reservation-status-filter" name="reservation_status">
-                            <option value="">Tous les statuts</option>
-                            {% for value, label in reservation_status_labels %}
-                                <option value="{{ value }}" {% if reservation_status == value %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <label for="reservation-urgency-filter">Échéance</label>
-                        <select id="reservation-urgency-filter" name="reservation_urgency">
-                            <option value="">Tous les délais</option>
-                            <option value="comfortable">Délai confortable</option>
-                            <option value="soon">Clients à appeler</option>
-                            <option value="critical">Urgent</option>
-                            <option value="expired">Expiré</option>
-                        </select>
-                    </form>
-                {% endblock %}
-
-                {% block table_content %}
-                    {% include 'admin/product/partial/_reservation_table.html.twig' with {
-                        reservations: reservations,
-                        setting: setting
                     } only %}
                 {% endblock %}
             {% endembed %}

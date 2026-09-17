@@ -8,6 +8,7 @@ use App\Entity\Appointment;
 use App\Entity\AppointmentAvailability;
 use App\Entity\User;
 use App\Service\LoyaltyManager;
+use App\Service\LoyaltyQrCodeService;
 use App\Tests\DatabaseResetTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class AdminAndLoyaltyAccessTest extends WebTestCase
@@ -70,6 +72,7 @@ final class AdminAndLoyaltyAccessTest extends WebTestCase
         self::assertSelectorExists('.admin-panel--priority .admin-access-card[href="/admin/rendez-vous"]');
         self::assertSelectorTextContains('.admin-panel--priority .admin-access-card[href="/admin/rendez-vous"] .nav-badge', '2');
         self::assertSelectorTextContains('.admin-panel--priority .admin-access-card[href="/admin/clients"] .nav-badge', '2');
+        self::assertSelectorExists('.admin-panel--priority .admin-access-card[href="/admin/reservations-boutique"]');
         self::assertSelectorExists('.admin-panel--priority .btn[href="/"]');
         self::assertSelectorExists('.admin-panel--priority form.dashboard-logout-form[action="/deconnexion"][method="post"]');
         self::assertLessThan(
@@ -89,6 +92,7 @@ final class AdminAndLoyaltyAccessTest extends WebTestCase
         $cases = [
             ['/admin/rendez-vous', 'admin-appointment-menu', ['/admin/promotions', '/admin/clients', '/admin/fidelite']],
             ['/admin/promotions', 'admin-product-menu', ['/admin/rendez-vous', '/admin/clients', '/admin/fidelite', '/admin/parametres-generaux']],
+            ['/admin/reservations-boutique', 'admin-product-reservation-menu', ['/admin/rendez-vous', '/admin/promotions', '/admin/clients', '/admin/fidelite', '/admin/parametres-generaux']],
             ['/admin/clients', 'admin-customer-menu', ['/admin/rendez-vous', '/admin/promotions', '/admin/fidelite', '/admin/parametres-generaux']],
             ['/admin/fidelite', 'admin-loyalty-menu', ['/admin/rendez-vous', '/admin/promotions', '/admin/clients', '/admin/parametres-generaux']],
             ['/admin/parametres-generaux', 'admin-settings-menu', ['/admin/rendez-vous', '/admin/promotions', '/admin/clients', '/admin/fidelite']],
@@ -150,6 +154,13 @@ final class AdminAndLoyaltyAccessTest extends WebTestCase
         $this->client->request('GET', '/admin/promotions');
         self::assertResponseIsSuccessful();
         self::assertSelectorNotExists('dialog#admin-product-menu a[href="/admin/promotions#product-filter-title"]');
+        self::assertSelectorNotExists('#product-reservation-title');
+
+        $this->client->request('GET', '/admin/reservations-boutique');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('#product-reservation-title');
+        self::assertSelectorNotExists('#product-filter-title');
+        self::assertSelectorExists('.workspace-navigation__link.is-active[href="/admin/reservations-boutique"]');
 
         $this->client->request('GET', '/admin/rendez-vous');
         self::assertResponseIsSuccessful();
@@ -184,6 +195,38 @@ final class AdminAndLoyaltyAccessTest extends WebTestCase
     }
 
     #[Test]
+    public function clientSectionsShowTheirPrimaryContentBeforeLoyalty(): void
+    {
+        $customer = $this->user('content-order-user@symaclinic.fr', '+33602000986');
+        $appointment = $this->appointment($customer, 'iPhone', 'Batterie faible');
+        $this->entityManager->flush();
+
+        $appointmentId = $appointment->getId();
+        self::assertIsInt($appointmentId);
+
+        $this->client->loginUser($customer);
+
+        $cases = [
+            ['/espace-client/rendez-vous', 'user-reservation-list', 'user-reservation-loyalty'],
+            ['/espace-client/reservations-boutique', 'user-store-reservation-list', 'user-store-loyalty'],
+            [sprintf('/espace-client/rendez-vous/%d', $appointmentId), 'user-reservation-detail-'.$appointmentId, 'user-reservation-show-loyalty'],
+        ];
+
+        foreach ($cases as [$path, $primaryId, $loyaltyId]) {
+            $this->client->request('GET', $path);
+
+            self::assertResponseIsSuccessful();
+            $html = $this->responseContent();
+            $primaryPosition = strpos($html, sprintf('id="%s"', $primaryId));
+            $loyaltyPosition = strpos($html, sprintf('id="%s"', $loyaltyId));
+
+            self::assertNotFalse($primaryPosition);
+            self::assertNotFalse($loyaltyPosition);
+            self::assertTrue($primaryPosition < $loyaltyPosition, sprintf('Le contenu principal de %s doit précéder la fidélité.', $path));
+        }
+    }
+
+    #[Test]
     public function adminCanSeeLoyaltyCardsAndClientCannotEditThem(): void
     {
         $admin = $this->user('admin@symaclinic.fr', '+33602000999', ['ROLE_ADMIN']);
@@ -215,6 +258,52 @@ final class AdminAndLoyaltyAccessTest extends WebTestCase
         $this->client->request('GET', '/espace-client/rendez-vous');
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Ma carte de fidélité', $this->responseContent());
+    }
+
+    #[Test]
+    public function loyaltyQrCodeIdentifiesTheCustomerOnlyForAnAdminAndExpires(): void
+    {
+        $admin = $this->user('qr-admin@symaclinic.fr', '+33602000881', ['ROLE_ADMIN']);
+        $customer = $this->user('qr-client@symaclinic.fr', '+33602000882');
+        $this->entityManager->flush();
+
+        $qrCodeService = static::getContainer()->get(LoyaltyQrCodeService::class);
+        $qrCode = $qrCodeService->createFor($customer);
+
+        self::assertStringStartsWith('data:image/svg+xml;base64,', $qrCode['data_uri']);
+        self::assertStringContainsString('/admin/fidelite/scan/', $qrCode['scan_url']);
+        self::assertStringContainsString('_expiration=', $qrCode['scan_url']);
+        self::assertStringContainsString('_hash=', $qrCode['scan_url']);
+
+        $this->client->loginUser($customer);
+        $this->client->request('GET', '/espace-client/fidelite/qr-code');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.workspace-navigation__link.is-active[href="/espace-client/fidelite/qr-code"]');
+        self::assertSelectorExists('[data-loyalty-qr][data-validity-seconds="300"]');
+        self::assertSelectorExists('.loyalty-qr-card__visual img[src^="data:image/svg+xml;base64,"]');
+
+        $this->client->request('GET', $qrCode['scan_url']);
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+
+        $this->client->loginUser($admin);
+        $this->client->request('GET', $qrCode['scan_url']);
+        self::assertResponseRedirects(sprintf('/admin/fidelite/%d', $customer->getId()));
+        $this->client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', $customer->getDisplayName());
+        self::assertStringContainsString('Client identifié', $this->responseContent());
+
+        $tamperedUrl = preg_replace('/(_hash=)[^&]+/', '$1signature-invalide', $qrCode['scan_url']);
+        self::assertIsString($tamperedUrl);
+        $this->client->request('GET', $tamperedUrl);
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        self::assertSelectorTextContains('h1', 'QR code invalide');
+
+        $expiredQrCode = $qrCodeService->createFor($customer, new \DateTimeImmutable('-10 minutes'));
+        $this->client->request('GET', $expiredQrCode['scan_url']);
+        self::assertResponseStatusCodeSame(Response::HTTP_GONE);
+        self::assertSelectorTextContains('h1', 'QR code expiré');
     }
 
     #[Test]

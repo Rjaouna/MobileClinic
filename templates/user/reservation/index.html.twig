@@ -63,15 +63,15 @@
 
             {% include 'components/_flash_messages.html.twig' %}
 
+            {% include 'user/reservation/partial/_list.html.twig' with {
+                appointments: appointments
+            } only %}
+
             {% include 'components/_loyalty_summary.html.twig' with {
                 id: 'user-reservation-loyalty',
                 title: 'Ma carte de fidélité',
                 loyalty: loyalty,
                 href: path('app_user_loyalty_index')
-            } only %}
-
-            {% include 'user/reservation/partial/_list.html.twig' with {
-                appointments: appointments
             } only %}
 
             {% include 'user/reservation/partial/_modal_stack.html.twig' with {

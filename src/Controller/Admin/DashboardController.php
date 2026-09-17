@@ -19,6 +19,7 @@ use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
 use App\Service\GeneralSettingManager;
 use App\Service\ProductReservationManager;
+use App\Service\StoreCheckInManager;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -43,6 +44,7 @@ final class DashboardController extends AbstractController
         private readonly ProductReservationRepository $productReservationRepository,
         private readonly RecruitmentApplicationRepository $recruitmentApplicationRepository,
         private readonly NewsArticleRepository $newsArticleRepository,
+        private readonly StoreCheckInManager $storeCheckInManager,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
     ) {
@@ -63,6 +65,7 @@ final class DashboardController extends AbstractController
             'user_email' => $this->getUser()?->getUserIdentifier(),
             'loyalty_totals' => $this->loyaltyAccountRepository->getTotals(),
             'reminder_view' => $reminderView,
+            'check_in_view' => $this->storeCheckInManager->buildAdminView(8),
             'reminder_appointments' => array_map(static fn (array $item): Appointment => $item['appointment'], $reminderView['items']),
             'expired_news' => $this->newsArticleRepository->findExpiredActive(),
             'expired_news' => $this->newsArticleRepository->findExpiredActive(),
@@ -175,6 +178,45 @@ final class DashboardController extends AbstractController
         return $this->redirect($this->generateUrl('app_admin_settings_index').'#legal-settings-title');
     }
 
+    #[Route('/admin/parametres-generaux/presence-magasin', name: 'app_admin_settings_check_in_update', methods: ['POST'])]
+    public function updateCheckInSettings(Request $request): RedirectResponse
+    {
+        $this->denyUnlessValidCsrf('admin_store_check_in_settings', $request);
+
+        try {
+            $this->storeCheckInManager->updateSettings(
+                $request->request->getBoolean('store_check_in_enabled'),
+                (int) $request->request->get('store_check_in_expiration_minutes', 15),
+            );
+            $this->addFlash('success', 'Les paramètres de présence magasin ont été mis à jour.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+        }
+
+        return $this->redirect($this->generateUrl('app_admin_settings_index').'#settings-check-in');
+    }
+
+    #[Route('/admin/parametres-generaux/presence-magasin/regenerer', name: 'app_admin_settings_check_in_regenerate', methods: ['POST'])]
+    public function regenerateCheckInQrCode(Request $request): RedirectResponse
+    {
+        $this->denyUnlessValidCsrf('admin_store_check_in_regenerate', $request);
+        $this->storeCheckInManager->regenerateToken();
+        $this->addFlash('success', 'Le QR code magasin a été régénéré. L’ancien code est désormais inutilisable.');
+
+        return $this->redirect($this->generateUrl('app_admin_settings_index').'#settings-check-in');
+    }
+
+    #[Route('/admin/parametres-generaux/presence-magasin/qrcode.svg', name: 'app_admin_settings_check_in_qr_download', methods: ['GET'])]
+    public function downloadCheckInQrCode(): Response
+    {
+        return new Response($this->storeCheckInManager->buildQrCodeSvg(), Response::HTTP_OK, [
+            'Content-Type' => 'image/svg+xml; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="mobile-clinic-presence-magasin.svg"',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -187,6 +229,7 @@ final class DashboardController extends AbstractController
             'availability_ranges_by_day' => $this->appointmentScheduler->getAvailabilityRangesByDay(),
             'days' => $this->appointmentScheduler->getDays(),
             'selected_day' => null,
+            'store_check_in' => $this->storeCheckInManager->buildQrCode(),
         ];
 
         if ($selectedDay !== null && isset(AppointmentAvailability::DAYS[$selectedDay])) {

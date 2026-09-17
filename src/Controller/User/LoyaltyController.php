@@ -6,6 +6,7 @@ namespace App\Controller\User;
 
 use App\Entity\User;
 use App\Service\LoyaltyManager;
+use App\Service\LoyaltyQrCodeService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,8 +15,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class LoyaltyController extends AbstractController
 {
-    public function __construct(private readonly LoyaltyManager $loyaltyManager)
-    {
+    public function __construct(
+        private readonly LoyaltyManager $loyaltyManager,
+        private readonly LoyaltyQrCodeService $loyaltyQrCodeService,
+    ) {
     }
 
     #[Route('/espace-client/fidelite', name: 'app_user_loyalty_index', methods: ['GET'])]
@@ -30,6 +33,22 @@ final class LoyaltyController extends AbstractController
         return $this->render('user/loyalty/index.html.twig', [
             'customer' => $user,
             'loyalty' => $this->loyaltyManager->buildAccountView($user, 8),
+        ]);
+    }
+
+    #[Route('/espace-client/fidelite/qr-code', name: 'app_user_loyalty_qr_code', methods: ['GET'])]
+    public function qrCode(): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('user/loyalty/qr_code.html.twig', [
+            'customer' => $user,
+            'loyalty' => $this->loyaltyManager->buildAccountView($user, 4),
+            'qr_code' => $this->loyaltyQrCodeService->createFor($user),
         ]);
     }
 }

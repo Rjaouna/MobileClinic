@@ -6,7 +6,7 @@
 {% block body %}
     {% set legal = general_setting.legalProfile %}
     <main class="dashboard-page dashboard-page--admin">
-        <section class="dashboard-shell" aria-labelledby="admin-settings-title">
+        <section class="dashboard-shell" aria-labelledby="admin-settings-title" data-settings-tabs-root>
             <header class="dashboard-header">
                 <div>
                     <p class="dashboard-kicker">Administration</p>
@@ -26,62 +26,6 @@
                             icon: 'calendar',
                             modal_target: 'availability-add-modal',
                             description: 'Créer un créneau visible.'
-                        },
-                        {
-                            label: 'Réglages boutique',
-                            href: path('app_admin_settings_index') ~ '#store-settings-title',
-                            variant: 'secondary',
-                            icon: 'bag',
-                            description: 'Délai de réservation et téléphone.'
-                        },
-                        {
-                            label: 'Identité visuelle',
-                            href: path('app_admin_settings_index') ~ '#site-logo-settings-title',
-                            variant: 'secondary',
-                            icon: 'image',
-                            description: 'Logo affiché sur le site.'
-                        },
-                        {
-                            label: 'Page d’accueil',
-                            href: path('app_admin_settings_index') ~ '#homepage-settings-title',
-                            variant: 'secondary',
-                            icon: 'home',
-                            description: 'Photo de fond accueil.'
-                        },
-                        {
-                            label: 'Informations légales',
-                            href: path('app_admin_settings_index') ~ '#legal-settings-title',
-                            variant: 'secondary',
-                            icon: 'shield',
-                            description: 'Société, RGPD et réseaux sociaux.'
-                        },
-                        {
-                            label: 'Rappels rendez-vous',
-                            href: path('app_admin_settings_index') ~ '#appointment-settings-title',
-                            variant: 'secondary',
-                            icon: 'clock',
-                            description: 'Règles des rappels administratifs.'
-                        },
-                        {
-                            label: 'Jours et plages',
-                            href: path('app_admin_settings_index') ~ '#availability-title',
-                            variant: 'secondary',
-                            icon: 'calendar',
-                            description: 'Créneaux visibles aux clients.'
-                        },
-                        {
-                            label: 'Dashboard',
-                            href: path('app_admin_dashboard'),
-                            variant: 'secondary',
-                            icon: 'home',
-                            description: 'Retour à la vue générale.'
-                        },
-                        {
-                            label: 'Déconnexion',
-                            href: path('app_logout'),
-                            variant: 'secondary',
-                            icon: 'logout',
-                            description: 'Quitter la session admin.'
                         }
                     ]
                 } only %}
@@ -89,7 +33,47 @@
 
             {% include 'components/_flash_messages.html.twig' %}
 
-            <section class="admin-panel" aria-labelledby="site-logo-settings-title">
+            <nav class="settings-category-nav" aria-label="Sous-rubriques des paramètres" data-settings-tabs>
+                <div class="settings-category-nav__heading">
+                    <span aria-hidden="true">{% include 'components/_icon.html.twig' with { name: 'tool', size: 20 } only %}</span>
+                    <span>
+                        <strong>Rubriques des paramètres</strong>
+                        <small>Accédez directement au réglage recherché.</small>
+                    </span>
+                </div>
+                <div class="settings-category-nav__links" role="tablist" aria-label="Types de paramètres">
+                    <a id="settings-tab-identity" href="#settings-identity" role="tab" aria-controls="settings-identity" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'image', size: 18 } only %}
+                        <span><strong>Identité</strong><small>Logo du site</small></span>
+                    </a>
+                    <a id="settings-tab-homepage" href="#settings-homepage" role="tab" aria-controls="settings-homepage" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'home', size: 18 } only %}
+                        <span><strong>Accueil</strong><small>Textes et image</small></span>
+                    </a>
+                    <a id="settings-tab-store" href="#settings-store" role="tab" aria-controls="settings-store" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'bag', size: 18 } only %}
+                        <span><strong>Boutique</strong><small>Délais et téléphone</small></span>
+                    </a>
+                    <a id="settings-tab-check-in" href="#settings-check-in" role="tab" aria-controls="settings-check-in" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'qr-code', size: 18 } only %}
+                        <span><strong>Présence</strong><small>QR code magasin</small></span>
+                    </a>
+                    <a id="settings-tab-appointments" href="#settings-appointments" role="tab" aria-controls="settings-appointments" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'clock', size: 18 } only %}
+                        <span><strong>Rendez-vous</strong><small>Rappels et durée</small></span>
+                    </a>
+                    <a id="settings-tab-planning" href="#settings-planning" role="tab" aria-controls="settings-planning" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'calendar', size: 18 } only %}
+                        <span><strong>Planning</strong><small>Jours et plages</small></span>
+                    </a>
+                    <a id="settings-tab-legal" href="#settings-legal" role="tab" aria-controls="settings-legal" aria-selected="false" data-settings-tab>
+                        {% include 'components/_icon.html.twig' with { name: 'shield', size: 18 } only %}
+                        <span><strong>Conformité</strong><small>Société et RGPD</small></span>
+                    </a>
+                </div>
+            </nav>
+
+            <section class="admin-panel settings-section" id="settings-identity" role="tabpanel" aria-labelledby="settings-tab-identity site-logo-settings-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Identité visuelle</p>
@@ -136,7 +120,7 @@
                 </form>
             </section>
 
-            <section class="admin-panel" aria-labelledby="store-settings-title">
+            <section class="admin-panel settings-section" id="settings-store" role="tabpanel" aria-labelledby="settings-tab-store store-settings-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Boutique</p>
@@ -173,7 +157,79 @@
                 </form>
             </section>
 
-            <section class="admin-panel" aria-labelledby="homepage-settings-title">
+            <section class="admin-panel settings-section" id="settings-check-in" role="tabpanel" aria-labelledby="settings-tab-check-in store-check-in-settings-title" data-settings-panel>
+                <div class="admin-panel__header">
+                    <div>
+                        <p class="dashboard-kicker">Accueil client</p>
+                        <h2 id="store-check-in-settings-title">QR code de présence magasin</h2>
+                        <p>Affichez ce code au comptoir : un client connecté peut signaler son arrivée sans transmettre ses identifiants.</p>
+                    </div>
+                    <span class="status-pill {{ general_setting.storeCheckInEnabled ? 'status-pill--success' : 'status-pill--neutral' }}">
+                        {{ general_setting.storeCheckInEnabled ? 'Actif' : 'Désactivé' }}
+                    </span>
+                </div>
+
+                <div class="store-check-in-settings">
+                    <div class="store-check-in-settings__preview">
+                        <span class="store-check-in-settings__label">QR sécurisé du magasin</span>
+                        <img src="{{ store_check_in.data_uri }}" alt="QR code de présence magasin Mobile Clinic" width="280" height="280">
+                        <small>Le code ne contient aucune information client.</small>
+                    </div>
+
+                    <div class="store-check-in-settings__controls">
+                        <form class="settings-form" action="{{ path('app_admin_settings_check_in_update') }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_store_check_in_settings') }}">
+
+                            <label class="toggle-field" for="store-check-in-enabled">
+                                <input id="store-check-in-enabled" type="checkbox" name="store_check_in_enabled" value="1" {% if general_setting.storeCheckInEnabled %}checked{% endif %}>
+                                <span>
+                                    <strong>Autoriser les signalements</strong>
+                                    <small>En désactivant cette option, le QR devient immédiatement inutilisable.</small>
+                                </span>
+                            </label>
+
+                            <div class="field-group">
+                                <label for="store-check-in-expiration">Durée d’une présence</label>
+                                <input id="store-check-in-expiration" type="number" name="store_check_in_expiration_minutes" min="5" max="60" value="{{ general_setting.storeCheckInExpirationMinutes }}" required>
+                                <span class="field-help">Entre 5 et 60 minutes. La notification reste visible jusqu’à une action de l’admin, même lorsque ce délai est dépassé.</span>
+                            </div>
+
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Enregistrer la présence magasin',
+                                variant: 'primary',
+                                type: 'submit',
+                                icon: 'check'
+                            } only %}
+                        </form>
+
+                        <div class="store-check-in-settings__actions">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Télécharger le QR code',
+                                href: path('app_admin_settings_check_in_qr_download'),
+                                variant: 'secondary',
+                                icon: 'download'
+                            } only %}
+
+                            <form action="{{ path('app_admin_settings_check_in_regenerate') }}" method="post">
+                                <input type="hidden" name="_token" value="{{ csrf_token('admin_store_check_in_regenerate') }}">
+                                {% include 'components/_button.html.twig' with {
+                                    label: 'Régénérer le QR code',
+                                    variant: 'secondary',
+                                    type: 'submit',
+                                    icon: 'qr-code'
+                                } only %}
+                            </form>
+                        </div>
+
+                        <p class="settings-security-note">
+                            {% include 'components/_icon.html.twig' with { name: 'shield', size: 19 } only %}
+                            <span>Régénérer le code invalide instantanément tous les anciens exemplaires imprimés.</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-panel settings-section" id="settings-homepage" role="tabpanel" aria-labelledby="settings-tab-homepage homepage-settings-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Accueil</p>
@@ -242,7 +298,7 @@
                 </form>
             </section>
 
-            <section class="admin-panel" aria-labelledby="legal-settings-title">
+            <section class="admin-panel settings-section" id="settings-legal" role="tabpanel" aria-labelledby="settings-tab-legal legal-settings-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Site et conformité</p>
@@ -363,7 +419,7 @@
                 </form>
             </section>
 
-            <section class="admin-panel" aria-labelledby="appointment-settings-title">
+            <section class="admin-panel settings-section" id="settings-appointments" role="tabpanel" aria-labelledby="settings-tab-appointments appointment-settings-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Rendez-vous</p>
@@ -425,7 +481,7 @@
                 </form>
             </section>
 
-            <section class="admin-panel" aria-labelledby="availability-title">
+            <section class="admin-panel settings-section" id="settings-planning" role="tabpanel" aria-labelledby="settings-tab-planning availability-title" data-settings-panel>
                 <div class="admin-panel__header">
                     <div>
                         <p class="dashboard-kicker">Créneaux visibles</p>

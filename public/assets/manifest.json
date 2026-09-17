@@ -1,0 +1,18 @@
+{
+    "@symfony\/stimulus-bundle\/controllers.js": "\/assets\/@symfony\/stimulus-bundle\/controllers-l48UNx5.js",
+    "@symfony\/stimulus-bundle\/loader.js": "\/assets\/@symfony\/stimulus-bundle\/loader-IOzBDLu.js",
+    "@symfony\/ux-turbo\/mercure_stream_source_element.js": "\/assets\/@symfony\/ux-turbo\/mercure_stream_source_element-XIjPTus.js",
+    "@symfony\/ux-turbo\/turbo_controller.js": "\/assets\/@symfony\/ux-turbo\/turbo_controller-bFCo5ub.js",
+    "@symfony\/ux-turbo\/turbo_stream_controller.js": "\/assets\/@symfony\/ux-turbo\/turbo_stream_controller--DAC1Sf.js",
+    "app.js": "\/assets\/app-73ugCwk.js",
+    "controllers\/csrf_protection_controller.js": "\/assets\/controllers\/csrf_protection_controller-6ynUAeX.js",
+    "controllers\/hello_controller.js": "\/assets\/controllers\/hello_controller-VYgvytJ.js",
+    "stimulus_bootstrap.js": "\/assets\/stimulus_bootstrap-xCO4u8H.js",
+    "styles\/app.css": "\/assets\/styles\/app-bCwtkrs.css",
+    "vendor\/@hotwired\/stimulus\/stimulus.index.js": "\/assets\/vendor\/@hotwired\/stimulus\/stimulus.index-ryewcoo.js",
+    "vendor\/@hotwired\/turbo\/turbo.index.js": "\/assets\/vendor\/@hotwired\/turbo\/turbo.index-J4AkTcK.js",
+    "vendor\/axios\/axios.index.js": "\/assets\/vendor\/axios\/axios.index-TDbR5xw.js",
+    "vendor\/datatables.net-dt\/css\/dataTables.dataTables.min.css": "\/assets\/vendor\/datatables.net-dt\/css\/dataTables.dataTables.min-BPpoT2S.css",
+    "vendor\/datatables.net-dt\/datatables.net-dt.index.js": "\/assets\/vendor\/datatables.net-dt\/datatables.net-dt.index-e6BoYjd.js",
+    "vendor\/datatables.net\/datatables.net.index.js": "\/assets\/vendor\/datatables.net\/datatables.net.index-3F6EvYx.js"
+}

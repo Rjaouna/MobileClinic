@@ -230,7 +230,7 @@ final class AdminAppointmentReminderApiTest extends WebTestCase
             }
         }
 
-        self::assertStringContainsString('Aucun rappel actif', $notificationHtml);
+        self::assertStringContainsString('Aucune notification active', $notificationHtml);
         self::assertStringContainsString('aria-labelledby="admin-notification-title" hidden', $notificationHtml);
         self::assertStringNotContainsString('api-client-absent@symaclinic.fr', $notificationHtml);
 

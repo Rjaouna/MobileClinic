@@ -11,6 +11,7 @@ use App\Repository\AppointmentRepository;
 use App\Service\AppointmentReminderManager;
 use App\Service\AppointmentScheduler;
 use App\Service\LoyaltyManager;
+use App\Service\StoreCheckInManager;
 use App\Service\CustomerNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,6 +31,7 @@ final class AppointmentController extends AbstractController
         private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
         private readonly CustomerNotificationMailer $notificationMailer,
+        private readonly StoreCheckInManager $storeCheckInManager,
     ) {
     }
 
@@ -258,6 +260,7 @@ final class AppointmentController extends AbstractController
             'admin_status_choices' => $this->appointmentReminderManager->getAdminStatusChoices(),
             'status_consequences' => $this->appointmentReminderManager->getStatusConsequences(),
             'reminder_view' => $reminderView,
+            'check_in_view' => $this->storeCheckInManager->buildAdminView(8),
             'stats' => [
                 'pending' => $this->appointmentRepository->countByStatus(Appointment::STATUS_PENDING),
                 'confirmed' => $this->appointmentRepository->countByStatus(Appointment::STATUS_CONFIRMED),

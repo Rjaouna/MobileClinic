@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QR code fidélité {{ expired ? 'expiré' : 'invalide' }} - Mobile Clinic{% endblock %}
+{% block meta_description %}Contrôle sécurisé d’un QR code fidélité Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--admin">
+        <section class="dashboard-shell" aria-labelledby="loyalty-scan-error-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Identification fidélité</p>
+                    <h1 id="loyalty-scan-error-title">QR code {{ expired ? 'expiré' : 'invalide' }}</h1>
+                    <p>{{ expired ? 'La durée de sécurité de ce code est terminée.' : 'Ce code n’est pas reconnu ou a été modifié.' }}</p>
+                </div>
+            </header>
+
+            <section class="loyalty-scan-error" aria-labelledby="loyalty-scan-error-message">
+                <span class="loyalty-scan-error__icon" aria-hidden="true">
+                    {% include 'components/_icon.html.twig' with { name: 'shield', size: 30 } only %}
+                </span>
+                <div>
+                    <h2 id="loyalty-scan-error-message">Demandez un nouveau code au client</h2>
+                    <p>Le client peut rouvrir « Afficher mon QR code » dans son espace. Un nouveau code sécurisé sera généré immédiatement.</p>
+                </div>
+                <div class="inline-actions">
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Rechercher le client',
+                        href: path('app_admin_loyalty_index'),
+                        variant: 'primary',
+                        icon: 'search'
+                    } only %}
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Retour au dashboard',
+                        href: path('app_admin_dashboard'),
+                        variant: 'secondary',
+                        icon: 'home'
+                    } only %}
+                </div>
+            </section>
+        </section>
+    </main>
+{% endblock %}

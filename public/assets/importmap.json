@@ -1,0 +1,62 @@
+{
+    "app": {
+        "path": "\/assets\/app-73ugCwk.js",
+        "type": "js"
+    },
+    "\/assets\/stimulus_bootstrap.js": {
+        "path": "\/assets\/stimulus_bootstrap-xCO4u8H.js",
+        "type": "js"
+    },
+    "\/assets\/@symfony\/stimulus-bundle\/controllers.js": {
+        "path": "\/assets\/@symfony\/stimulus-bundle\/controllers-l48UNx5.js",
+        "type": "js"
+    },
+    "\/assets\/@symfony\/ux-turbo\/turbo_controller.js": {
+        "path": "\/assets\/@symfony\/ux-turbo\/turbo_controller-bFCo5ub.js",
+        "type": "js"
+    },
+    "\/assets\/@symfony\/ux-turbo\/mercure_stream_source_element.js": {
+        "path": "\/assets\/@symfony\/ux-turbo\/mercure_stream_source_element-XIjPTus.js",
+        "type": "js"
+    },
+    "\/assets\/controllers\/hello_controller.js": {
+        "path": "\/assets\/controllers\/hello_controller-VYgvytJ.js",
+        "type": "js"
+    },
+    "\/assets\/controllers\/csrf_protection_controller.js": {
+        "path": "\/assets\/controllers\/csrf_protection_controller-6ynUAeX.js",
+        "type": "js"
+    },
+    "\/assets\/styles\/app.css": {
+        "path": "\/assets\/styles\/app-bCwtkrs.css",
+        "type": "css"
+    },
+    "@hotwired\/stimulus": {
+        "path": "\/assets\/vendor\/@hotwired\/stimulus\/stimulus.index-ryewcoo.js",
+        "type": "js"
+    },
+    "@symfony\/stimulus-bundle": {
+        "path": "\/assets\/@symfony\/stimulus-bundle\/loader-IOzBDLu.js",
+        "type": "js"
+    },
+    "@hotwired\/turbo": {
+        "path": "\/assets\/vendor\/@hotwired\/turbo\/turbo.index-J4AkTcK.js",
+        "type": "js"
+    },
+    "axios": {
+        "path": "\/assets\/vendor\/axios\/axios.index-TDbR5xw.js",
+        "type": "js"
+    },
+    "datatables.net": {
+        "path": "\/assets\/vendor\/datatables.net\/datatables.net.index-3F6EvYx.js",
+        "type": "js"
+    },
+    "datatables.net-dt": {
+        "path": "\/assets\/vendor\/datatables.net-dt\/datatables.net-dt.index-e6BoYjd.js",
+        "type": "js"
+    },
+    "datatables.net-dt\/css\/dataTables.dataTables.min.css": {
+        "path": "\/assets\/vendor\/datatables.net-dt\/css\/dataTables.dataTables.min-BPpoT2S.css",
+        "type": "css"
+    }
+}

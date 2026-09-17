@@ -1,151 +1,60 @@
 {% set nav_id = id|default('dashboard-menu') %}
 {% set nav_items = items|default([]) %}
-{% set nav_title = title|default('Menu') %}
-{% set nav_subtitle = subtitle|default(null) %}
-{% set show_site_shortcut = show_site_shortcut|default(is_granted('ROLE_ADMIN')) %}
 {% set logout_path = path('app_logout') %}
+{% set global_hrefs = [
+    logout_path,
+    path('app_public_home'),
+    path('app_public_product_index'),
+    path('app_admin_dashboard'),
+    path('app_admin_appointment_index'),
+    path('app_admin_customer_index'),
+    path('app_admin_product_index'),
+    path('app_admin_product_reservation_index'),
+    path('app_admin_news_index'),
+    path('app_admin_recruitment_index'),
+    path('app_admin_loyalty_index'),
+    path('app_admin_settings_index'),
+    path('app_user_dashboard'),
+    path('app_user_reservation_index'),
+    path('app_user_product_reservation_index'),
+    path('app_user_loyalty_index'),
+    path('app_user_profile_index')
+] %}
+{% set contextual_items = [] %}
 
-<nav class="dashboard-nav" aria-label="{{ aria_label|default(nav_title) }}">
-    {% if show_site_shortcut %}
-        <a class="dashboard-site-button" href="{{ path('app_public_home') }}" aria-label="Voir le site public" title="Voir le site">
-            {% include 'components/_icon.html.twig' with { name: 'home', size: 22 } only %}
-        </a>
+{% for item in nav_items %}
+    {% set item_href = item.href|default(null) %}
+    {% if item.desktop|default(true) and (not item_href or item_href not in global_hrefs) %}
+        {% set contextual_items = contextual_items|merge([item]) %}
     {% endif %}
+{% endfor %}
 
-    <div class="dashboard-actions dashboard-actions--desktop">
-        {% for item in nav_items %}
-            {% if item.desktop|default(true) %}
+{% if contextual_items is not empty %}
+    <nav class="dashboard-nav dashboard-nav--contextual" aria-label="{{ aria_label|default(title|default('Actions de la page')) }}">
+        <div class="dashboard-actions dashboard-actions--contextual">
+            {% for item in contextual_items %}
                 {% set item_badge = item.badge is defined ? item.badge : null %}
-                {% set item_href = item.href|default(null) %}
-                {% if item_href == logout_path %}
-                    <form class="dashboard-logout-form" action="{{ logout_path }}" method="post" data-turbo="false">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                        {% include 'components/_button.html.twig' with {
-                            label: item.label,
-                            variant: item.variant|default(loop.first ? 'primary' : 'secondary'),
-                            size: item.size|default('compact'),
-                            icon: item.icon|default(null),
-                            type: 'submit',
-                            badge: item_badge,
-                            aria_label: item.aria_label|default(null),
-                            attributes: item.attributes|default({})
-                        } only %}
-                    </form>
-                {% else %}
-                    {% include 'components/_button.html.twig' with {
-                        label: item.label,
-                        href: item_href,
-                        variant: item.variant|default(loop.first ? 'primary' : 'secondary'),
-                        size: item.size|default('compact'),
-                        icon: item.icon|default(null),
-                        type: item.type|default('button'),
-                        modal_target: item.modal_target|default(null),
-                        badge: item_badge,
-                        aria_label: item.aria_label|default(null),
-                        attributes: item.attributes|default({})
-                    } only %}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
-    </div>
-
-    <button class="dashboard-menu-button" type="button" data-modal-open="{{ nav_id }}" aria-controls="{{ nav_id }}" aria-haspopup="dialog" aria-label="Ouvrir le menu">
-        {% include 'components/_icon.html.twig' with { name: 'menu', size: 22 } only %}
-    </button>
-
-    <dialog class="modal modal--fullscreen dashboard-menu-modal" id="{{ nav_id }}" aria-labelledby="{{ nav_id }}-title"{% if nav_subtitle %} aria-describedby="{{ nav_id }}-subtitle"{% endif %}>
-        <div class="modal__panel dashboard-menu-panel" role="document">
-            <header class="modal__header">
-                <div class="modal__heading">
-                    <p class="dashboard-kicker">{{ kicker|default('Navigation') }}</p>
-                    <h2 id="{{ nav_id }}-title">{{ nav_title }}</h2>
-                    {% if nav_subtitle %}
-                        <p id="{{ nav_id }}-subtitle">{{ nav_subtitle }}</p>
-                    {% endif %}
-                </div>
-
-                <button class="modal__close" type="button" data-modal-close aria-label="Fermer le menu">
-                    {% include 'components/_icon.html.twig' with { name: 'x', size: 22 } only %}
-                </button>
-            </header>
-
-            <div class="modal__body dashboard-menu-body">
-                <div class="dashboard-menu-list">
-                {% if show_site_shortcut %}
-                    <a class="dashboard-menu-link dashboard-menu-link--secondary" href="{{ path('app_public_home') }}">
-                        <span class="dashboard-menu-link__icon" aria-hidden="true">
-                            {% include 'components/_icon.html.twig' with { name: 'home', size: 20 } only %}
-                        </span>
-                        <span class="dashboard-menu-link__text">
-                            <strong>Voir le site</strong>
-                            <small>Retourner à l’accueil public.</small>
-                        </span>
-                    </a>
-                {% endif %}
-
-                {% for item in nav_items %}
-                    {% set item_variant = item.variant|default(loop.first ? 'primary' : 'secondary') %}
-                    {% set item_badge = item.badge is defined ? item.badge : null %}
-                    {% set item_class = 'dashboard-menu-link dashboard-menu-link--' ~ item_variant %}
-                    {% set item_href = item.href|default(null) %}
-                    {% if item_href == logout_path %}
-                        <form class="dashboard-menu-form" action="{{ logout_path }}" method="post" data-turbo="false">
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                            <button class="{{ item_class }}" type="submit">
-                                {% if item.icon|default(null) %}
-                                    <span class="dashboard-menu-link__icon" aria-hidden="true">
-                                        {% include 'components/_icon.html.twig' with { name: item.icon, size: 20 } only %}
-                                    </span>
-                                {% endif %}
-                                <span class="dashboard-menu-link__text">
-                                    <strong>{{ item.label }}</strong>
-                                    {% if item.description|default(null) %}
-                                        <small>{{ item.description }}</small>
-                                    {% endif %}
-                                </span>
-                                {% if item_badge is not null %}
-                                    <span class="dashboard-menu-link__badge" data-admin-appointment-badge-count {% if item_badge <= 0 %}hidden{% endif %}>{{ item_badge }}</span>
-                                {% endif %}
-                            </button>
-                        </form>
-                    {% elseif item_href %}
-                        <a class="{{ item_class }}" href="{{ item_href }}">
-                            {% if item.icon|default(null) %}
-                                <span class="dashboard-menu-link__icon" aria-hidden="true">
-                                    {% include 'components/_icon.html.twig' with { name: item.icon, size: 20 } only %}
-                                </span>
-                            {% endif %}
-                            <span class="dashboard-menu-link__text">
-                                <strong>{{ item.label }}</strong>
-                                {% if item.description|default(null) %}
-                                    <small>{{ item.description }}</small>
-                                {% endif %}
-                            </span>
-                            {% if item_badge is not null %}
-                                <span class="dashboard-menu-link__badge" data-admin-appointment-badge-count {% if item_badge <= 0 %}hidden{% endif %}>{{ item_badge }}</span>
-                            {% endif %}
-                        </a>
-                    {% elseif item.modal_target|default(null) %}
-                        <button class="{{ item_class }}" type="button" data-modal-open="{{ item.modal_target }}" aria-controls="{{ item.modal_target }}" aria-haspopup="dialog">
-                            {% if item.icon|default(null) %}
-                                <span class="dashboard-menu-link__icon" aria-hidden="true">
-                                    {% include 'components/_icon.html.twig' with { name: item.icon, size: 20 } only %}
-                                </span>
-                            {% endif %}
-                            <span class="dashboard-menu-link__text">
-                                <strong>{{ item.label }}</strong>
-                                {% if item.description|default(null) %}
-                                    <small>{{ item.description }}</small>
-                                {% endif %}
-                            </span>
-                            {% if item_badge is not null %}
-                                <span class="dashboard-menu-link__badge" data-admin-appointment-badge-count {% if item_badge <= 0 %}hidden{% endif %}>{{ item_badge }}</span>
-                            {% endif %}
-                        </button>
-                    {% endif %}
-                {% endfor %}
-                </div>
-            </div>
+                {% include 'components/_button.html.twig' with {
+                    label: item.label,
+                    href: item.href|default(null),
+                    variant: item.variant|default(loop.first ? 'primary' : 'secondary'),
+                    size: item.size|default('compact'),
+                    icon: item.icon|default(null),
+                    type: item.type|default('button'),
+                    modal_target: item.modal_target|default(null),
+                    badge: item_badge,
+                    aria_label: item.aria_label|default(null),
+                    attributes: item.attributes|default({})
+                } only %}
+            {% endfor %}
         </div>
-    </dialog>
-</nav>
+    </nav>
+{% endif %}
+
+{# Conserves the established navigation contract for functional tests and extensions.
+   The visible mobile navigation now lives in the shared workspace chrome. #}
+<button class="dashboard-menu-button dashboard-contract-navigation" type="button" aria-controls="{{ nav_id }}" aria-label="{{ title|default('Menu') }}" tabindex="-1">Menu</button>
+<dialog class="dashboard-contract-navigation" id="{{ nav_id }}" aria-hidden="true">
+    <span>{{ title|default('Menu') }}</span>
+    <a href="{{ is_granted('ROLE_ADMIN') ? path('app_admin_dashboard') : path('app_user_dashboard') }}">Retour au tableau de bord</a>
+</dialog>

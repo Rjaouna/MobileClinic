@@ -1,0 +1,15 @@
+[
+    "\/assets\/stimulus_bootstrap.js",
+    "datatables.net-dt\/css\/dataTables.dataTables.min.css",
+    "\/assets\/styles\/app.css",
+    "axios",
+    "datatables.net-dt",
+    "@symfony\/stimulus-bundle",
+    "datatables.net",
+    "@hotwired\/stimulus",
+    "\/assets\/@symfony\/stimulus-bundle\/controllers.js",
+    "\/assets\/@symfony\/ux-turbo\/turbo_controller.js",
+    "\/assets\/@symfony\/ux-turbo\/mercure_stream_source_element.js",
+    "\/assets\/controllers\/hello_controller.js",
+    "@hotwired\/turbo"
+]

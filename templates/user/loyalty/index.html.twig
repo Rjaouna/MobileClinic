@@ -23,9 +23,16 @@
                     subtitle: 'Sous-menus de votre carte fidélité.',
                     items: [
                         {
+                            label: 'Afficher mon QR code',
+                            href: path('app_user_loyalty_qr_code'),
+                            variant: 'primary',
+                            icon: 'qr-code',
+                            description: 'Présenter ma carte fidélité en magasin.'
+                        },
+                        {
                             label: 'Historique',
                             href: '#user-loyalty-history',
-                            variant: 'primary',
+                            variant: 'secondary',
                             icon: 'clock',
                             description: 'Voir tous les mouvements.'
                         },

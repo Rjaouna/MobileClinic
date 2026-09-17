@@ -91,6 +91,15 @@ class GeneralSetting
     #[ORM\Column(options: ['default' => 120])]
     private int $productReservationAlertMinutes = 120;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $storeCheckInEnabled = true;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $storeCheckInToken = null;
+
+    #[ORM\Column(options: ['default' => 15])]
+    private int $storeCheckInExpirationMinutes = 15;
+
     #[ORM\Column(length: 500)]
     private string $homeHeroPhotoPath = self::DEFAULT_HOME_HERO_PHOTO_PATH;
 
@@ -183,6 +192,46 @@ class GeneralSetting
         }
 
         return sprintf('%d minute%s', $this->productReservationHoldMinutes, $this->productReservationHoldMinutes > 1 ? 's' : '');
+    }
+
+    public function isStoreCheckInEnabled(): bool
+    {
+        return $this->storeCheckInEnabled;
+    }
+
+    public function setStoreCheckInEnabled(bool $storeCheckInEnabled): self
+    {
+        $this->storeCheckInEnabled = $storeCheckInEnabled;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getStoreCheckInToken(): ?string
+    {
+        return $this->storeCheckInToken;
+    }
+
+    public function setStoreCheckInToken(?string $storeCheckInToken): self
+    {
+        $storeCheckInToken = trim((string) $storeCheckInToken);
+        $this->storeCheckInToken = $storeCheckInToken !== '' ? mb_substr($storeCheckInToken, 0, 64) : null;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getStoreCheckInExpirationMinutes(): int
+    {
+        return max(5, min(60, $this->storeCheckInExpirationMinutes));
+    }
+
+    public function setStoreCheckInExpirationMinutes(int $storeCheckInExpirationMinutes): self
+    {
+        $this->storeCheckInExpirationMinutes = max(5, min(60, $storeCheckInExpirationMinutes));
+        $this->touch();
+
+        return $this;
     }
 
     public function getHomeHeroPhotoPath(): string

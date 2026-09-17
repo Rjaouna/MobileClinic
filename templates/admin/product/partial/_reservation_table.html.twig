@@ -77,15 +77,26 @@
                                     </form>
                                 {% endif %}
 
-                                <form class="table-action-form table-action-form--compact" action="{{ path('app_admin_product_reservation_withdraw', { id: reservation.id }) }}" method="post">
+                                <form class="table-action-form table-action-form--compact{{ reservation.confirmed ? ' table-action-form--release' : '' }}" action="{{ path('app_admin_product_reservation_withdraw', { id: reservation.id }) }}" method="post">
                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_product_reservation_' ~ reservation.id) }}">
-                                    <input type="text" name="admin_note" placeholder="Note retrait">
+                                    <input type="text" name="admin_note" placeholder="{{ reservation.confirmed ? 'Note ou motif' : 'Note retrait' }}">
                                     {% include 'components/_button.html.twig' with {
                                         label: 'Retiré',
                                         variant: 'primary',
                                         size: 'compact',
                                         type: 'submit'
                                     } only %}
+                                    {% if reservation.confirmed %}
+                                        {% include 'components/_button.html.twig' with {
+                                            label: 'Remettre en vente',
+                                            variant: 'danger',
+                                            size: 'compact',
+                                            type: 'submit',
+                                            attributes: {
+                                                formaction: path('app_admin_product_reservation_cancel', { id: reservation.id })
+                                            }
+                                        } only %}
+                                    {% endif %}
                                 </form>
 
                                 {% if reservation.reserved %}

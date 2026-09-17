@@ -45,7 +45,8 @@ final class ProductPromotionFlowTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('button.dashboard-menu-button[aria-controls="admin-product-menu"]');
         self::assertStringContainsString('Menu promotions', $this->responseContent());
-        self::assertStringContainsString('Réservations boutique', $this->responseContent());
+        self::assertSelectorExists('.workspace-navigation__link[href="/admin/reservations-boutique"]');
+        self::assertSelectorNotExists('#product-reservation-title');
 
         $token = $crawler->filter('form[action="/admin/promotions/articles"] input[name="_token"]')->first()->attr('value');
         $this->client->request('POST', '/admin/promotions/articles', [
@@ -283,8 +284,9 @@ final class ProductPromotionFlowTest extends WebTestCase
             ->createReservation($customer, [(int) $product->getId()], false);
 
         $this->client->loginUser($admin);
-        $crawler = $this->client->request('GET', '/admin/promotions');
+        $crawler = $this->client->request('GET', '/admin/reservations-boutique');
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.workspace-navigation__link.is-active[href="/admin/reservations-boutique"]');
         self::assertSelectorExists('[data-admin-store-live-refresh][data-admin-store-live-refresh-interval="10000"]');
         self::assertSelectorExists('input[name="reservation_search"][type="search"]');
         self::assertSelectorExists('select[name="reservation_urgency"] option[value="soon"]');
@@ -298,13 +300,54 @@ final class ProductPromotionFlowTest extends WebTestCase
             'admin_note' => 'Retiré en magasin',
         ]);
 
-        self::assertResponseRedirects('/admin/promotions?reservation_status=reserved');
+        self::assertResponseRedirects('/admin/reservations-boutique?reservation_status=reserved');
         self::assertSame(ProductReservation::STATUS_CONFIRMED, $this->reservation($reservation)->getStatus());
 
         $this->client->request('GET', '/promotions');
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Déjà réservé', $this->responseContent());
         self::assertStringContainsString('Samsung Galaxy reconditionné', $this->responseContent());
+    }
+
+    #[Test]
+    public function adminCanReleaseConfirmedReservationAndRefundLoyalty(): void
+    {
+        $admin = $this->user('release-product-admin@symaclinic.fr', '+33605000992', ['ROLE_ADMIN']);
+        $customer = $this->user('release-product-client@symaclinic.fr', '+33605000006');
+        $product = $this->product('Chargeur remis en vente', 3490);
+        $this->entityManager->flush();
+        $this->loyaltyManager->manualCredit($customer, 500, 'Solde test remise en vente', $admin);
+
+        $manager = static::getContainer()->get(ProductReservationManager::class);
+        $reservation = $manager->createReservation($customer, [(int) $product->getId()], true);
+        $manager->confirm($reservation, $admin, 'Garde prolongée par le magasin');
+
+        $this->client->loginUser($admin);
+        $crawler = $this->client->request('GET', '/admin/reservations-boutique');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.data-table__actions', 'Remettre en vente');
+        $releaseButton = $crawler->filter(sprintf('button[formaction="/admin/promotions/reservations/%d/annuler"]', $reservation->getId()))->first();
+        $token = $releaseButton->ancestors()->filter('form')->filter('input[name="_token"]')->attr('value');
+
+        $this->client->request('POST', sprintf('/admin/promotions/reservations/%d/annuler', $reservation->getId()), [
+            '_token' => $token,
+            'admin_note' => 'Le client ne viendra finalement pas.',
+        ]);
+
+        self::assertResponseRedirects('/admin/reservations-boutique');
+        $this->entityManager->clear();
+
+        $reservation = $this->reservation($reservation);
+        $product = $this->entityManager->find(Product::class, $product->getId());
+        $customer = $this->entityManager->find(User::class, $customer->getId());
+        self::assertInstanceOf(Product::class, $product);
+        self::assertInstanceOf(User::class, $customer);
+        self::assertSame(ProductReservation::STATUS_CANCELLED_BY_ADMIN, $reservation->getStatus());
+        self::assertFalse($product->isSold());
+        self::assertTrue($product->isActive());
+        self::assertFalse(static::getContainer()->get(ProductRepository::class)->isBlocked($product));
+        self::assertSame(500, $this->loyaltyManager->buildAccountView($customer)['available_balance_cents']);
     }
 
     #[Test]
@@ -349,7 +392,7 @@ final class ProductPromotionFlowTest extends WebTestCase
             ->createReservation($customer, [(int) $product->getId()], true);
 
         $this->client->loginUser($admin);
-        $crawler = $this->client->request('GET', '/admin/promotions');
+        $crawler = $this->client->request('GET', '/admin/reservations-boutique');
         self::assertResponseIsSuccessful();
         self::assertSelectorExists(sprintf('form[action="/admin/promotions/reservations/%d/retirer"]', $reservation->getId()));
 
@@ -359,7 +402,7 @@ final class ProductPromotionFlowTest extends WebTestCase
             'admin_note' => 'Client passé en magasin',
         ]);
 
-        self::assertResponseRedirects('/admin/promotions');
+        self::assertResponseRedirects('/admin/reservations-boutique');
         $this->entityManager->clear();
 
         $reservation = $this->reservation($reservation);
@@ -376,10 +419,13 @@ final class ProductPromotionFlowTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertStringNotContainsString('Coque retirée test', $this->responseContent());
 
-        $this->client->request('GET', '/admin/promotions?filter=sold&reservation_status=sold');
+        $this->client->request('GET', '/admin/promotions?filter=sold');
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Coque retirée test', $this->responseContent());
         self::assertStringContainsString('Vendu', $this->responseContent());
+
+        $this->client->request('GET', '/admin/reservations-boutique?reservation_status=sold');
+        self::assertResponseIsSuccessful();
         self::assertStringContainsString('Retiré / vendu', $this->responseContent());
     }
 

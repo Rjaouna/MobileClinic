@@ -23,7 +23,28 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body class="app-shell">
+    {% set current_route = app.request.attributes.get('_route')|default('') %}
+    {% set workspace_type = null %}
+    {% if current_route starts with 'app_admin_' and is_granted('ROLE_ADMIN') %}
+        {% set workspace_type = 'admin' %}
+    {% elseif current_route starts with 'app_user_' and app.user %}
+        {% set workspace_type = 'user' %}
+    {% endif %}
+    <body class="app-shell{{ workspace_type ? ' has-workspace workspace--' ~ workspace_type : '' }}">
+        {% if workspace_type %}
+            <div class="workspace-layout">
+                {% include 'components/_workspace_chrome.html.twig' with {
+                    workspace_type: workspace_type,
+                    current_route: current_route
+                } only %}
+                <div class="workspace-content">
+        {% endif %}
+
         {% block body %}{% endblock %}
+
+        {% if workspace_type %}
+                </div>
+            </div>
+        {% endif %}
     </body>
 </html>

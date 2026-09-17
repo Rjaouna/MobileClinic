@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\AppointmentRepository;
 use App\Service\AppointmentReminderManager;
 use App\Service\LoyaltyManager;
+use App\Service\StoreCheckInManager;
 use App\Service\CustomerNotificationMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +29,7 @@ final class AppointmentController extends AbstractController
         private readonly LoyaltyManager $loyaltyManager,
         private readonly EntityManagerInterface $entityManager,
         private readonly CustomerNotificationMailer $notificationMailer,
+        private readonly StoreCheckInManager $storeCheckInManager,
     ) {
     }
 
@@ -35,16 +37,17 @@ final class AppointmentController extends AbstractController
     public function reminders(Request $request): JsonResponse
     {
         $reminderView = $this->appointmentReminderManager->buildAdminView(8);
+        $checkInView = $this->storeCheckInManager->buildAdminView(8);
         $status = (string) $request->query->get('status', '');
         $search = (string) $request->query->get('q', '');
 
         return new JsonResponse([
             'success' => true,
-            'message' => $this->reminderSummaryMessage($reminderView['total']),
+            'message' => $this->notificationSummaryMessage($reminderView['total'], $checkInView['total']),
             'badge_count' => $reminderView['total'],
-            'toast_keys' => $reminderView['toast_keys'],
+            'toast_keys' => array_values(array_merge($checkInView['toast_keys'], $reminderView['toast_keys'])),
             'notifications' => $this->serializeReminderItems($reminderView['items']),
-            'fragments' => $this->reminderFragments($reminderView, $status, $search),
+            'fragments' => $this->reminderFragments($reminderView, $status, $search, $checkInView),
         ]);
     }
 
@@ -193,6 +196,17 @@ final class AppointmentController extends AbstractController
         return sprintf('%d rendez-vous passés sont encore en attente de décision admin.', $total);
     }
 
+    private function notificationSummaryMessage(int $reminderTotal, int $checkInTotal): string
+    {
+        if ($checkInTotal > 0) {
+            return $checkInTotal === 1
+                ? 'Un client vient de signaler sa présence en magasin.'
+                : sprintf('%d clients ont signalé leur présence en magasin.', $checkInTotal);
+        }
+
+        return $this->reminderSummaryMessage($reminderTotal);
+    }
+
     private function parseScheduledAt(string $value): ?\DateTimeImmutable
     {
         $value = trim($value);
@@ -217,8 +231,9 @@ final class AppointmentController extends AbstractController
      * @param array<string, mixed> $reminderView
      * @return list<array{selector: string, html: string}>
      */
-    private function reminderFragments(array $reminderView, string $status = '', string $search = ''): array
+    private function reminderFragments(array $reminderView, string $status = '', string $search = '', ?array $checkInView = null): array
     {
+        $checkInView ??= $this->storeCheckInManager->buildAdminView(8);
         $reminderAppointments = array_map(static fn (array $item): Appointment => $item['appointment'], $reminderView['items']);
 
         return [
@@ -232,6 +247,7 @@ final class AppointmentController extends AbstractController
                 'selector' => '#admin-notification-center',
                 'html' => $this->renderView('admin/appointment/partial/_notification_center.html.twig', [
                     'reminder_view' => $reminderView,
+                    'check_in_view' => $checkInView,
                     'status' => $status,
                     'search' => $search,
                 ]),
@@ -309,12 +325,13 @@ final class AppointmentController extends AbstractController
     private function success(Request $request, string $message): JsonResponse
     {
         $reminderView = $this->appointmentReminderManager->buildAdminView(8);
+        $checkInView = $this->storeCheckInManager->buildAdminView(8);
 
         return new JsonResponse([
             'success' => true,
             'message' => $message,
             'badge_count' => $reminderView['total'],
-            'toast_keys' => $reminderView['toast_keys'],
+            'toast_keys' => array_values(array_merge($checkInView['toast_keys'], $reminderView['toast_keys'])),
             'notifications' => $this->serializeReminderItems($reminderView['items']),
             'fragments' => $this->allFragments($request, $reminderView),
         ]);

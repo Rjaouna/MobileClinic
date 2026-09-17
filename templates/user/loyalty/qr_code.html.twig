@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% macro money(cents) %}
+    {% set absolute = cents < 0 ? -cents : cents %}
+    {% set euros = (absolute / 100)|round(0, 'floor') %}
+    {% set cents_rest = absolute % 100 %}
+    {{ cents < 0 ? '-' : '' }}{{ euros }}{% if cents_rest > 0 %},{{ cents_rest < 10 ? '0' ~ cents_rest : cents_rest }}{% endif %} €
+{% endmacro %}
+
+{% import _self as money %}
+
+{% block title %}Mon QR code fidélité - Mobile Clinic{% endblock %}
+{% block meta_description %}QR code sécurisé de la carte fidélité Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user">
+        <section class="dashboard-shell" aria-labelledby="user-loyalty-qr-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Fidélité en magasin</p>
+                    <h1 id="user-loyalty-qr-title">Mon QR code</h1>
+                    <p>Présentez ce code à l’équipe pour retrouver immédiatement votre cagnotte.</p>
+                </div>
+
+                {% include 'components/_dashboard_navigation.html.twig' with {
+                    id: 'user-loyalty-qr-menu',
+                    kicker: 'Espace client',
+                    title: 'Menu QR code',
+                    subtitle: 'Accès à votre carte fidélité.',
+                    items: [
+                        {
+                            label: 'Ma fidélité',
+                            href: path('app_user_loyalty_index'),
+                            variant: 'primary',
+                            icon: 'spark',
+                            description: 'Consulter ma cagnotte et mes mouvements.'
+                        },
+                        {
+                            label: 'Mon espace',
+                            href: path('app_user_dashboard'),
+                            variant: 'secondary',
+                            icon: 'home',
+                            description: 'Retour au tableau de bord.'
+                        }
+                    ]
+                } only %}
+            </header>
+
+            <div class="loyalty-qr-layout">
+                <section
+                    class="loyalty-qr-card"
+                    aria-labelledby="loyalty-qr-card-title"
+                    data-loyalty-qr
+                    data-expires-at="{{ qr_code.expires_at|date('c') }}"
+                    data-validity-seconds="{{ qr_code.validity_seconds }}"
+                >
+                    <div class="loyalty-qr-card__heading">
+                        <span class="loyalty-qr-card__icon" aria-hidden="true">
+                            {% include 'components/_icon.html.twig' with { name: 'qr-code', size: 22 } only %}
+                        </span>
+                        <div>
+                            <p class="dashboard-kicker">Code sécurisé</p>
+                            <h2 id="loyalty-qr-card-title">{{ customer.displayName }}</h2>
+                        </div>
+                        <span class="status-pill status-pill--success" data-loyalty-qr-status>Actif</span>
+                    </div>
+
+                    <div class="loyalty-qr-card__visual">
+                        <img src="{{ qr_code.data_uri }}" alt="QR code fidélité de {{ customer.displayName }}" width="320" height="320">
+                    </div>
+
+                    <div class="loyalty-qr-timer" aria-live="polite">
+                        <span>Code valable encore</span>
+                        <strong data-loyalty-qr-countdown>05:00</strong>
+                    </div>
+                    <div class="loyalty-qr-progress" aria-hidden="true">
+                        <span data-loyalty-qr-progress></span>
+                    </div>
+                    <p class="loyalty-qr-expired" data-loyalty-qr-expired hidden>Ce code a expiré. Générez-en un nouveau avant de le présenter.</p>
+
+                    {% include 'components/_button.html.twig' with {
+                        label: 'Générer un nouveau code',
+                        href: path('app_user_loyalty_qr_code'),
+                        variant: 'primary',
+                        icon: 'qr-code'
+                    } only %}
+                </section>
+
+                <aside class="loyalty-qr-help" aria-labelledby="loyalty-qr-help-title">
+                    <div>
+                        <p class="dashboard-kicker">En magasin</p>
+                        <h2 id="loyalty-qr-help-title">Une identification simple et rapide</h2>
+                        <p>L’équipe scanne votre code depuis son appareil sécurisé. Aucun mot de passe ni accès à votre compte n’est partagé.</p>
+                    </div>
+
+                    <div class="loyalty-qr-balance" aria-label="Résumé de la cagnotte">
+                        <div>
+                            <span>Disponible</span>
+                            <strong>{{ money.money(loyalty.available_balance_cents) }}</strong>
+                        </div>
+                        <div>
+                            <span>En attente</span>
+                            <strong>{{ money.money(loyalty.pending_balance_cents) }}</strong>
+                        </div>
+                    </div>
+
+                    <ol class="loyalty-qr-steps">
+                        <li><span>1</span><p>Ouvrez cette page devant l’équipe.</p></li>
+                        <li><span>2</span><p>Présentez le QR code bien à plat.</p></li>
+                        <li><span>3</span><p>L’admin retrouve directement votre fidélité.</p></li>
+                    </ol>
+
+                    <div class="loyalty-qr-security">
+                        {% include 'components/_icon.html.twig' with { name: 'shield', size: 20 } only %}
+                        <p>Le code expire après 5 minutes et ne permet jamais de se connecter à votre place.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+{% endblock %}

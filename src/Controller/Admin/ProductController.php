@@ -38,19 +38,26 @@ final class ProductController extends AbstractController
     #[Route('/admin/promotions', name: 'app_admin_product_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $this->reservationManager->expireOverdueReservations();
         $search = (string) $request->query->get('q', '');
         $filter = (string) $request->query->get('filter', '');
-        $reservationStatus = (string) $request->query->get('reservation_status', '');
 
         return $this->render('admin/product/index.html.twig', [
             'products' => $this->productRepository->findForAdmin($search, $filter),
             'reserved_product_ids' => $this->productRepository->findBlockedProductIds(),
-            'reservations' => $this->reservationRepository->findForAdmin(),
-            'reservation_status_labels' => ProductReservation::STATUS_LABELS,
             'search' => $search,
             'filter' => $filter,
-            'reservation_status' => $reservationStatus,
+        ]);
+    }
+
+    #[Route('/admin/reservations-boutique', name: 'app_admin_product_reservation_index', methods: ['GET'])]
+    public function reservations(Request $request): Response
+    {
+        $this->reservationManager->expireOverdueReservations();
+
+        return $this->render('admin/product/reservations.html.twig', [
+            'reservations' => $this->reservationRepository->findForAdmin(),
+            'reservation_status_labels' => ProductReservation::STATUS_LABELS,
+            'reservation_status' => (string) $request->query->get('reservation_status', ''),
             'setting' => $this->generalSettingManager->getSetting(),
         ]);
     }
@@ -146,7 +153,7 @@ final class ProductController extends AbstractController
             $this->addFlash('error', $exception->getMessage());
         }
 
-        return $this->redirectToRoute('app_admin_product_index', ['reservation_status' => ProductReservation::STATUS_RESERVED]);
+        return $this->redirectToRoute('app_admin_product_reservation_index', ['reservation_status' => ProductReservation::STATUS_RESERVED]);
     }
 
     #[Route('/admin/promotions/reservations/{id}/retirer', name: 'app_admin_product_reservation_withdraw', methods: ['POST'])]
@@ -162,7 +169,7 @@ final class ProductController extends AbstractController
             $this->addFlash('error', $exception->getMessage());
         }
 
-        return $this->redirectToRoute('app_admin_product_index');
+        return $this->redirectToRoute('app_admin_product_reservation_index');
     }
 
     #[Route('/admin/promotions/reservations/{id}/annuler', name: 'app_admin_product_reservation_cancel', methods: ['POST'])]
@@ -172,12 +179,12 @@ final class ProductController extends AbstractController
 
         try {
             $this->reservationManager->cancelByAdmin($reservation, $this->getAdmin(), (string) $request->request->get('admin_note'));
-            $this->addFlash('success', 'La réservation boutique a été annulée et la fidélité utilisée a été remboursée.');
+            $this->addFlash('success', 'La réservation a été annulée, les articles sont remis en vente et la fidélité utilisée a été remboursée.');
         } catch (\InvalidArgumentException $exception) {
             $this->addFlash('error', $exception->getMessage());
         }
 
-        return $this->redirectToRoute('app_admin_product_index');
+        return $this->redirectToRoute('app_admin_product_reservation_index');
     }
 
     private function applyProductData(Product $product, Request $request): void

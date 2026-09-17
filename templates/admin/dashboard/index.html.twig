@@ -72,7 +72,15 @@
                             Promotions
                             <span class="nav-badge">{{ stats.products }}</span>
                         </strong>
-                        <span>{{ stats.products }} article{{ stats.products > 1 ? 's' : '' }} visible{{ stats.products > 1 ? 's' : '' }} et {{ stats.product_reservations }} réservation{{ stats.product_reservations > 1 ? 's' : '' }} active{{ stats.product_reservations > 1 ? 's' : '' }}.</span>
+                        <span>{{ stats.products }} article{{ stats.products > 1 ? 's' : '' }} visible{{ stats.products > 1 ? 's' : '' }} dans la boutique.</span>
+                    </a>
+                    <a class="admin-access-card" href="{{ path('app_admin_product_reservation_index') }}">
+                        {% include 'components/_icon.html.twig' with { name: 'briefcase', size: 24 } only %}
+                        <strong class="admin-access-card__title">
+                            Réservations boutique
+                            <span class="nav-badge">{{ stats.product_reservations }}</span>
+                        </strong>
+                        <span>{{ stats.product_reservations }} réservation{{ stats.product_reservations > 1 ? 's' : '' }} boutique à suivre.</span>
                     </a>
                     <a class="admin-access-card" href="{{ path('app_admin_news_index') }}">
                         {% include 'components/_icon.html.twig' with { name: 'news', size: 24 } only %}
@@ -114,9 +122,10 @@
                 </div>
             </section>
 
-            <div data-admin-notifications data-notifications-url="{{ path('app_api_admin_appointment_reminders') }}" data-notifications-interval="10000" data-notification-toast-keys="{{ reminder_view.toast_keys|json_encode|e('html_attr') }}">
+            <div data-admin-notifications data-notifications-url="{{ path('app_api_admin_appointment_reminders') }}" data-notifications-interval="10000" data-notification-toast-keys="{{ check_in_view.toast_keys|merge(reminder_view.toast_keys)|json_encode|e('html_attr') }}">
                 {% include 'admin/appointment/partial/_notification_center.html.twig' with {
                     reminder_view: reminder_view,
+                    check_in_view: check_in_view,
                     status: ''
                 } only %}
             </div>

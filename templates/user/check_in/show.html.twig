@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Signaler ma présence - Mobile Clinic{% endblock %}
+{% block meta_description %}Signalez votre arrivée en magasin à l’équipe Mobile Clinic.{% endblock %}
+
+{% block body %}
+    <main class="dashboard-page dashboard-page--user store-check-in-page">
+        <section class="dashboard-shell" aria-labelledby="store-check-in-title">
+            <header class="dashboard-header">
+                <div>
+                    <p class="dashboard-kicker">Accueil magasin</p>
+                    <h1 id="store-check-in-title">Bonjour {{ customer.displayName }}</h1>
+                    <p>Confirmez votre présence pour que l’équipe retrouve votre cagnotte sans attendre.</p>
+                </div>
+            </header>
+
+            {% include 'components/_flash_messages.html.twig' %}
+
+            <div class="store-check-in-layout">
+                <section class="store-check-in-card" aria-labelledby="store-check-in-card-title">
+                    <span class="store-check-in-card__icon" aria-hidden="true">
+                        {% include 'components/_icon.html.twig' with { name: 'map-pin', size: 30 } only %}
+                    </span>
+                    <p class="dashboard-kicker">Vous êtes sur place</p>
+                    <h2 id="store-check-in-card-title">Prévenir l’équipe de votre arrivée</h2>
+                    <p>Votre nom sera affiché dans le back-office du magasin. Aucune donnée personnelle n’est enregistrée dans le QR code.</p>
+
+                    {% if check_in and not check_in.resolved %}
+                        <div class="store-check-in-state">
+                            {% include 'components/_icon.html.twig' with { name: 'check', size: 20 } only %}
+                            <span>
+                                <strong>Présence déjà signalée</strong>
+                                <small>L’équipe conserve votre demande jusqu’à sa prise en charge.</small>
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ path('app_user_store_check_in_confirm', { token: token }) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('store_check_in') }}">
+                        {% include 'components/_button.html.twig' with {
+                            label: check_in and not check_in.resolved ? 'Rappeler ma présence' : 'Je suis arrivé au magasin',
+                            variant: 'primary',
+                            type: 'submit',
+                            icon: 'check'
+                        } only %}
+                    </form>
+                </section>
+
+                <aside class="store-check-in-help" aria-labelledby="store-check-in-help-title">
+                    <p class="dashboard-kicker">Parcours sécurisé</p>
+                    <h2 id="store-check-in-help-title">Ce qui va se passer</h2>
+                    <ol>
+                        <li><span>1</span><p>Vous confirmez votre arrivée.</p></li>
+                        <li><span>2</span><p>L’équipe reçoit une notification avec votre nom.</p></li>
+                        <li><span>3</span><p>Elle ouvre directement votre cagnotte fidélité.</p></li>
+                    </ol>
+                    <div class="store-check-in-help__security">
+                        {% include 'components/_icon.html.twig' with { name: 'shield', size: 20 } only %}
+                        <p>La présence reste valable {{ setting.storeCheckInExpirationMinutes }} minutes. Elle ne donne jamais accès à votre compte.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+{% endblock %}

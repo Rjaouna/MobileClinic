@@ -1,24 +1,74 @@
-<section id="admin-notification-center" class="admin-notification-center" aria-labelledby="admin-notification-title" {% if reminder_view.total <= 0 %}hidden{% endif %}>
+{% set check_in_view = check_in_view|default({ total: 0, items: [], toast_keys: [] }) %}
+{% set notification_total = reminder_view.total + check_in_view.total %}
+
+<section id="admin-notification-center" class="admin-notification-center" aria-labelledby="admin-notification-title" {% if notification_total <= 0 %}hidden{% endif %}>
     <div class="admin-panel__header">
         <div>
             <p class="dashboard-kicker">Centre de notifications</p>
-            <h2 id="admin-notification-title">Rappels rendez-vous</h2>
+            <h2 id="admin-notification-title">Notifications à traiter</h2>
             <p>
-                {% if reminder_view.total > 0 %}
-                    {{ reminder_view.total }} rendez-vous {{ reminder_view.total > 1 ? 'passés sont encore en attente' : 'passé est encore en attente' }} de décision admin : confirmez la présence, l’absence, l’annulation ou reportez le créneau.
+                {% if notification_total > 0 %}
+                    {% if check_in_view.total > 0 %}{{ check_in_view.total }} présence{{ check_in_view.total > 1 ? 's' : '' }} magasin{% endif %}
+                    {% if check_in_view.total > 0 and reminder_view.total > 0 %} et {% endif %}
+                    {% if reminder_view.total > 0 %}{{ reminder_view.total }} rappel{{ reminder_view.total > 1 ? 's' : '' }} de rendez-vous{% endif %}
+                    {{ notification_total > 1 ? 'attendent' : 'attend' }} une décision admin.
                 {% else %}
-                    Les rappels apparaissent ici quand un rendez-vous est passé et reste en attente de décision admin.
+                    Les arrivées magasin et les rendez-vous à régulariser apparaîtront ici.
                 {% endif %}
             </p>
         </div>
 
-        <span class="notification-counter {{ reminder_view.total > 0 ? 'is-active' : '' }}">{{ reminder_view.total }}</span>
+        <span class="notification-counter {{ notification_total > 0 ? 'is-active' : '' }}">{{ notification_total }}</span>
     </div>
 
-    {% if reminder_view.items is empty %}
-        <p class="empty-state">Aucun rappel actif. Les prochains rendez-vous passés apparaîtront ici.</p>
+    {% if check_in_view.items is empty and reminder_view.items is empty %}
+        <p class="empty-state">Aucune notification active.</p>
     {% else %}
         <div class="notification-list">
+            {% for item in check_in_view.items %}
+                {% set check_in = item.check_in %}
+                <article class="notification-card notification-card--{{ item.level_variant }} notification-card--check-in" data-notification-key="{{ item.toast_key }}">
+                    <div class="notification-card__main">
+                        <span class="notification-card__level">{{ item.type_label }}</span>
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.message }}</p>
+                        <div class="notification-card__meta">
+                            <span>{{ item.customer_name }}</span>
+                            <span>{{ item.email }}</span>
+                            {% if item.phone %}<a href="tel:{{ item.phone }}">{{ item.phone }}</a>{% endif %}
+                            <span>{{ item.elapsed_label }}</span>
+                            <span>Valable jusqu’à {{ item.expires_label }}</span>
+                        </div>
+                    </div>
+
+                    <div class="notification-card__actions">
+                        <form class="inline-form" action="{{ path('app_admin_store_check_in_open_loyalty', { id: check_in.id }) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_store_check_in_' ~ check_in.id) }}">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Ouvrir la cagnotte',
+                                variant: 'primary',
+                                size: 'compact',
+                                type: 'submit',
+                                icon: 'spark'
+                            } only %}
+                        </form>
+
+                        <form class="inline-form" action="{{ path('app_api_admin_store_check_in_dismiss', { id: check_in.id }) }}" method="post" data-ajax-form>
+                            <input type="hidden" name="_token" value="{{ csrf_token('admin_store_check_in_' ~ check_in.id) }}">
+                            <input type="hidden" name="_list_status" value="{{ status|default('') }}">
+                            <input type="hidden" name="_list_search" value="{{ search|default('') }}">
+                            {% include 'components/_button.html.twig' with {
+                                label: 'Classer',
+                                variant: 'secondary',
+                                size: 'compact',
+                                type: 'submit',
+                                icon: 'check'
+                            } only %}
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+
             {% for item in reminder_view.items %}
                 {% set appointment = item.appointment %}
                 <article class="notification-card notification-card--{{ item.level_variant }}" data-notification-key="{{ item.toast_key }}">

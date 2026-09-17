@@ -186,8 +186,8 @@ final class ProductReservationManager
     {
         $loyaltyTransaction = null;
         $result = $this->entityManager->wrapInTransaction(function () use ($reservation, $administrator, $note, &$loyaltyTransaction): ProductReservation {
-            if (!$reservation->isReserved()) {
-                throw new \InvalidArgumentException('Seule une réservation en attente de retrait peut être annulée.');
+            if (!$reservation->isReserved() && !$reservation->isConfirmed()) {
+                throw new \InvalidArgumentException('Seule une réservation gardée en magasin peut être remise en vente.');
             }
 
             $reservation

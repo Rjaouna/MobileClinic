@@ -54,9 +54,10 @@
             {% include 'components/_flash_messages.html.twig' %}
             <div class="ajax-toast" data-ajax-toast hidden></div>
 
-            <div data-admin-notifications data-notifications-url="{{ path('app_api_admin_appointment_reminders', { q: search, status: status }) }}" data-notifications-interval="10000" data-notification-toast-keys="{{ reminder_view.toast_keys|json_encode|e('html_attr') }}">
+            <div data-admin-notifications data-notifications-url="{{ path('app_api_admin_appointment_reminders', { q: search, status: status }) }}" data-notifications-interval="10000" data-notification-toast-keys="{{ check_in_view.toast_keys|merge(reminder_view.toast_keys)|json_encode|e('html_attr') }}">
                 {% include 'admin/appointment/partial/_notification_center.html.twig' with {
                     reminder_view: reminder_view,
+                    check_in_view: check_in_view,
                     status: status,
                     search: search
                 } only %}
